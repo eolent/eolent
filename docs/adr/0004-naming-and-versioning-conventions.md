@@ -23,6 +23,8 @@ Package names, namespaces, module names and version numbers are the first things
 | Events | lowercase segments separated by dots, by convention `module.entity.action` | `identity.user.created` |
 | Repositories | `eolent` (hub), `eolent-<language or kit>` for implementations | `eolent-dotnet`, `eolent-react` |
 
+**Module prefix.** Permission, feature and setting names start with the module name converted to PascalCase: each dot-separated segment of the module name keeps its place as a segment, and within a segment hyphens are removed and the following letter is capitalised. So `identity` becomes `Identity`, `user-admin` becomes `UserAdmin` and `billing.invoices` becomes `Billing.Invoices`. Hyphens never appear in permission, feature or setting names.
+
 The manifest schema ([spec/module.schema.json](../../spec/module.schema.json)) is authoritative for what is syntactically valid, including the number of segments and the characters allowed in each name. The patterns above are conventions within what the schema allows.
 
 Names in the specification are language-neutral. A language implementation maps them to its idioms (for example PascalCase types) without changing the names that appear on the wire or in manifests.
