@@ -49,17 +49,19 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | StackExchange.Redis | 3.4.35 | MIT | Adopted (cache provider) |
 | Tailwind CSS | 4.3.5 | MIT | Adopted |
 | TanStack Table | 9.3.1 | MIT | Adopted |
-| shadcn/ui | repository `main` | MIT | Adopted (source copied into the kit) |
+| shadcn/ui | repository `main` at commit 968d8cb9dc | MIT | Adopted (source copied into the kit) |
 | Wolverine | 6.64.2 | MIT | Optional module only |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected |
 | MassTransit | 9.3.0 | Proprietary commercial licence | Rejected |
 
+Infrastructure services are not covered by this table. Eolent does not distribute any server software: the Redis cache provider talks to a Redis-compatible server that the deployer chooses and is responsible for, and Redis is optional. Because recent Redis server releases use source-available or copyleft licence options, deployments should check the terms of the server they run, or use a compatible server under a permissive licence such as Valkey (BSD-3-Clause). The kernel depends only on the `IDistributedCache` abstraction.
+
 Licences can change, so this table is a snapshot and must be refreshed under rule 4.
 
 ## Consequences
 
-- Eolent owns a small amount of infrastructure code (domain events, outbox, scheduler interface). It is covered by the kernel's tests and the conformance suite.
+- Eolent owns a small amount of infrastructure code (domain events, outbox, scheduler interface). It is to be covered by the kernel's tests and, once it exists, the conformance suite (planned).
 - Users can plug in a different identity provider or job engine without changes to modules.
 - Users who want a full message bus can opt into an optional module, or use their own, without it becoming a dependency of everyone.
 - A change of any listed library's licence requires a new ADR or an update to this one, and a switch via the recorded exit option.
