@@ -1,0 +1,42 @@
+{
+  "$schema": "../module.schema.json",
+  "manifestVersion": "0.1",
+  "name": "identity",
+  "version": "0.1.0",
+  "displayName": "Identity",
+  "description": "Users, roles and permission assignment.",
+  "dependencies": [
+    { "name": "tenants", "versionRange": ">=0.1.0 <1.0.0" }
+  ],
+  "permissions": [
+    { "name": "Identity.Users", "displayName": "User management" },
+    { "name": "Identity.Users.Create", "displayName": "Create users", "parent": "Identity.Users" },
+    { "name": "Identity.Roles", "displayName": "Role management" }
+  ],
+  "features": [
+    { "name": "Identity.TwoFactor", "displayName": "Two-factor authentication", "valueType": "boolean", "default": false }
+  ],
+  "settings": [
+    { "name": "Identity.Password.MinimumLength", "valueType": "integer", "default": 12, "scope": "tenant" }
+  ],
+  "entities": [
+    { "name": "User", "tenancy": "tenantScoped", "softDelete": true, "auditing": true },
+    { "name": "Role", "tenancy": "tenantScoped", "auditing": true }
+  ],
+  "events": [
+    { "name": "identity.user.created", "direction": "publishes", "dataSchema": "events/user-created.schema.json" }
+  ],
+  "ui": {
+    "routes": [
+      { "path": "/identity/users", "titleKey": "Identity.Users", "permission": "Identity.Users" }
+    ],
+    "menu": [
+      { "key": "identity", "titleKey": "Identity.Menu", "order": 10 },
+      { "key": "identity.users", "titleKey": "Identity.Users", "route": "/identity/users", "permission": "Identity.Users", "parent": "identity" }
+    ]
+  },
+  "localization": {
+    "defaultCulture": "en",
+    "resources": ["i18n/en.json", "i18n/cs.json"]
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/eolent/eolent/main/spec/module.schema.json",
+  "title": "Eolent module manifest",
+  "description": "Describes what an Eolent module provides: permissions, features, settings, entities, events, UI contributions and localization. Draft 0.1.",
+  "type": "object",
+  "required": ["manifestVersion", "name", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "manifestVersion": {
+      "description": "Version of this manifest format.",
+      "const": "0.1"
+    },
+    "name": {
+      "description": "Unique module name: lowercase segments separated by dots.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$"
+    },
+    "version": {
+      "description": "Semantic version of the module.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "displayName": { "type": "string" },
+    "description": { "type": "string" },
+    "dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependency" }
+    },
+    "permissions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/permission" }
+    },
+    "features": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/feature" }
+    },
+    "settings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/setting" }
+    },
+    "entities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event" }
+    },
+    "ui": { "$ref": "#/$defs/ui" },
+    "localization": { "$ref": "#/$defs/localization" }
+  },
+  "$defs": {
+    "dependency": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$" },
+        "versionRange": {
+          "description": "Semantic version range, for example \">=1.0.0 <2.0.0\".",
+          "type": "string"
+        }
+      }
+    },
+    "permission": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Dot-separated permission name, for example \"Identity.Users.Create\".",
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$"
+        },
+        "displayName": { "type": "string" },
+        "description": { "type": "string" },
+        "parent": {
+          "description": "Name of the parent permission, if this one is nested.",
+          "type": "string"
+        }
+      }
+    },
+    "feature": {
+      "type": "object",
+      "required": ["name", "valueType"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$" },
+        "displayName": { "type": "string" },
+        "description": { "type": "string" },
+        "valueType": { "enum": ["boolean", "integer", "string"] },
+        "default": { "type": ["boolean", "integer", "string"] }
+      }
+    },
+    "setting": {
+      "type": "object",
+      "required": ["name", "valueType"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$" },
+        "displayName": { "type": "string" },
+        "description": { "type": "string" },
+        "valueType": { "enum": ["boolean", "integer", "number", "string"] },
+        "default": { "type": ["boolean", "integer", "number", "string"] },
+        "scope": {
+          "description": "Level at which the setting can be overridden.",
+          "enum": ["global", "tenant", "user"],
+          "default": "global"
+        }
+      }
+    },
+    "entity": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+        "description": { "type": "string" },
+        "tenancy": {
+          "description": "Whether instances belong to a tenant.",
+          "enum": ["none", "tenantScoped"],
+          "default": "tenantScoped"
+        },
+        "softDelete": { "type": "boolean", "default": false },
+        "auditing": { "type": "boolean", "default": true }
+      }
+    },
+    "event": {
+      "type": "object",
+      "required": ["name", "direction"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Event type name, for example \"identity.user.created\".",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+        },
+        "direction": { "enum": ["publishes", "subscribes"] },
+        "description": { "type": "string" },
+        "dataSchema": {
+          "description": "Relative path or URI of a JSON Schema describing the event data.",
+          "type": "string"
+        }
+      }
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path"],
+            "additionalProperties": false,
+            "properties": {
+              "path": { "type": "string", "pattern": "^/" },
+              "titleKey": { "type": "string" },
+              "permission": { "type": "string" }
+            }
+          }
+        },
+        "menu": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "titleKey"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string" },
+              "titleKey": { "type": "string" },
+              "route": { "type": "string", "pattern": "^/" },
+              "permission": { "type": "string" },
+              "order": { "type": "integer" },
+              "parent": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "localization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "defaultCulture": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$" },
+        "resources": {
+          "description": "Relative paths of localization resource files.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}
