@@ -45,6 +45,7 @@ More detail: [docs/vision.md](docs/vision.md).
 - [AI-friendliness](docs/ai-friendliness.md)
 - [Multi-language approach](docs/multi-language.md)
 - [Roadmap](docs/roadmap.md)
+- [What is free and what is commercial](docs/free-and-commercial.md)
 - [Architecture decision records](docs/adr/)
 - [Specification](spec/README.md)
 
