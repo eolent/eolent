@@ -47,7 +47,7 @@ Nested resources are used only when the child cannot exist without its parent: `
 - Resource identifiers are UUIDs, serialised as lowercase hyphenated strings, with `format: uuid` in the description.
 - Timestamps are [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) strings in UTC, with `format: date-time`. Dates without a time use `format: date`.
 - Optional absent values are omitted or `null`. Clients MUST treat both the same.
-- Every persisted resource includes `id`, `createdAt` and `updatedAt`. Resources that support optimistic concurrency also include a `version` token, see section 7.
+- Every persisted resource includes `id`, `createdAt` and `updatedAt`. Resources that support optimistic concurrency also include a `version` string, which is their concurrency token, see section 7.
 
 ## 5. Pagination, sorting and filtering
 
@@ -60,6 +60,7 @@ List operations MUST support:
 | `sort` | Comma-separated property names; a leading `-` means descending | the resource's documented default order |
 | `filter[<property>]` | Equality filter; a comma-separated list means "any of" | none |
 | `q` | Free-text search, when the resource supports it | none |
+| `includeTotal` | Boolean. When `true`, the response includes `totalCount` | `false` |
 
 The response is an envelope:
 
@@ -83,7 +84,9 @@ The response is an envelope:
 
 ## 7. Concurrency and idempotency
 
-- Resources that can be updated concurrently return an `ETag` header on `GET`, and `PATCH`, `PUT` and `DELETE` accept `If-Match`. A mismatch returns `412 Precondition Failed`; a missing `If-Match` where it is required returns `428 Precondition Required`.
+- A resource that supports optimistic concurrency exposes a `version` property in its body. The `ETag` response header carries the same value as a strong entity tag: `ETag: "<version>"`. The body property is authoritative, and clients that cannot read headers can use it.
+- For such a resource, `PATCH`, `PUT` and `DELETE` MUST be sent with `If-Match: "<version>"`. A request without `If-Match` returns `428 Precondition Required`; a stale value returns `412 Precondition Failed`. Request bodies do not carry `version`. The operation's description declares the `If-Match` header as required, so generated clients send it.
+- Resources without a `version` property do not support optimistic concurrency, and `If-Match` is ignored for them.
 - Operations that create resources or trigger side effects MAY accept an `Idempotency-Key` header. A repeated request with the same key and the same body returns the original result; the same key with a different body returns `422`.
 
 ## 8. Example
