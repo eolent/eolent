@@ -53,7 +53,7 @@ Nested resources are used only when the child cannot exist without its parent: `
 
 ## 5. Pagination, sorting and filtering
 
-List operations MUST support `limit`, `cursor`, `sort` and `includeTotal`. They support `filter[<property>]` and `q` where the operation's description declares them. The parameters are:
+List operations MUST support `limit`, `cursor`, `sort` and `includeTotal`. They support `filter[<property>]` and `q` where the operation declares them with the extensions described below. The parameters are:
 
 | Parameter | Meaning | Default |
 |---|---|---|
@@ -74,9 +74,11 @@ The response is an envelope:
 }
 ```
 
+The `totalCount` property in this example is present only when the request sets `includeTotal=true`; generated clients MUST treat it as optional.
+
 - `nextCursor` is `null` or absent on the last page. Cursors are opaque and expire; clients MUST NOT parse them.
 - `totalCount` is present only when the request sets `includeTotal=true`, because counting can be expensive.
-- Range filters use `filter[<property>][gte]`, `[gt]`, `[lte]` and `[lt]`. An operation lists the properties it can filter and sort by in its description; an unsupported property MUST return a validation error, not be silently ignored.
+- Range filters use `filter[<property>][gte]`, `[gt]`, `[lte]` and `[lt]`. A list operation declares the properties it can filter and sort by with the extensions `x-eolent-filterable` and `x-eolent-sortable`, each an array of property names. A request that filters or sorts by a property not in the declared array MUST return a validation error and MUST NOT be silently ignored. `q` is accepted only where the operation declares `x-eolent-searchable: true`.
 
 ## 6. Tenancy, authentication and permissions in the description
 
@@ -107,10 +109,13 @@ A fragment of a conforming description (abridged). `info.version` is the version
         "x-eolent-permission": "Identity.Users",
         "x-eolent-tenancy": "tenantScoped",
         "security": [{ "bearerAuth": [] }],
+        "x-eolent-sortable": ["createdAt", "name"],
+        "x-eolent-filterable": ["status"],
         "parameters": [
           { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50 } },
           { "name": "cursor", "in": "query", "schema": { "type": "string" } },
-          { "name": "sort", "in": "query", "schema": { "type": "string" } }
+          { "name": "sort", "in": "query", "schema": { "type": "string" } },
+          { "name": "includeTotal", "in": "query", "schema": { "type": "boolean", "default": false } }
         ],
         "responses": { "200": { "description": "A page of users" } }
       }
@@ -127,7 +132,7 @@ The conformance suite checks, against a running backend, that:
 - `operationId` values are unique and follow the naming rules, including the module conversion above
 - `x-eolent-tenancy` is present on every operation and has a value of `tenantScoped` or `none`
 - list operations accept `limit`, `cursor`, `sort` and `includeTotal`, return the envelope, and include `totalCount` only when `includeTotal=true`
-- `filter` and `q` parameters are accepted exactly where the operation's description declares them
+- `filter` parameters are accepted exactly for the properties in `x-eolent-filterable`, `sort` for those in `x-eolent-sortable`, and `q` only where `x-eolent-searchable` is `true`; anything else returns a validation error
 - a create operation returns `201` with a `Location` header
 - for a resource that exposes `version`, `PATCH` and `DELETE`, and `PUT` where that operation exists, return `428` without `If-Match` and `412` for a stale value, and the `ETag` header equals `"<version>"` (the `version` value in double quotes)
 - every `x-eolent-permission` value is declared in the manifest of the module named by the operation's tag
