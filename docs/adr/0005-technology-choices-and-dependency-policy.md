@@ -14,7 +14,7 @@
 1. A runtime dependency of Eolent packages must be available under a permissive licence (Apache-2.0, MIT, BSD or similar) that allows redistribution as part of a commercial product.
 2. Libraries under copyleft, source-available or paid terms are not used as dependencies of core packages. They may be supported through optional, separate packages that users opt into knowingly.
 3. Third-party types do not appear in public module contracts where a thin abstraction is practical. Each abstraction records an exit option: what we would switch to if the licence or maintenance of the library changes.
-4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below. The maintainer who prepares a release runs the re-check as an item on the release checklist.
+4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below. The maintainer who prepares a release runs the re-check. The release checklist that will hold this item does not exist yet: it is to be created together with the release process, before the first release.
 
 ### Choices
 
