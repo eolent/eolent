@@ -46,27 +46,43 @@ if (!schema) {
 } else {
   const ajv = new Ajv2020({ allErrors: true, strict: true, allowUnionTypes: true });
   addFormats(ajv);
-  const validate = ajv.compile(schema);
-  const examplesDir = join(root, "spec", "examples") + sep;
-  const examples = [...parsed.keys()].filter((f) => f.startsWith(examplesDir));
-  if (examples.length === 0) errors.push("spec/examples: no example manifests found");
-  for (const file of examples) {
-    if (!validate(parsed.get(file))) {
-      for (const err of validate.errors) {
-        errors.push(`${rel(file)}: ${err.instancePath || "/"} ${err.message}`);
+  let validate = null;
+  try {
+    validate = ajv.compile(schema);
+  } catch (e) {
+    errors.push(`spec/module.schema.json: schema does not compile (${e.message})`);
+  }
+  if (validate) {
+    const examplesDir = join(root, "spec", "examples") + sep;
+    const examples = [...parsed.keys()].filter((f) => f.startsWith(examplesDir));
+    if (examples.length === 0) errors.push("spec/examples: no example manifests found");
+    for (const file of examples) {
+      if (!validate(parsed.get(file))) {
+        for (const err of validate.errors) {
+          errors.push(`${rel(file)}: ${err.instancePath || "/"} ${err.message}`);
+        }
       }
     }
   }
 }
 
-// 3. Relative Markdown links resolve
+// 3. Relative Markdown links resolve.
+// Coverage note: only inline links of the form [text](target) are checked.
+// Angle-bracket destinations ([x](<path with spaces.md>)), targets containing
+// ")" or whitespace, reference-style links and HTML links are not checked.
 const linkRe = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 for (const file of files.filter((f) => f.endsWith(".md"))) {
   const text = readFileSync(file, "utf8").replace(/```[\s\S]*?```/g, "");
   for (const match of text.matchAll(linkRe)) {
     const target = match[1];
     if (/^([a-z][a-z0-9+.-]*:|#|\/\/)/i.test(target)) continue; // external or in-page
-    const path = decodeURIComponent(target.split("#")[0].split("?")[0]);
+    let path;
+    try {
+      path = decodeURIComponent(target.split("#")[0].split("?")[0]);
+    } catch {
+      errors.push(`${rel(file)}: malformed link target "${target}"`);
+      continue;
+    }
     if (!path) continue;
     const resolved = path.startsWith("/") ? join(root, path) : resolve(dirname(file), path);
     if (!existsSync(resolved)) errors.push(`${rel(file)}: broken link to "${target}"`);
