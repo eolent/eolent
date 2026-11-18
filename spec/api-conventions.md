@@ -45,7 +45,7 @@ Nested resources are used only when the child cannot exist without its parent: `
 
 ## 4. Representations
 
-- Request and response bodies are `application/json`. Errors use `application/problem+json`.
+- Request and response bodies are `application/json`, except `PATCH` request bodies, which are JSON Merge Patch documents sent as `application/merge-patch+json`. Errors use `application/problem+json`.
 - Resource identifiers are UUIDs, serialised as lowercase hyphenated strings, with `format: uuid` in the description.
 - Timestamps are [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) strings in UTC, with `format: date-time`. Dates without a time use `format: date`.
 - In responses, an optional value that is absent is omitted or `null`, and clients MUST treat both the same. In `PATCH` request bodies the difference is meaningful, as defined by JSON Merge Patch: an absent property is left unchanged and an explicit `null` clears the value. In `POST` and `PUT` request bodies, an omitted optional property and `null` are treated the same.
