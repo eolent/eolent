@@ -49,7 +49,7 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | StackExchange.Redis | 3.4.35 | MIT | Adopted (cache provider) |
 | Tailwind CSS | 4.3.5 | MIT | Adopted |
 | TanStack Table | 9.3.1 | MIT | Adopted |
-| shadcn/ui | repository `main` at commit 968d8cb9dc | MIT | Adopted (components are copied into the kit from that commit) |
+| shadcn/ui | [commit 968d8cb9dc42ae5d52e8fd356cf84596ec832a26](https://github.com/shadcn-ui/ui/tree/968d8cb9dc42ae5d52e8fd356cf84596ec832a26) ([licence file](https://github.com/shadcn-ui/ui/blob/968d8cb9dc42ae5d52e8fd356cf84596ec832a26/LICENSE.md)) | MIT | Adopted (components are copied into the kit from that commit) |
 | Wolverine | 6.64.2 | MIT | Optional module only |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected |
