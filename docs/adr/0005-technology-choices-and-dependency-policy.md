@@ -18,33 +18,42 @@
 
 ### Choices
 
-| Concern | Decision | Notes |
+| Concern | Decision | Exit option |
 |---|---|---|
-| Domain events, outbox, job scheduling | Own small abstractions in the kernel (domain event publisher, transactional outbox, job scheduler interface) | Keeps third-party messaging types out of module APIs |
-| Job engine behind the scheduler interface | Quartz.NET | Replaceable behind the interface |
-| Message broker integration | Not part of the kernel. An optional module may be added later, for example on Wolverine | Opt-in, separate package |
-| Authentication | OpenIddict embedded in the identity module by default | |
-| External identity providers | Supported: Eolent validates standard OIDC/JWT tokens only, so any compliant provider (for example Keycloak, Microsoft Entra ID, ZITADEL) can replace the embedded server | The specification and conformance suite test tokens, not the server |
-| Validation | FluentValidation | |
-| Logging | Serilog | |
-| Data access | EF Core, with Dapper for hot read paths (outside core modules, or behind a dialect-aware abstraction) | See [architecture](../architecture.md) for database tiers |
-| Frontend UI kit | Tailwind CSS with shadcn/ui components, and TanStack Table for data grids | Components are copied as source into the frontend kit, so there is no runtime UI framework dependency |
+| Domain events, outbox, job scheduling | Own small abstractions in the kernel (domain event publisher, transactional outbox, job scheduler interface) | Nothing to exit: the code is ours. A broker or bus can be added behind the same interfaces |
+| Job engine behind the scheduler interface | Quartz.NET | Another engine behind the scheduler interface, for example a database-polling worker written for Eolent |
+| Message broker integration | Not part of the kernel. An optional module may be added later, for example on Wolverine | Optional and separate, so no core change is needed |
+| Authentication | OpenIddict embedded in the identity module by default | Any OIDC/JWT-compliant provider, such as Keycloak, Microsoft Entra ID or ZITADEL, because Eolent validates standard tokens only |
+| Validation | FluentValidation | Validation is declared through our own validation abstraction in module contracts, so another library can replace it |
+| Logging | Serilog, behind `Microsoft.Extensions.Logging` | Any logging provider for `Microsoft.Extensions.Logging` |
+| Telemetry | OpenTelemetry | Not applicable: it is the vendor-neutral standard |
+| Caching and distributed state | `Microsoft.Extensions.Caching` abstractions, with StackExchange.Redis as the first provider | Another `IDistributedCache` implementation |
+| Data access | EF Core, with Dapper for hot read paths (outside core modules, or behind a dialect-aware abstraction) | Dapper stays behind repository interfaces, so it can be replaced module by module |
+| Frontend UI kit | Tailwind CSS with shadcn/ui components, and TanStack Table for data grids | shadcn/ui components are copied as source, so they are ours. Tailwind and TanStack Table are replaceable inside the kit |
+
+[Architecture](../architecture.md) is updated by this ADR where it lists messaging libraries: the kernel contains no message-bus dependency.
 
 ### Licence check (2026-11-18)
 
-Checked against the package metadata published on NuGet and the licence files in each project's repository.
+Checked against the licence metadata published on NuGet and npm for the latest stable version, and against the licence files in each project's repository. The version is given because licence terms can differ between versions.
 
-| Library | Licence found | Used? |
-|---|---|---|
-| Quartz.NET | Apache-2.0 | Yes |
-| Wolverine | MIT | Optional module only |
-| OpenIddict | Apache-2.0 | Yes |
-| FluentValidation | Apache-2.0 | Yes |
-| Serilog | Apache-2.0 | Yes |
-| Dapper | Apache-2.0 | Yes |
-| Hangfire | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | No |
-| MediatR | Reciprocal Public License 1.5, or a paid commercial licence | No |
-| MassTransit (version 9) | Proprietary commercial licence | No |
+| Library | Version checked | Licence found | Status |
+|---|---|---|---|
+| Quartz.NET | 4.7.3 | Apache-2.0 | Adopted |
+| OpenIddict | 7.9.0 | Apache-2.0 | Adopted |
+| FluentValidation | 12.2.0 | Apache-2.0 | Adopted |
+| Serilog | 4.4.0 | Apache-2.0 | Adopted |
+| OpenTelemetry (.NET) | 1.21.0 | Apache-2.0 | Adopted |
+| EF Core | 11.0.0 | MIT | Adopted |
+| Dapper | 2.1.89 | Apache-2.0 | Adopted |
+| StackExchange.Redis | 3.4.35 | MIT | Adopted (cache provider) |
+| Tailwind CSS | 4.3.5 | MIT | Adopted |
+| TanStack Table | 9.3.1 | MIT | Adopted |
+| shadcn/ui | repository `main` | MIT | Adopted (source copied into the kit) |
+| Wolverine | 6.64.2 | MIT | Optional module only |
+| Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected |
+| MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected |
+| MassTransit | 9.3.0 | Proprietary commercial licence | Rejected |
 
 Licences can change, so this table is a snapshot and must be refreshed under rule 4.
 

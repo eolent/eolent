@@ -8,7 +8,7 @@
 | Data | EF Core, with Dapper for hot read paths | Global query filters for multi-tenancy and soft delete |
 | Auth | OpenIddict, or an external OIDC server such as Keycloak | Standards-based OIDC and JWT |
 | Modularity | Modular monolith; each module is a set of projects (Domain, Application, Contracts, Infrastructure, API) | Boundaries enforced with architecture tests and analyzers |
-| Messaging and jobs | A message-bus library with RabbitMQ, plus a background job library | Check the licence terms of each dependency before adopting it |
+| Events, outbox and jobs | Own abstractions in the kernel, with Quartz.NET behind the job scheduler interface. A message broker is an optional module, not a kernel dependency | See [ADR 0005](adr/0005-technology-choices-and-dependency-policy.md) |
 | Cross-cutting | Serilog, OpenTelemetry, Redis, FluentValidation | |
 
 ### Kernel building blocks
