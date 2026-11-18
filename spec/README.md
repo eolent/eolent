@@ -9,10 +9,11 @@ The specification is the language-neutral contract that every Eolent implementat
 | Path | Description |
 |---|---|
 | [module.schema.json](module.schema.json) | JSON Schema (2020-12) for the module manifest |
+| [api-conventions.md](api-conventions.md) | OpenAPI profile: paths, naming, pagination, filtering, concurrency, permission annotations |
 | [examples/](examples/) | Example manifests; each must validate against the schema |
 | [conformance/](conformance/README.md) | Layout and categories of the black-box conformance tests |
 
-Planned additions: API conventions (OpenAPI profile), error format profile (RFC 9457), event envelope (CloudEvents), tenancy and permission contract, audit log schema.
+Planned additions: error format profile (RFC 9457), event envelope (CloudEvents), tenancy and permission contract, audit log schema.
 
 ## The module manifest
 
@@ -31,4 +32,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 
 ### Changelog
 
-- **0.1** Initial draft of the module manifest schema.
+- **0.1** Initial draft of the module manifest schema. Added the API conventions profile (draft).

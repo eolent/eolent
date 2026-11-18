@@ -1,0 +1,125 @@
+# API conventions (OpenAPI profile)
+
+> **Status:** draft `0.1`, part of the [Eolent specification](README.md). Everything here can change until the first release.
+
+This profile defines how an Eolent backend describes and shapes its HTTP API. An implementation exposes an OpenAPI 3.1 description of its API, and the description follows these conventions. The frontend kit and API client generators rely on them, so that one generated client works against any conforming backend.
+
+The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Error responses are defined by the error format profile (planned) and tenancy and permissions by their own contracts (planned); this document only states how they appear in the API description.
+
+## 1. Description and versioning
+
+- The API description MUST be OpenAPI 3.1 and MUST be served as JSON at `/openapi/v1.json`, where `v1` is the API major version.
+- The API major version MUST appear in the path: `/api/v1/...`. A breaking change to an operation requires a new major version. Adding optional request fields, response fields, operations or enum values is not breaking, so clients MUST ignore unknown response fields.
+- Each module's operations are tagged with the module's manifest `name`.
+
+## 2. Naming
+
+| Thing | Convention | Example |
+|---|---|---|
+| Path segments | plural nouns, lowercase, hyphen-separated | `/api/v1/users`, `/api/v1/audit-logs` |
+| Path parameters | `camelCase` | `/api/v1/users/{userId}` |
+| JSON properties and query parameters | `camelCase` | `createdAt`, `pageSize` |
+| Enum values | `camelCase` strings | `"pendingApproval"` |
+| `operationId` | `camelCase`: module, resource, action | `identityUsersList`, `identityUsersCreate` |
+| Schema names | `PascalCase` | `User`, `UserCreateRequest` |
+
+`operationId` values MUST be unique across the whole description, which is why they start with the module name. Generated clients use them as function names.
+
+## 3. Standard operations
+
+For a resource `users` in module `identity`:
+
+| Operation | Method and path | Success | Notes |
+|---|---|---|---|
+| List | `GET /api/v1/users` | `200` | Paginated, see section 5 |
+| Get | `GET /api/v1/users/{userId}` | `200` | |
+| Create | `POST /api/v1/users` | `201` | Returns the created resource and a `Location` header |
+| Update | `PATCH /api/v1/users/{userId}` | `200` | JSON Merge Patch ([RFC 7396](https://www.rfc-editor.org/rfc/rfc7396)) |
+| Replace | `PUT /api/v1/users/{userId}` | `200` | Optional |
+| Delete | `DELETE /api/v1/users/{userId}` | `204` | Soft-deleted entities are hidden from all other operations |
+| Custom action | `POST /api/v1/users/{userId}/actions/{verb}` | `200` or `202` | `{verb}` is a lowercase, hyphen-separated verb such as `deactivate`. Use `202` when the work continues asynchronously |
+
+Nested resources are used only when the child cannot exist without its parent: `/api/v1/roles/{roleId}/permissions`.
+
+## 4. Representations
+
+- Request and response bodies are `application/json`. Errors use `application/problem+json`.
+- Resource identifiers are UUIDs, serialised as lowercase hyphenated strings, with `format: uuid` in the description.
+- Timestamps are [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) strings in UTC, with `format: date-time`. Dates without a time use `format: date`.
+- Optional absent values are omitted or `null`. Clients MUST treat both the same.
+- Every persisted resource includes `id`, `createdAt` and `updatedAt`. Resources that support optimistic concurrency also include a `version` token, see section 7.
+
+## 5. Pagination, sorting and filtering
+
+List operations MUST support:
+
+| Parameter | Meaning | Default |
+|---|---|---|
+| `limit` | Maximum items to return, `1` to `200` | `50` |
+| `cursor` | Opaque token from a previous response's `nextCursor` | none (first page) |
+| `sort` | Comma-separated property names; a leading `-` means descending | the resource's documented default order |
+| `filter[<property>]` | Equality filter; a comma-separated list means "any of" | none |
+| `q` | Free-text search, when the resource supports it | none |
+
+The response is an envelope:
+
+```json
+{
+  "items": [ { "id": "...", "name": "..." } ],
+  "nextCursor": "opaque-token-or-null",
+  "totalCount": 123
+}
+```
+
+- `nextCursor` is `null` or absent on the last page. Cursors are opaque and expire; clients MUST NOT parse them.
+- `totalCount` is present only when the request sets `includeTotal=true`, because counting can be expensive.
+- Range filters use `filter[<property>][gte]`, `[gt]`, `[lte]` and `[lt]`. An operation lists the properties it can filter and sort by in its description; an unsupported property MUST return a validation error, not be silently ignored.
+
+## 6. Tenancy, authentication and permissions in the description
+
+- Authentication is OAuth 2.0 / OpenID Connect bearer tokens, declared as a security scheme named `bearerAuth` of type `http` and scheme `bearer`.
+- Every operation that requires a permission declares it with the extension `x-eolent-permission`, whose value is a permission name from the module manifest (for example `Identity.Users.Create`). A conforming description MUST NOT reference a permission that its module manifest does not declare.
+- Every operation that touches tenant data declares `x-eolent-tenancy: tenantScoped`. Operations that work across tenants declare `x-eolent-tenancy: host`. How the tenant is identified is defined by the tenancy contract (planned).
+
+## 7. Concurrency and idempotency
+
+- Resources that can be updated concurrently return an `ETag` header on `GET`, and `PATCH`, `PUT` and `DELETE` accept `If-Match`. A mismatch returns `412 Precondition Failed`; a missing `If-Match` where it is required returns `428 Precondition Required`.
+- Operations that create resources or trigger side effects MAY accept an `Idempotency-Key` header. A repeated request with the same key and the same body returns the original result; the same key with a different body returns `422`.
+
+## 8. Example
+
+A fragment of a conforming description (abridged):
+
+```json
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Eolent API", "version": "1.0.0" },
+  "paths": {
+    "/api/v1/users": {
+      "get": {
+        "operationId": "identityUsersList",
+        "tags": ["identity"],
+        "x-eolent-permission": "Identity.Users",
+        "x-eolent-tenancy": "tenantScoped",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 200, "default": 50 } },
+          { "name": "cursor", "in": "query", "schema": { "type": "string" } },
+          { "name": "sort", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "A page of users" } }
+      }
+    }
+  }
+}
+```
+
+## 9. Conformance
+
+The conformance suite checks, against a running backend, that:
+
+- the description is served at `/openapi/v1.json` and is valid OpenAPI 3.1
+- `operationId` values are unique and follow the naming rules
+- list operations accept `limit`, `cursor` and `sort`, and return the envelope
+- every `x-eolent-permission` value exists in a module manifest
+- a request with an unsupported filter or sort property returns a validation error
