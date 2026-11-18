@@ -43,3 +43,4 @@ A module marketplace, microservice templates and graphical IDE-style tooling are
 - [AI-friendliness](ai-friendliness.md)
 - [Multi-language approach](multi-language.md)
 - [Roadmap](roadmap.md)
+- [What is free and what is commercial](free-and-commercial.md)
