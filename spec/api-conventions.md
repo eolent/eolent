@@ -9,7 +9,7 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 ## 1. Description and versioning
 
 - The API description MUST be OpenAPI 3.1 and MUST be served as JSON at `/openapi/v1.json`, where `v1` is the API major version.
-- The API major version MUST appear in the path: `/api/v1/...`. A breaking change to an operation requires a new major version. Adding optional request fields, response fields, operations or enum values is not breaking, so clients MUST ignore unknown response fields.
+- The API major version MUST appear in the path: `/api/v1/...`. A breaking change to an operation requires a new major version. Adding optional request fields, response fields, operations or enum values is not breaking, so clients MUST ignore unknown response fields and MUST tolerate unknown values of a response enum, for example by displaying them as raw strings. Removing or renaming an enum value is breaking.
 - Each module's operations are tagged with the module's manifest `name`.
 
 ## 2. Naming
@@ -25,7 +25,7 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 
 `operationId` values MUST be unique across the whole description, which is why they start with the module name. Generated clients use them as function names.
 
-The module part of an `operationId` is the manifest module name in `camelCase`: dots and hyphens are removed and the following letter is capitalised, and the first letter is lowercase (`identity` stays `identity`, `user-admin` becomes `userAdmin`, `billing.invoices` becomes `billingInvoices`). The resource and action parts are `PascalCase`, so the result is `<module><Resource><Action>`. Tags use the module name exactly as in the manifest.
+The module part of an `operationId` is the manifest module name in `camelCase`: dots and hyphens are removed and the following letter is capitalised, and the first letter is lowercase (`identity` stays `identity`, `user-admin` becomes `userAdmin`, `billing.invoices` becomes `billingInvoices`). The resource and action parts are `PascalCase`, so the result is `<module><Resource><Action>`. Tags use the module name exactly as in the manifest. The conversion is not injective (for example `user-admin` and `user.admin` both give `userAdmin`), so two modules whose names convert to the same prefix MUST NOT be installed in the same application, and the uniqueness check in section 9 detects a collision.
 
 ## 3. Standard operations
 
@@ -78,7 +78,7 @@ The `totalCount` property in this example is present only when the request sets 
 
 - `nextCursor` is `null` or absent on the last page. Cursors are opaque and expire; clients MUST NOT parse them.
 - `totalCount` is present only when the request sets `includeTotal=true`, because counting can be expensive.
-- Range filters use `filter[<property>][gte]`, `[gt]`, `[lte]` and `[lt]`. A list operation declares the properties it can filter and sort by with the extensions `x-eolent-filterable` and `x-eolent-sortable`, each an array of property names. A request that filters or sorts by a property not in the declared array MUST return a validation error and MUST NOT be silently ignored. `q` is accepted only where the operation declares `x-eolent-searchable: true`.
+- Range filters use `filter[<property>][gte]`, `[gt]`, `[lte]` and `[lt]`. A list operation declares what it supports with three extensions: `x-eolent-filterable` and `x-eolent-sortable`, each an array of property names, and `x-eolent-searchable`, a boolean. A request that filters or sorts by a property not in the declared array MUST return a validation error and MUST NOT be silently ignored. `q` is accepted only where the operation declares `x-eolent-searchable: true`.
 
 ## 6. Tenancy, authentication and permissions in the description
 
@@ -130,6 +130,7 @@ The conformance suite checks, against a running backend, that:
 
 - the description is served at `/openapi/v1.json` and is valid OpenAPI 3.1
 - `operationId` values are unique and follow the naming rules, including the module conversion above
+- every custom action is a literal path with its own unique `operationId`; templated verb paths are rejected
 - `x-eolent-tenancy` is present on every operation and has a value of `tenantScoped` or `none`
 - list operations accept `limit`, `cursor`, `sort` and `includeTotal`, return the envelope, and include `totalCount` only when `includeTotal=true`
 - `filter` parameters are accepted exactly for the properties in `x-eolent-filterable`, `sort` for those in `x-eolent-sortable`, and `q` only where `x-eolent-searchable` is `true`; anything else returns a validation error
