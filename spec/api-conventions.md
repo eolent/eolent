@@ -39,7 +39,7 @@ For a resource `users` in module `identity`:
 | Update | `PATCH /api/v1/users/{userId}` | `200` | JSON Merge Patch ([RFC 7396](https://www.rfc-editor.org/rfc/rfc7396)) |
 | Replace | `PUT /api/v1/users/{userId}` | `200` | Optional |
 | Delete | `DELETE /api/v1/users/{userId}` | `204` | Soft-deleted entities are hidden from all other operations |
-| Custom action | `POST /api/v1/users/{userId}/actions/{verb}` | `200` or `202` | `{verb}` is a lowercase, hyphen-separated verb such as `deactivate`. Use `202` when the work continues asynchronously |
+| Custom action | `POST /api/v1/users/{userId}/actions/deactivate` (one literal path per action) | `200` or `202` | Each action is its own path with its own `operationId`, `x-eolent-permission` and responses. Action names are lowercase, hyphen-separated verbs. Use `202` when the work continues asynchronously |
 
 Nested resources are used only when the child cannot exist without its parent: `/api/v1/roles/{roleId}/permissions`.
 
