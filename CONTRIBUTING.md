@@ -15,10 +15,18 @@ Thank you for your interest. Eolent is in an early design phase, so the most use
 - The specification stays language-neutral.
 - Do not include secrets, credentials or personal data in issues, commits or pull requests.
 
-## Licensing
+## Licensing and sign-off
 
 By contributing, you agree that your contributions are licensed under the Apache License 2.0, the same as the project (see [LICENSE](LICENSE)).
 
+Eolent uses the [Developer Certificate of Origin](https://developercertificate.org) instead of a CLA (see [ADR 0002](docs/adr/0002-developer-certificate-of-origin.md)). Sign off every commit:
+
+```bash
+git commit -s -m "Describe the change"
+```
+
+This adds a `Signed-off-by: Your Name <you@example.com>` line, which states that you have the right to submit the work under the project's licence. A CI check rejects pull requests that contain unsigned commits. To fix existing commits, run `git rebase --signoff main` and force-push your branch.
+
 ## Conduct
 
-Be respectful and constructive. A formal code of conduct will be added before the project accepts regular outside contributions.
+Be respectful and constructive. This project follows the [Code of Conduct](CODE_OF_CONDUCT.md).
