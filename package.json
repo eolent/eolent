@@ -1,0 +1,16 @@
+{
+  "name": "eolent-hub",
+  "private": true,
+  "description": "Validation tooling for the Eolent specification hub. Not published.",
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

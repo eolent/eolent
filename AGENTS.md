@@ -13,6 +13,7 @@ The language-neutral hub of Eolent: specification (`spec/`), conformance suite (
 - `spec/conformance/`: description and layout of the black-box conformance tests.
 - `docs/`: vision, architecture, AI-friendliness, multi-language approach, roadmap.
 - `docs/adr/`: one file per decision, numbered `NNNN-title.md`.
+- `scripts/validate.mjs`: the validation run by `npm run validate` and by CI (`.github/workflows/validate.yml`).
 
 ## Rules
 
@@ -25,5 +26,4 @@ The language-neutral hub of Eolent: specification (`spec/`), conformance suite (
 
 ## Checks before proposing a change
 
-- Validate JSON files parse, and that `spec/examples/*.json` validate against `spec/module.schema.json`.
-- Check relative links in Markdown files still resolve.
+- Run `npm ci && npm run validate`. It checks that JSON files parse, that `spec/examples/*.json` validate against `spec/module.schema.json`, and that relative links in Markdown files resolve. The same check runs in CI on every pull request.
