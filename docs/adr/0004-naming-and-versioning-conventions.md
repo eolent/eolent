@@ -17,20 +17,23 @@ Package names, namespaces, module names and version numbers are the first things
 | .NET projects of a module | `Eolent.<Module>.Domain`, `.Application`, `.Contracts`, `.Infrastructure`, `.Api` | `Eolent.Identity.Application` |
 | npm packages | `@eolent/<name>`, lowercase, hyphen-separated | `@eolent/core`, `@eolent/api-client` |
 | Module name in the manifest | lowercase segments separated by dots (as defined by the manifest schema) | `identity`, `tenants` |
-| Permissions | `Module.Resource.Action`, PascalCase segments separated by dots | `Identity.Users.Create` |
+| Entities | PascalCase, singular | `User`, `Role` |
+| Permissions | PascalCase segments separated by dots, by convention `Module.Resource.Action` | `Identity.Users.Create` |
 | Features and settings | PascalCase segments separated by dots, starting with the module | `Identity.Password.MinimumLength` |
-| Events | lowercase `module.entity.action` | `identity.user.created` |
+| Events | lowercase segments separated by dots, by convention `module.entity.action` | `identity.user.created` |
 | Repositories | `eolent` (hub), `eolent-<language or kit>` for implementations | `eolent-dotnet`, `eolent-react` |
+
+The manifest schema ([spec/module.schema.json](../../spec/module.schema.json)) is authoritative for what is syntactically valid, including the number of segments and the characters allowed in each name. The patterns above are conventions within what the schema allows.
 
 Names in the specification are language-neutral. A language implementation maps them to its idioms (for example PascalCase types) without changing the names that appear on the wire or in manifests.
 
 ### Versioning
 
-- Everything uses [Semantic Versioning 2.0.0](https://semver.org).
+- Implementation packages (NuGet and npm) follow [Semantic Versioning 2.0.0](https://semver.org).
 - **Implementation packages are versioned in lockstep within a repository.** All `Eolent.*` NuGet packages share one version number per release, and all `@eolent/*` npm packages share another. This avoids a compatibility matrix between modules of the same release.
-- **The specification has its own version.** The manifest format carries `manifestVersion`; the specification as a whole is versioned in `spec/README.md`. Each implementation release states which specification version it conforms to.
-- **Prerelease tags** use `-alpha.N`, `-beta.N` and `-rc.N`, for example `0.1.0-alpha.3`.
-- While the major version is `0`, breaking changes are allowed but must appear in the changelog. From `1.0.0`, a public extension point is removed only after it has been marked deprecated for at least one minor release, with a message that names the replacement.
+- **The specification has its own version.** The manifest format carries `manifestVersion` (currently `0.1`), and the specification as a whole is versioned in `spec/README.md`. Both use `MAJOR.MINOR` and are not SemVer: a new minor version may add optional features, and a new major version may break compatibility. Each implementation release states which specification version it conforms to.
+- **Prerelease tags** apply to implementation packages and use `-alpha.N`, `-beta.N` and `-rc.N`, for example `0.1.0-alpha.3`.
+- While the major version is `0`, breaking changes are allowed but must be recorded: in the changelog in `spec/README.md` for the specification (with an ADR when significant, as that file requires), and in the repository's own changelog for an implementation. From `1.0.0`, a public extension point is removed only after it has been marked deprecated for at least one minor release, with a message that names the replacement.
 - Public extension points (module contracts, manifest schema, permission and event names) are the stable surface. Anything outside them is internal and may change in any release.
 
 ## Consequences
