@@ -14,7 +14,7 @@
 1. A runtime dependency of Eolent packages must be available under a permissive licence (Apache-2.0, MIT, BSD or similar) that allows redistribution as part of a commercial product.
 2. Libraries under copyleft, source-available or paid terms are not used as dependencies of core packages. They may be supported through optional, separate packages that users opt into knowingly.
 3. Third-party types do not appear in public module contracts where a thin abstraction is practical. Each abstraction records an exit option: what we would switch to if the licence or maintenance of the library changes.
-4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below.
+4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below. The maintainer who prepares a release runs the re-check as an item on the release checklist.
 
 ### Choices
 
@@ -24,10 +24,10 @@
 | Job engine behind the scheduler interface | Quartz.NET | Another engine behind the scheduler interface, for example a database-polling worker written for Eolent |
 | Message broker integration | Not part of the kernel. An optional module may be added later, for example on Wolverine | Optional and separate, so no core change is needed |
 | Authentication | OpenIddict embedded in the identity module by default | Any OIDC/JWT-compliant provider, such as Keycloak, Microsoft Entra ID or ZITADEL, because Eolent validates standard tokens only |
-| Validation | FluentValidation | Validation is declared through our own validation abstraction in module contracts, so another library can replace it |
+| Validation | FluentValidation, used inside module application layers only. Module contracts expose plain request types and the standard problem-details error shape, not FluentValidation types | Replace the validators inside a module with another library or hand-written checks, without changing any contract |
 | Logging | Serilog, behind `Microsoft.Extensions.Logging` | Any logging provider for `Microsoft.Extensions.Logging` |
 | Telemetry | OpenTelemetry | Not applicable: it is the vendor-neutral standard |
-| Caching and distributed state | `Microsoft.Extensions.Caching` abstractions, with StackExchange.Redis as the first provider | Another `IDistributedCache` implementation |
+| Caching and distributed state | `Microsoft.Extensions.Caching.Abstractions` (`IDistributedCache`), with StackExchange.Redis as the first provider | Another `IDistributedCache` implementation |
 | Data access | EF Core, with Dapper for hot read paths (outside core modules, or behind a dialect-aware abstraction) | Dapper stays behind repository interfaces, so it can be replaced module by module |
 | Frontend UI kit | Tailwind CSS with shadcn/ui components, and TanStack Table for data grids | shadcn/ui components are copied as source, so they are ours. Tailwind and TanStack Table are replaceable inside the kit |
 
@@ -49,7 +49,7 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | StackExchange.Redis | 3.4.35 | MIT | Adopted (cache provider) |
 | Tailwind CSS | 4.3.5 | MIT | Adopted |
 | TanStack Table | 9.3.1 | MIT | Adopted |
-| shadcn/ui | repository `main` at commit 968d8cb9dc | MIT | Adopted (source copied into the kit) |
+| shadcn/ui | repository `main` at commit 968d8cb9dc | MIT | Adopted (components are copied into the kit from that commit) |
 | Wolverine | 6.64.2 | MIT | Optional module only |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected |
