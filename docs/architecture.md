@@ -5,11 +5,11 @@
 | Concern | Choice | Notes |
 |---|---|---|
 | Runtime | ASP.NET Core on the current LTS release | Controllers or minimal APIs; controllers suit convention-based features |
-| Data | EF Core, with Dapper for hot read paths | Global query filters for multi-tenancy and soft delete |
+| Data | EF Core, with Dapper for hot read paths outside core modules or behind a dialect-aware abstraction | Global query filters for multi-tenancy and soft delete |
 | Auth | OpenIddict, or an external OIDC server such as Keycloak | Standards-based OIDC and JWT |
 | Modularity | Modular monolith; each module is a set of projects (Domain, Application, Contracts, Infrastructure, API) | Boundaries enforced with architecture tests and analyzers |
-| Messaging and jobs | A message-bus library with RabbitMQ, plus a background job library | Check the licence terms of each dependency before adopting it |
-| Cross-cutting | Serilog, OpenTelemetry, Redis, FluentValidation | |
+| Events, outbox and jobs | Own abstractions in the kernel, with Quartz.NET behind the job scheduler interface. A message broker is an optional module, not a kernel dependency | See [ADR 0005](adr/0005-technology-choices-and-dependency-policy.md) |
+| Cross-cutting | Serilog, OpenTelemetry, FluentValidation, and optionally Redis through `IDistributedCache` | |
 
 ### Kernel building blocks
 
