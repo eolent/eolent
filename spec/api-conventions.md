@@ -79,7 +79,7 @@ The response is an envelope:
 ## 6. Tenancy, authentication and permissions in the description
 
 - Authentication is OAuth 2.0 / OpenID Connect bearer tokens, declared as a security scheme named `bearerAuth` of type `http` and scheme `bearer`.
-- Every operation that requires a permission declares it with the extension `x-eolent-permission`, whose value is a permission name from the module manifest (for example `Identity.Users.Create`). A conforming description MUST NOT reference a permission that its module manifest does not declare.
+- Every operation that requires a permission declares it with the extension `x-eolent-permission`, whose value is a permission name from the module manifest (for example `Identity.Users.Create`). The permission MUST be declared in the manifest of the module the operation belongs to, that is, the module named by the operation's tag. An operation cannot reference a permission declared by another module.
 - Every operation that touches tenant data declares `x-eolent-tenancy: tenantScoped`. Operations that work across tenants declare `x-eolent-tenancy: host`. How the tenant is identified is defined by the tenancy contract (planned).
 
 ## 7. Concurrency and idempotency
@@ -91,7 +91,7 @@ The response is an envelope:
 
 ## 8. Example
 
-A fragment of a conforming description (abridged):
+A fragment of a conforming description (abridged). `info.version` is the version of the application's own API, not of this specification:
 
 ```json
 {
@@ -124,5 +124,5 @@ The conformance suite checks, against a running backend, that:
 - the description is served at `/openapi/v1.json` and is valid OpenAPI 3.1
 - `operationId` values are unique and follow the naming rules
 - list operations accept `limit`, `cursor` and `sort`, and return the envelope
-- every `x-eolent-permission` value exists in a module manifest
+- every `x-eolent-permission` value is declared in the manifest of the module named by the operation's tag
 - a request with an unsupported filter or sort property returns a validation error
