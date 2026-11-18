@@ -32,4 +32,5 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 
 ### Changelog
 
-- **0.1** Initial draft of the module manifest schema. Added the API conventions profile (draft).
+- **0.1** Initial draft of the module manifest schema.
+- **0.1** Added the API conventions profile (draft).

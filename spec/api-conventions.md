@@ -18,7 +18,7 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 |---|---|---|
 | Path segments | plural nouns, lowercase, hyphen-separated | `/api/v1/users`, `/api/v1/audit-logs` |
 | Path parameters | `camelCase` | `/api/v1/users/{userId}` |
-| JSON properties and query parameters | `camelCase` | `createdAt`, `pageSize` |
+| JSON properties and query parameters | `camelCase` | `createdAt`, `includeTotal` |
 | Enum values | `camelCase` strings | `"pendingApproval"` |
 | `operationId` | `camelCase`: module, resource, action | `identityUsersList`, `identityUsersCreate` |
 | Schema names | `PascalCase` | `User`, `UserCreateRequest` |
@@ -128,5 +128,7 @@ The conformance suite checks, against a running backend, that:
 - `x-eolent-tenancy` is present on every operation and has a value of `tenantScoped` or `none`
 - list operations accept `limit`, `cursor`, `sort` and `includeTotal`, return the envelope, and include `totalCount` only when `includeTotal=true`
 - `filter` and `q` parameters are accepted exactly where the operation's description declares them
+- a create operation returns `201` with a `Location` header
+- for a resource that exposes `version`, `PATCH`, `PUT` and `DELETE` return `428` without `If-Match` and `412` for a stale value, and `ETag` equals `version`
 - every `x-eolent-permission` value is declared in the manifest of the module named by the operation's tag
 - a request with an unsupported filter or sort property returns a validation error
