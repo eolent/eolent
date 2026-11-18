@@ -25,6 +25,8 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 
 `operationId` values MUST be unique across the whole description, which is why they start with the module name. Generated clients use them as function names.
 
+The module part of an `operationId` is the manifest module name in `camelCase`: dots and hyphens are removed and the following letter is capitalised, and the first letter is lowercase (`identity` stays `identity`, `user-admin` becomes `userAdmin`, `billing.invoices` becomes `billingInvoices`). The resource and action parts are `PascalCase`, so the result is `<module><Resource><Action>`. Tags use the module name exactly as in the manifest.
+
 ## 3. Standard operations
 
 For a resource `users` in module `identity`:
@@ -51,7 +53,7 @@ Nested resources are used only when the child cannot exist without its parent: `
 
 ## 5. Pagination, sorting and filtering
 
-List operations MUST support:
+List operations MUST support `limit`, `cursor`, `sort` and `includeTotal`. They support `filter[<property>]` and `q` where the operation's description declares them. The parameters are:
 
 | Parameter | Meaning | Default |
 |---|---|---|
@@ -80,7 +82,7 @@ The response is an envelope:
 
 - Authentication is OAuth 2.0 / OpenID Connect bearer tokens, declared as a security scheme named `bearerAuth` of type `http` and scheme `bearer`.
 - Every operation that requires a permission declares it with the extension `x-eolent-permission`, whose value is a permission name from the module manifest (for example `Identity.Users.Create`). The permission MUST be declared in the manifest of the module the operation belongs to, that is, the module named by the operation's tag. An operation cannot reference a permission declared by another module.
-- Every operation that touches tenant data declares `x-eolent-tenancy: tenantScoped`. Operations that work across tenants declare `x-eolent-tenancy: host`. How the tenant is identified is defined by the tenancy contract (planned).
+- Every operation declares `x-eolent-tenancy` with the same vocabulary as the manifest's entity `tenancy`: `tenantScoped` for operations that act within one tenant, and `none` for operations that are not tenant-scoped (for example host administration or public endpoints). How the tenant is identified is defined by the tenancy contract (planned).
 
 ## 7. Concurrency and idempotency
 
@@ -122,7 +124,9 @@ A fragment of a conforming description (abridged). `info.version` is the version
 The conformance suite checks, against a running backend, that:
 
 - the description is served at `/openapi/v1.json` and is valid OpenAPI 3.1
-- `operationId` values are unique and follow the naming rules
-- list operations accept `limit`, `cursor` and `sort`, and return the envelope
+- `operationId` values are unique and follow the naming rules, including the module conversion above
+- `x-eolent-tenancy` is present on every operation and has a value of `tenantScoped` or `none`
+- list operations accept `limit`, `cursor`, `sort` and `includeTotal`, return the envelope, and include `totalCount` only when `includeTotal=true`
+- `filter` and `q` parameters are accepted exactly where the operation's description declares them
 - every `x-eolent-permission` value is declared in the manifest of the module named by the operation's tag
 - a request with an unsupported filter or sort property returns a validation error
