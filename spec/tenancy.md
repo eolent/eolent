@@ -36,7 +36,7 @@ A deployment with a single tenant still has a tenant; it is resolved the same wa
 Every operation declares `x-eolent-tenancy` ([API conventions](api-conventions.md)).
 
 - `tenantScoped` operations require a resolved, active tenant. Without one the request fails (section 5).
-- `none` operations do not use a tenant. A tenant claim or header on such a request is ignored, and the operation MUST NOT read or write tenant-scoped data. Operations of this kind that are not public require a host principal or an explicitly stated permission.
+- `none` operations do not use a tenant. Tenant resolution still runs and its conflict errors (section 5) still apply, except that a missing tenant is never an error for them. The operation MUST NOT read or write tenant-scoped data, and a resolved tenant does not change its behaviour. Operations of this kind that are not public require a host principal or an explicitly stated permission.
 - A host principal with no tenant context calling a `tenantScoped` operation gets `Eolent.TenantRequired`. There is no "all tenants" mode in the API.
 
 ## 4. Data isolation
@@ -78,5 +78,5 @@ The conformance suite creates at least two tenants with users and data, then che
 - a `tenantScoped` operation with no resolvable tenant returns `400 Eolent.TenantRequired`
 - a host principal without a tenant context calling a `tenantScoped` operation returns `400 Eolent.TenantRequired`
 - a suspended tenant's users receive `403 Eolent.TenantSuspended`
-- `none` operations ignore the tenant header and return no tenant-scoped data
+- a `none` operation succeeds with no tenant, returns the same result whichever valid tenant is resolved, returns no tenant-scoped data, and still returns `403 Eolent.TenantMismatch` for a tenant principal whose header names another tenant
 - the same checks pass in every isolation mode the implementation claims to support
