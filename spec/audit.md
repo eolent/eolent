@@ -11,8 +11,8 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 An implementation MUST write an audit entry for each of these:
 
 - a successful create, update, delete or restore of an entity whose manifest `auditing` is `true` (the default)
-- a successful custom action ([API conventions](api-conventions.md)) on such an entity, and any other successful mutating operation of a module that declares itself audited
-- a tenant switch by a host principal: each request in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`)
+- a successful custom action ([API conventions](api-conventions.md)) on such an entity, and any other successful mutating operation an audited entity's module exposes
+- every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
 
 An implementation SHOULD also write an entry with outcome `denied` when a request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. Reads are not audited in 0.1.
 
@@ -72,7 +72,7 @@ Example, an agent changing a user's name on behalf of an administrator:
 | `level` | string | no | `tenant` or `host`. Defaults to `tenant`. `host` marks a host principal ([tenancy contract](tenancy.md), section 1) |
 | `name` | string | no | A display name captured at the time of the action. It is a convenience and may become stale; `id` is authoritative |
 
-`system` is used for changes made with no request principal: background jobs, event handlers, migrations and seeding. A `system` actor SHOULD name the component that acted in an `x-component` property. `onBehalfOf` is not used with `system` in 0.1.
+`system` is used for changes made with no request principal: background jobs, event handlers, migrations and seeding. A `system` actor SHOULD name the component that acted in an `x-component` property of `actor`. `onBehalfOf` is not used with `system` in 0.1.
 
 The `actor` and `onBehalfOf` identifiers are the same identifiers used in tokens and in the permission contract. They are never reused, so an entry stays interpretable after the principal is deleted.
 
@@ -105,6 +105,7 @@ The `approval` property is reserved. Implementations that have no approval flow 
 | `old` | any | The value before the change. Absent for `create` |
 | `new` | any | The value after the change. Absent when the value was removed |
 | `redacted` | boolean | `true` when the value is sensitive: `old` and `new` are then both absent and the item records only that the property changed |
+| `truncated` | boolean | `true` only on the final marker item added when the list was capped (see below). Such an item has `path` `""` and no other properties |
 
 Rules:
 
@@ -114,7 +115,7 @@ Rules:
 - a property that holds a secret (passwords, tokens, keys, credentials) MUST be recorded with `redacted` `true`, never with its value. How an entity marks other properties as sensitive is planned for manifest `0.2`; until then, implementations decide
 - `path` uses the property names of the API representation, not storage names, so entries read the same in every implementation
 
-An implementation MAY cap the number of items in one entry. When it does, it adds the item `{ "path": "", "redacted": true }` to show that the list is incomplete.
+An implementation MAY cap the number of items in one entry. When it does, it adds the marker item `{ "path": "", "truncated": true }` to show that the list is incomplete. `redacted` is never used for this.
 
 ## 6. Reading the log
 
@@ -133,7 +134,7 @@ The collection supports cursor pagination and the filters `occurredAt` (range), 
 
 - Entries are append-only. No API operation, and no application code path outside retention, can change or delete an entry
 - A tenant's entries are tenant-scoped data. They follow the isolation rules of the [tenancy contract](tenancy.md), including that they never appear in another tenant's results
-- Retention is set per deployment. Removing entries because their retention period ended is not an audit event, but it MUST be logged by the deployment
+- Retention is set per deployment. Removing entries because their retention period ended is not an audit event, but the deployment MUST keep an operational record of it (what range was removed and when); this contract defines no format for that record
 - A deployment MAY forward entries to an external store. Entries are exported in the form in section 2
 
 ## 8. Conformance
@@ -144,7 +145,7 @@ The conformance suite checks that:
 - an update records exactly the changed properties in `changes`, with `old` and `new`, and a property holding a secret is recorded with `redacted` `true` and no values
 - a failed request that changed nothing leaves no `succeeded` entry
 - a call made with an agent token on behalf of a user produces an entry with `actor.type` `agent` and `onBehalfOf` set to that user, and a call made by the user directly has no `onBehalfOf`
-- a host principal acting within a tenant produces a `tenantSwitch` entry with `actor.level` `host`
+- a host principal acting within a tenant, for a read and for a mutation, produces a `tenantSwitch` entry with `actor.level` `host`, and a tenant principal's read produces none
 - the list operation returns only the current tenant's entries, including under filters, and a request for another tenant's entry returns the same response as for a nonexistent one
 - the log has no operation that creates, updates or deletes an entry
 - every entry has the required properties for its `kind` and `actor.type`
