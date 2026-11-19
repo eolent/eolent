@@ -92,4 +92,4 @@ The conformance suite checks, against a running backend, that:
 - every permission in `permissions` is declared in some installed module's manifest, and the `parent` chains in the manifests have no cycles
 - an agent acting for a user cannot pass a check the user could not pass
 - a host principal without `Tenants.Tenants.Switch` cannot act within a tenant
-- adding `Tenants.Tenants.Switch`, or a permission that is its ancestor,  to a tenant role and adding an ancestor of it, are each refused with `400 Eolent.Validation`, and no tenant principal passes a check for it
+- adding `Tenants.Tenants.Switch`, or any permission that is its ancestor, to a tenant role is refused with `400 Eolent.Validation`, and no tenant principal passes a check for it
