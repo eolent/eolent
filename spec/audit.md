@@ -12,13 +12,22 @@ An implementation MUST write an audit entry for each of these:
 
 - a successful create, update, delete or restore of an entity whose manifest `auditing` is `true` (the default)
 - any other successful mutating operation on such an entity, including custom actions ([API conventions](api-conventions.md)), recorded with `kind` `action`
-- every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), whichever way the tenant was resolved: header, host name or fixed tenant. The trigger is a `tenantScoped` operation; a `none` operation never produces a `tenantSwitch` entry, even when tenant resolution succeeds, recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
+- every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), whichever way the tenant was resolved: header, host name or fixed tenant. The trigger is a `tenantScoped` operation; a `none` operation never produces a `tenantSwitch` entry, even when tenant resolution succeeds, recorded with `kind` `tenantSwitch`. a mutation made this way also produces its ordinary entry
 
-An implementation SHOULD also write an entry with outcome `denied` when a mutating request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. A denied entry is written only when the tenant of the request was resolved, so that `tenantId` is a real tenant. Denied reads, and any rejection before the tenant is resolved (including a refused tenant switch, which happens before resolution), are deliberately not recorded in 0.1, to keep the log free of probing noise; this is a known gap. Reads are not audited in 0.1, apart from the `tenantSwitch` rule above.
+An implementation MUST also write an entry with outcome `denied` for each of these attempts, whether the request is a read or a change:
 
-A `tenantSwitch` entry has outcome `succeeded`. It is written once the permission check has passed and the tenant is resolved, before the response is sent, independently of any unit of work, so a read produces one too. A request rejected before that point, for example because the named tenant does not exist, produces no entry.
+- a request rejected with `Eolent.Forbidden` because the caller lacks the permission of the operation, or with `Eolent.FeatureDisabled` because a gated feature is off. The entry has the `kind` of the attempted operation (`create`, `update`, `delete`, `restore`, `action`, or `read` for a get or a list). Its `tenantId` is the resolved tenant, or `null` for an operation that has no tenant (`none`)
+- a refused tenant switch: a host principal that names a tenant by header or host name without holding the tenant-switching permission (`Eolent.Forbidden`). The entry has `kind` `tenantSwitch` and `actor.level` `host`. Its `tenantId` is the id of the named tenant when that tenant exists, and `null` otherwise, so the entry reveals nothing about a tenant that does not exist. The implementation looks the tenant up for the entry only after refusing, and the response is the same whether or not the tenant exists
 
-An entry is written in the same unit of work as the change it describes: either both are committed or neither is. A change that is rolled back leaves no entry, and a committed change always has one. An entry with outcome `denied` has no change to commit with, and a `tenantSwitch` entry records the switch and not a change, so both are written independently of any unit of work. A `tenantSwitch` entry therefore remains when the mutation in the same request is rolled back. Apart from these two kinds, the rule above holds.
+Other rejections are not recorded as denied entries in 0.1: authentication failures (`401`), `Eolent.TenantMismatch`, `Eolent.TenantSuspended`, validation and conflict errors. Authentication belongs to the identity provider's own log.
+
+**Rate limit.** An implementation MUST limit denied entries per actor so that a misbehaving client cannot flood the log: at most a configured number per actor per minute (the default is 30), after which it counts further attempts and, at the end of that minute, writes one more denied entry for the actor with the property `suppressed` set to the number of attempts that were not recorded. Writing the entries of an attempt never changes the response: if a denied entry cannot be written, the failure is logged and the `403` is returned as usual.
+
+**Read auditing (optional per entity, defined now).** An entity whose manifest sets `auditReads` to `true` has its successful reads recorded: each get by id and each list produces one entry with `kind` `read`, `outcome` `succeeded` and a `resource` whose `id` is absent for a list. A read entry is written before the response is released; if it cannot be written, the request fails with `503 Eolent.Unavailable`, so an audited read is never returned unrecorded. `auditReads` requires `auditing` to be `true` and defaults to `false`. Support for `auditReads` is optional in 0.1: an implementation that does not support it MUST refuse to load a module whose manifest sets it, so data is never believed to be audited when it is not. Reads of entities without `auditReads`, and reads by host principals acting in a tenant (see above), follow the rules stated here and no others.
+
+A `tenantSwitch` entry for an accepted switch has outcome `succeeded`. It is written once the permission check has passed and the tenant is resolved, before the response is sent, independently of any unit of work, so a read produces one too. A request rejected before that point, for example because the named tenant does not exist, produces no entry; a refused switch produces the `denied` entry described above.
+
+An entry is written in the same unit of work as the change it describes: either both are committed or neither is. A change that is rolled back leaves no entry, and a committed change always has one. An entry with outcome `denied` has no change to commit with, a `read` entry has none, and a `tenantSwitch` entry records the switch and not a change, so these three are written independently of any unit of work. A `tenantSwitch` entry therefore remains when the mutation in the same request is rolled back. Apart from these kinds, the rule above holds.
 
 ## 2. Entry
 
@@ -28,16 +37,17 @@ An audit entry is a JSON object. Property names are `camelCase`.
 |---|---|---|---|
 | `id` | string (UUID) | yes | Unique, never reused |
 | `occurredAt` | string (`date-time`, UTC) | yes | When the change was committed, or, for an entry with no change, when the action happened |
-| `tenantId` | string (UUID) or `null` | yes | The tenant the entry concerns. `null` only for changes to data that is not tenant-scoped |
+| `tenantId` | string (UUID) or `null` | yes | The tenant the entry concerns. `null` only for changes to data that is not tenant-scoped, for a denied attempt on an operation with no tenant, and for a refused tenant switch that names a tenant that does not exist |
 | `actor` | object | yes | Who performed the action (section 3) |
 | `onBehalfOf` | object | when `actor.type` is `agent` | The user the agent acted for (section 4). Absent otherwise |
-| `kind` | string | yes | `create`, `update`, `delete`, `restore`, `action` or `tenantSwitch` |
-| `outcome` | string | yes | `succeeded` or `denied`. For `tenantSwitch` it is always `succeeded` and means that the switch was made; the result of the request is not part of the entry |
+| `kind` | string | yes | `create`, `update`, `delete`, `restore`, `action`, `read` or `tenantSwitch` |
+| `outcome` | string | yes | `succeeded` or `denied`. For `tenantSwitch` it is `succeeded` when the switch was made, and the result of the request is not part of the entry, or `denied` for a refused switch |
 | `operation` | string | no | The `operationId` of the API operation, when the action came through the API |
 | `action` | string | for `kind` `action` | The custom action name as in its path. For another mutating operation, the `operationId` |
-| `resource` | object | for all kinds except `tenantSwitch` | `type` (the module's PascalCase name, a dot, then the manifest entity name, for example `Identity.User` for entity `User` in module `identity`) and `id`. `id` is absent for a `denied` create, which has no resource yet, and when the request named an id that is not visible in the current tenant |
+| `resource` | object | for all kinds except `tenantSwitch`, and for a `denied` entry when the operation names an entity | `type` (the module's PascalCase name, a dot, then the manifest entity name, for example `Identity.User` for entity `User` in module `identity`) and `id`. `id` is absent for a `denied` create, which has no resource yet, for a list, and when the request named an id that is not visible in the current tenant |
 | `changes` | array | no | The change set (section 5) |
 | `changesTruncated` | boolean | no | `true` only when `changes` was capped and omits some items |
+| `suppressed` | integer | no | Only on a `denied` entry written at the end of a rate-limit window: the number of denied attempts of the actor that were counted and not recorded (section 1) |
 | `approval` | object | no | Reserved for agent actions that needed approval (section 4) |
 | `traceId` | string | yes | The W3C trace id of the request, or of the job that made the change. The same value appears in error responses and logs |
 | `client` | object | no | Optional request metadata: `ip` and `userAgent`. Implementations MAY omit it, for example for privacy reasons |
@@ -149,7 +159,10 @@ The conformance suite checks that:
 - a host mutation that is rolled back leaves its `tenantSwitch` entry and no ordinary entry
 - a failed request that changed nothing leaves no `succeeded` entry, other than a `tenantSwitch` entry, which records the switch and not the outcome of the request
 - a property that matches the secret-name rule in section 5, such as `password`, or that the entity lists in `sensitiveProperties`, is recorded with `redacted` `true` and no values
-- the `denied` entry rule is a SHOULD and is not checked in 0.1
+- a request without the permission, and a request to a feature-gated operation with the feature off, each produce one `denied` entry with the `kind` of the attempted operation, the caller as `actor` and the resolved tenant, for a read and for a change, and the response is the same `403` as without auditing
+- a host principal without the tenant-switching permission that names a tenant produces a `denied` `tenantSwitch` entry with `tenantId` set to the tenant when it exists and `null` when it does not, and the two responses are identical
+- repeated denied attempts by one actor beyond the limit are counted, and one entry with `suppressed` is written at the end of the window
+- an implementation that supports `auditReads` records each get and list of such an entity as a `read` entry, fails the request with `503 Eolent.Unavailable` when the entry cannot be written, and one that does not support it refuses to load a manifest that sets it
 - a call made with an agent token on behalf of a user produces an entry with `actor.type` `agent` and `onBehalfOf` set to that user, and a call made by the user directly has no `onBehalfOf`
 - a host principal acting within a tenant, for a read and for a mutation, produces a `tenantSwitch` entry with `actor.level` `host`, and a tenant principal's read produces none
 - the list operation returns only the current tenant's entries, including under filters, and a request for another tenant's entry returns the same response as for a nonexistent one

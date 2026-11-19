@@ -25,7 +25,7 @@ Every module ships a manifest that declares what it provides, so tools and agent
 
 - identity (`name`, `version`, `displayName`, `description`) and `dependencies`
 - `permissions`, `features` and `settings`
-- `entities`, with tenancy, soft-delete, auditing behaviour and `sensitiveProperties`
+- `entities`, with tenancy, soft-delete, auditing behaviour (`auditing`, `auditReads`) and `sensitiveProperties`
 - `operations`: each API operation with the permission, feature and entity it uses
 - `agentTools`: the operations the module opts in to expose to AI agents, each with a risk class and an approval flag
 - `errors`: the error codes the module defines
@@ -51,3 +51,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (manifest) Added the `entity` property of manifest events, which names the entity an event is about; it is required for events with direction `publishes`. This is a breaking change to the draft manifest `0.1`, which allows breaking changes until the first release; no example outside this repository is affected.
 - **0.2** (manifest) Manifest `0.2`, see [ADR 0007](../docs/adr/0007-manifest-0-2.md): added `operations`, `agentTools`, `errors`, `permissions[].scope` and `entities[].sensitiveProperties`; `manifestVersion` is now `0.2`. `0.1` manifests are not valid under `0.2`. Added the example `tenants.module.json`, and cross-reference checks to the validation of manifests.
 - **0.1** (localization) Added the localization contract (draft): message files in ICU MessageFormat, keys, culture fallback, the frontend resources operation `localizationResourcesGet` and the `llms.txt` convention. Resource file names in the manifest must be `<culture>.json`, and `localization.defaultCulture` is required when `localization` is present. This is a breaking change to draft manifest `0.2`, which is not bumped because no release exists: a `0.2` manifest with `localization` must add `defaultCulture` and name its resource files `<culture>.json`. Added the example resource files and checks in the validation of manifests, and the root `llms.txt`.
+- **0.1** (audit) Denied attempts are now audited (MUST): permission and feature denials and refused tenant switches, with a per-actor rate limit and the `suppressed` property. Added entry kind `read` and the optional entity property `auditReads` (read auditing, optional to implement, off by default). A decision recorded in the strategy repository (issue 2).

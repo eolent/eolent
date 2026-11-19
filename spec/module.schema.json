@@ -145,6 +145,11 @@
         },
         "softDelete": { "type": "boolean", "default": false },
         "auditing": { "type": "boolean", "default": true },
+        "auditReads": {
+          "description": "Record successful reads of this entity in the audit log (spec/audit.md). Requires auditing. Implementations that do not support it must refuse to load a manifest that sets it.",
+          "type": "boolean",
+          "default": false
+        },
         "sensitiveProperties": {
           "description": "Names of properties, as in the API representation, that hold sensitive values. The audit log records them as redacted and events do not carry them.",
           "type": "array",

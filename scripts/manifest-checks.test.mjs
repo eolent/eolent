@@ -87,3 +87,8 @@ test("a deeper host permission chain and a hyphenated module pass", () => {
   m.permissions[1].scope = "tenant";
   assert.match(checkManifest(m).join("\n"), /not a host permission/);
 });
+
+test("auditReads needs auditing", () => {
+  assert.match(problems((m) => Object.assign(m.entities[0], { auditReads: true, auditing: false }))[0], /auditReads but not auditing/);
+  assert.deepEqual(problems((m) => Object.assign(m.entities[0], { auditReads: true })), []);
+});
