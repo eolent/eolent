@@ -19,8 +19,9 @@ export function loadConfig(env = process.env) {
   for (const [key, p] of Object.entries(fixtures.principals ?? {})) {
     if (p.tokenEnv) {
       const token = env[p.tokenEnv];
-      if (!token) throw new Error(`principal "${key}": environment variable ${p.tokenEnv} is not set`);
-      tokens[key] = token;
+      if (token) tokens[key] = token;
+      else if (key !== "host") throw new Error(`principal "${key}": environment variable ${p.tokenEnv} is not set`);
+      // The optional host principal is skipped, with its tests, when its token is not set.
     }
   }
   return { baseUrl: baseUrl.replace(/\/+$/, ""), fixtures, tokens };

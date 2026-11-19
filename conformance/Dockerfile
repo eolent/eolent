@@ -11,6 +11,5 @@ WORKDIR /conformance
 COPY conformance/lib ./lib
 COPY conformance/tests ./tests
 COPY conformance/fixtures ./fixtures
-COPY package.json ./package.json
 USER node
 CMD ["node", "--test", "tests/tenancy.test.mjs", "tests/problem-details.test.mjs"]

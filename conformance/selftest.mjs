@@ -15,7 +15,21 @@ const faults = {
   crossTenantRead: ["another tenant's entity looks exactly like a nonexistent one"],
   crossTenantList: ["another tenant cannot list the entity"],
   ignoreTenantHeader: ["a tenant header that differs from the token is a tenant mismatch", "a tenant header naming a nonexistent tenant is also a tenant mismatch"],
-  wrongProblemType: null, // many tests fail; only the exit code is checked
+  wrongProblemType: [
+    // every test that asserts the problem details shape fails, because the type is not urn:eolent:error:<code>
+    "an unknown path returns 404 problem details",
+    "a disallowed method returns 405 with an Allow header",
+    "an unauthenticated request returns 401 with WWW-Authenticate: Bearer",
+    "a malformed body returns a validation error with a Malformed item",
+    "a body with missing required fields returns validation items",
+    "an unsupported filter property returns an UnknownValue item for the parameter",
+    "another tenant's entity looks exactly like a nonexistent one",
+    "a tenant header that differs from the token is a tenant mismatch",
+    "a tenant header naming a nonexistent tenant is also a tenant mismatch",
+    "a tenant header that is not a UUID is a validation error",
+    "a host principal without a tenant context gets TenantRequired",
+    "a host principal without the switching permission cannot send a tenant header"
+  ],
   noWwwAuthenticate: ["an unauthenticated request returns 401 with WWW-Authenticate: Bearer"]
 };
 
