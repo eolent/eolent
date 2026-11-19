@@ -49,3 +49,8 @@ test("a system actor needs no onBehalfOf and a suppressed count must be at least
   assert.equal(validate({ ...entry(), outcome: "denied", suppressed: 0 }), false);
 });
 
+test("x- properties are allowed inside nested objects too", () => {
+  assert.equal(validate({ ...entry(), resource: { type: "Identity.User", "x-note": 1 }, client: { ip: "10.0.0.1", "x-region": "eu" } }), true);
+  assert.equal(validate({ ...entry(), resource: { type: "Identity.User", note: 1 } }), false);
+});
+

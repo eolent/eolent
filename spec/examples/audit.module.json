@@ -14,8 +14,10 @@
     { "name": "HostAuditEntry", "tenancy": "none", "auditing": false }
   ],
   "events": [
-    { "name": "audit.entry.recorded", "direction": "publishes", "entity": "AuditEntry", "dataSchema": "../audit-entry.schema.json" },
-    { "name": "audit.host-entry.recorded", "direction": "publishes", "entity": "HostAuditEntry", "dataSchema": "../audit-entry.schema.json" }
+    { "name": "audit.entry.recorded", "direction": "publishes", "entity": "AuditEntry", "dataSchema": "../audit-entry.schema.json", "description": "Published by the platform on behalf of the module that made a change (spec/events.md, section 1); this module owns the type." },
+    { "name": "audit.host-entry.recorded", "direction": "publishes", "entity": "HostAuditEntry", "dataSchema": "../audit-entry.schema.json", "description": "Published by the platform for entries with no tenant; this module owns the type." },
+    { "name": "audit.entry.recorded", "direction": "subscribes", "description": "Consumed by this module, which writes the entry to the log." },
+    { "name": "audit.host-entry.recorded", "direction": "subscribes", "description": "Consumed by this module, which writes the entry to the host store." }
   ],
   "operations": [
     { "operationId": "auditAuditLogsList", "method": "GET", "path": "/api/v1/audit-logs", "permission": "Audit.AuditLogs.Read", "entity": "AuditEntry" },

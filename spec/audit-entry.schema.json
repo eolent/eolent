@@ -19,6 +19,7 @@
       "type": "object",
       "required": ["type"],
       "properties": { "type": { "type": "string" }, "id": { "type": "string" } },
+      "patternProperties": { "^x-": {} },
       "additionalProperties": false
     },
     "changes": {
@@ -32,6 +33,7 @@
           "redacted": { "type": "boolean" }
         },
         "required": ["path"],
+        "patternProperties": { "^x-": {} },
         "additionalProperties": false
       }
     },
@@ -41,12 +43,14 @@
       "type": "object",
       "required": ["approvedBy", "approvedAt"],
       "properties": { "approvedBy": { "$ref": "#/$defs/principal" }, "approvedAt": { "type": "string", "format": "date-time" } },
+      "patternProperties": { "^x-": {} },
       "additionalProperties": false
     },
     "traceId": { "type": "string" },
     "client": {
       "type": "object",
       "properties": { "ip": { "type": "string" }, "userAgent": { "type": "string" } },
+      "patternProperties": { "^x-": {} },
       "additionalProperties": false
     }
   },
