@@ -11,7 +11,7 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 An implementation MUST write an audit entry for each of these:
 
 - a successful create, update, delete or restore of an entity whose manifest `auditing` is `true` (the default)
-- a successful custom action ([API conventions](api-conventions.md)) on such an entity, and any other successful mutating operation an audited entity's module exposes
+- a successful custom action ([API conventions](api-conventions.md)) on such an entity, and any other successful mutating operation whose resource is an audited entity
 - every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
 
 An implementation SHOULD also write an entry with outcome `denied` when a mutating request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. A denied entry is written only when the tenant of the request was resolved, so that `tenantId` is a real tenant. Denied reads, and any rejection before the tenant is resolved (including a refused tenant switch, which happens before resolution), are deliberately not recorded in 0.1, to keep the log free of probing noise; this is a known gap. Reads are not audited in 0.1, apart from the `tenantSwitch` rule above.
@@ -35,14 +35,14 @@ An audit entry is a JSON object. Property names are `camelCase`.
 | `outcome` | string | yes | `succeeded` or `denied` |
 | `operation` | string | no | The `operationId` of the API operation, when the action came through the API |
 | `action` | string | for `kind` `action` | The custom action name, as in its path |
-| `resource` | object | for all kinds except `tenantSwitch` | `type` (the module's PascalCase name, a dot, then the manifest entity name, for example `Identity.User` for entity `User` in module `identity`) and `id` |
+| `resource` | object | for all kinds except `tenantSwitch` | `type` (the module's PascalCase name, a dot, then the manifest entity name, for example `Identity.User` for entity `User` in module `identity`) and `id`. `id` is absent for a `denied` create, which has no resource yet, and when the request named an id that is not visible in the current tenant |
 | `changes` | array | no | The change set (section 5) |
 | `changesTruncated` | boolean | no | `true` only when `changes` was capped and omits some items |
 | `approval` | object | no | Reserved for agent actions that needed approval (section 4) |
 | `traceId` | string | yes | The W3C trace id of the request, or of the job that made the change. The same value appears in error responses and logs |
 | `client` | object | no | Optional request metadata: `ip` and `userAgent`. Implementations MAY omit it, for example for privacy reasons |
 
-An entry carries no property that is not listed here except those that begin with `x-`. Readers MUST ignore properties they do not know.
+An entry, and each object inside it (such as `actor`), carries no property that is not listed here except those that begin with `x-`. Readers MUST ignore properties they do not know.
 
 Example, an agent changing a user's name on behalf of an administrator:
 
@@ -114,7 +114,7 @@ Rules:
 - for `create`, `changes` contains one item per property that has a value, with `new` only
 - for `update`, `changes` contains one item per property whose value changed, and none for a property whose value did not change
 - for `delete` and `restore`, `changes` MAY be absent. A soft delete is recorded as `delete` and its restore as `restore`
-- a property that holds a secret (passwords, tokens, keys, credentials) MUST be recorded with `redacted` `true`, never with its value. How an entity marks properties as sensitive is planned for manifest `0.2`; until then, implementations decide which properties these are, and the conformance suite uses a fixture entity that declares its own secret property
+- a property that holds a secret (passwords, tokens, keys, credentials) MUST be recorded with `redacted` `true`, never with its value. How an entity marks properties as sensitive is planned for manifest `0.2`; until then, implementations decide which properties these are, and the redaction conformance check is therefore not portable across implementations until then; the suite runs it only against implementations whose conformance configuration names a secret property
 - `path` uses the property names of the API representation, not storage names, so entries read the same in every implementation
 
 An implementation MAY cap the number of items in one entry. When it does, it sets the entry property `changesTruncated` to `true`, as the error format does with `errorsTruncated`; otherwise the property is absent and the list is complete.
@@ -144,7 +144,7 @@ The list operation supports `limit`, `cursor`, `sort` and `includeTotal` as in t
 The conformance suite checks that:
 
 - creating, updating and deleting an audited entity each produce one entry with the right `kind`, `tenantId`, `actor`, `resource` and `traceId`, and that the `traceId` equals the trace id in the request's `traceparent` header
-- an update records exactly the changed properties in `changes`, with `old` and `new`, and a property that the suite's fixture entity declares as a secret is recorded with `redacted` `true` and no values
+- an update records exactly the changed properties in `changes`, with `old` and `new`, and, where the conformance configuration names a secret property, that property is recorded with `redacted` `true` and no values
 - a failed request that changed nothing leaves no `succeeded` entry
 - a call made with an agent token on behalf of a user produces an entry with `actor.type` `agent` and `onBehalfOf` set to that user, and a call made by the user directly has no `onBehalfOf`
 - a host principal acting within a tenant, for a read and for a mutation, produces a `tenantSwitch` entry with `actor.level` `host`, and a tenant principal's read produces none
