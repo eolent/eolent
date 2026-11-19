@@ -55,7 +55,7 @@ For every entity whose manifest `tenancy` is `tenantScoped`:
 
 **Fail closed.** Code that runs without a request (background jobs, event handlers, migrations) has no ambient tenant. It MUST set the tenant context explicitly before touching tenant-scoped data. Access to tenant-scoped data with no tenant context is an error, never a query across all tenants. In 0.1 there is no cross-tenant exception: operations that must work across tenants, such as host administration, use only data that is not tenant-scoped or loop over tenants, setting the context for each.
 
-Events and audit entries carry the `tenantId` of the tenant they concern, as defined by the event envelope and the audit schema (planned).
+Events and audit entries carry the `tenantId` of the tenant they concern, as defined by the [audit log contract](audit.md) and the event envelope (planned).
 
 ## 5. Errors
 
