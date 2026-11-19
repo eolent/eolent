@@ -31,7 +31,7 @@ Manifest `0.2` is a breaking change to the draft `0.1`, which allows breaking ch
 
 ### Checks that go beyond the schema
 
-JSON Schema cannot express references between parts of a manifest. The validation of manifests in this repository checks that: names of permissions, features, settings and error codes start with the module's PascalCase name; operation ids start with its camelCase name; every named permission, feature, entity, operation and parent exists in the manifest; a feature named by an operation is boolean and the operation is tenant-scoped; there are no duplicates; and the host-permission and agent-risk rules above hold. Implementations run the same checks when loading a manifest.
+JSON Schema cannot express references between parts of a manifest. The validation of manifests in this repository checks that: names of permissions, features, settings and error codes start with the module's PascalCase name; operation ids start with its camelCase name; every named permission, feature, entity, operation and parent exists in the manifest; a feature named by an operation is boolean and the operation is tenant-scoped; there are no duplicates; and the host-permission and agent-risk rules above hold. Implementations SHOULD run the same checks when loading a manifest; the reference implementation of the loader is part of the kernel (D2). Uniqueness of operation ids across modules is checked when the modules are installed together, not by the check of a single manifest.
 
 ## Consequences
 

@@ -4,11 +4,11 @@
 function pascalModule(name) {
   return name
     .split(".")
-    .map((seg) => seg.split("-").map((p) => p[0].toUpperCase() + p.slice(1)).join(""))
+    .map((seg) => seg.split("-").filter(Boolean).map((p) => p[0].toUpperCase() + p.slice(1)).join(""))
     .join(".");
 }
 function camelModule(name) {
-  const joined = name.split(/[.-]/).map((p, i) => (i === 0 ? p : p[0].toUpperCase() + p.slice(1))).join("");
+  const joined = name.split(/[.-]/).filter(Boolean).map((p, i) => (i === 0 ? p : p[0].toUpperCase() + p.slice(1))).join("");
   return joined;
 }
 export function checkManifest(m) {
@@ -54,7 +54,7 @@ export function checkManifest(m) {
   }
   const ops = new Map((m.operations ?? []).map((o) => [o.operationId, o]));
   for (const o of m.operations ?? []) {
-    if (!o.operationId.startsWith(idPrefix)) out.push(`operationId "${o.operationId}" must start with "${idPrefix}"`);
+    if (!new RegExp(`^${idPrefix}[A-Z]`).test(o.operationId)) out.push(`operationId "${o.operationId}" must start with "${idPrefix}" followed by a capital letter`);
     if (o.permission !== undefined && !perms.has(o.permission)) out.push(`operation "${o.operationId}" names undeclared permission "${o.permission}"`);
     if (o.feature !== undefined) {
       const f = features.get(o.feature);
