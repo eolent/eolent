@@ -81,3 +81,10 @@ test("a multi-level permission chain and a hyphenated module pass", () => {
   m.permissions.push({ name: "BillingCore.Invoices.Read.Export", parent: "BillingCore.Invoices.Read", scope: "host" });
   assert.deepEqual(checkManifest(m), []);
 });
+
+test("a tenant-scoped parent may group host-scoped children", () => {
+  // Exact match and scope-filtered group grants make this safe, so the validation allows it.
+  const m = base();
+  m.permissions[0].scope = "tenant";
+  assert.deepEqual(checkManifest(m), []);
+});

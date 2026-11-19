@@ -87,6 +87,7 @@ The conformance suite checks, against a running backend, that:
 - the tenant administrator passes the check for every tenant permission that an installed module declares, including one that an upgrade adds afterwards, and a role created by an administrator does not pass the check for a permission added by an upgrade until it is granted
 - a group grant in the interface creates one grant per permission below the group, at any depth, that exists at that time, and none for a permission whose scope does not suit the role
 - an agent acting for a tenant administrator passes only the checks for permissions that were explicitly granted to the agent
+- a permission added to a group after a group grant is not held by the role that received the group grant, until it is granted; grants made earlier are unchanged
 - permissions granted in tenant A do not apply in tenant B for the same user
 - removing a permission from a role stops the user passing checks within 60 seconds, without a new token
 - a request that fails authentication returns `401` before any permission or feature check, and a caller without the permission gets `403 Eolent.Forbidden` rather than `Eolent.FeatureDisabled` when both would fail
