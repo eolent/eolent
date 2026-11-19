@@ -49,11 +49,12 @@ The attributes are:
 |---|---|---|---|
 | `tenantid` | string (UUID) | yes, except for events about data that is not tenant-scoped | The tenant the event concerns ([tenancy contract](tenancy.md)). Absent only for events about data that is not tenant-scoped, such as host administration |
 | `traceparent` | string | yes | The [W3C trace context](https://www.w3.org/TR/trace-context/) of the causing request or job. It follows the CloudEvents distributed tracing extension. `tracestate` MAY accompany it |
+| `tracestate` | string | no | The W3C `tracestate` that accompanies `traceparent` |
 | `actortype` | string | yes | `user`, `agent` or `system`, as for the audit `actor` |
 | `actorid` | string (UUID) | for `user` and `agent` | The principal that caused the event |
 | `onbehalfof` | string (UUID) | when `actortype` is `agent` | The id of the user the agent acted for. Absent otherwise |
 
-An event is about data that is not tenant-scoped when its manifest `events` entry names an `entity` of the module whose `tenancy` is `none`. An event with no `entity`, or one that names an entity the module does not declare, is treated as tenant-scoped, so a missing declaration never drops `tenantid` from tenant-scoped data. `tenantid` is thus present on every event except those about data that is not tenant-scoped, and a conformance check covers both cases (section 8).
+An event is about data that is not tenant-scoped when its manifest `events` entry names an `entity` of the module whose `tenancy` is `none`. Every published event declares an `entity`, and an entity the module does not declare is a manifest error that the validation and the conformance suite reject. If an implementation meets such an event at run time anyway, it treats it as tenant-scoped, so a mistake never drops `tenantid` from tenant-scoped data. An event about host-level data names an entity whose `tenancy` is `none`. `tenantid` is thus present on every event except those about data that is not tenant-scoped, and a conformance check covers both cases (section 8).
 
 ## 4. Data
 

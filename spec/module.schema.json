@@ -130,6 +130,8 @@
     "event": {
       "type": "object",
       "required": ["name", "direction"],
+      "if": { "properties": { "direction": { "const": "publishes" } } },
+      "then": { "required": ["entity"] },
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -139,7 +141,7 @@
         },
         "direction": { "enum": ["publishes", "subscribes"] },
         "entity": {
-          "description": "Name of an entity declared in this module's entities that the event is about. It decides whether the event carries a tenant id: an event with no entity, or an undeclared one, is treated as tenant-scoped (see spec/events.md).",
+          "description": "Name of an entity declared in this module's entities that the event is about. It is required for published events and decides whether the event carries a tenant id (see spec/events.md).",
           "type": "string",
           "pattern": "^[A-Z][A-Za-z0-9]*$"
         },

@@ -63,6 +63,7 @@ if (!schema) {
         for (const err of validate.errors) {
           errors.push(`${rel(file)}: ${err.instancePath || "/"} ${err.message}`);
         }
+        continue; // the entity check below needs a schema-valid manifest
       }
       // An event's entity must be declared in the same manifest's entities.
       const declared = new Set((manifest.entities ?? []).map((e) => e.name));
