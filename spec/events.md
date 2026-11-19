@@ -10,7 +10,7 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 
 The `type` of an event is the event `name` declared in the publishing module's manifest, for example `identity.user.created`. Rules:
 
-- the name is lowercase, dot-separated, as the manifest schema requires. By convention it is `<module>.<entity>.<past-tense verb>`
+- the name is lowercase, dot-separated, as the manifest schema requires. By convention it is the module's manifest name, then the entity in lowercase, then a past-tense verb: `identity.user.created`, `billing.invoices.invoice.paid`
 - only the module that declares an event as `publishes` may publish it, and the name begins with the module's manifest name followed by a dot (`user-admin.user.created`, `billing.invoices.invoice.paid`)
 - an event type is stable. Adding optional properties to `data` is compatible. Any other change to `data` is breaking and is published as a new type that ends in a version segment, for example `identity.user.created.v2`. Both types are published during a deprecation period set by the module
 
@@ -26,11 +26,11 @@ Events use the CloudEvents attributes below. "Required" is stricter than CloudEv
 | `type` | string | yes | The event type (section 1) |
 | `time` | timestamp | yes (CloudEvents: optional) | When the change that caused the event was committed, [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) in UTC |
 | `datacontenttype` | string | yes | `application/json` |
-| `dataschema` | URI | no | The schema of `data`, from the `dataSchema` of the manifest event. It MUST be an absolute URI: a relative manifest path is resolved against a schema base URI that the deployment configures, and the attribute is omitted when none is configured |
+| `dataschema` | URI | no | The schema of `data`, from the `dataSchema` of the manifest event. It MUST be an absolute URI: a relative manifest path is resolved against a schema base URI that the deployment configures, and a deployment where any module uses a relative `dataSchema` MUST configure one |
 | `subject` | string | no | The identifier of the entity the event is about, when there is one |
 | `data` | object | yes | The payload. A JSON object, valid against the declared `dataSchema` |
 
-An event carries only the attributes in this document and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
+An event carries only the attributes in this document and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; a module-defined name MUST NOT equal any attribute name defined by CloudEvents or by this document (for example `tenantid`), and modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
 
 ## 3. Context extensions
 
@@ -46,13 +46,13 @@ These extension attributes carry the context of the request or job that caused t
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
-| `tenantid` | string (UUID) | when the event concerns a tenant or carries tenant-scoped data | The tenant the event concerns ([tenancy contract](tenancy.md)). Absent only for events about data that is not tenant-scoped |
+| `tenantid` | string (UUID) | yes, except for events about data that is not tenant-scoped | The tenant the event concerns ([tenancy contract](tenancy.md)). Absent only for events about data that is not tenant-scoped, such as host administration |
 | `traceparent` | string | yes | The [W3C trace context](https://www.w3.org/TR/trace-context/) of the causing request or job. It follows the CloudEvents distributed tracing extension. `tracestate` MAY accompany it |
 | `actortype` | string | yes | `user`, `agent` or `system`, as for the audit `actor` |
 | `actorid` | string (UUID) | for `user` and `agent` | The principal that caused the event |
 | `onbehalfof` | string (UUID) | when `actortype` is `agent` | The id of the user the agent acted for. Absent otherwise |
 
-Events about data that is not tenant-scoped, such as host administration, have no `tenantid`; every other event carries one.
+`tenantid` is thus present on every event except those about data that is not tenant-scoped, and the conformance checks test exactly that.
 
 ## 4. Data
 
