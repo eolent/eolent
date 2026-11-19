@@ -42,9 +42,12 @@ Example:
 | Status | Meaning in Eolent | Platform code |
 |---|---|---|
 | `400` | The request is malformed or fails validation, including unsupported filter, sort or `q` parameters | `Eolent.Validation` |
+| `400` | A tenant-scoped operation was called and no tenant can be resolved | `Eolent.TenantRequired` |
 | `401` | Missing, invalid or expired credentials. The response carries a `WWW-Authenticate: Bearer` header | `Eolent.Unauthenticated` |
 | `403` | The caller is authenticated but lacks the required permission or feature | `Eolent.Forbidden` |
+| `403` | The tenant claim, header and host name identify different tenants, or the resolved tenant is suspended | `Eolent.TenantMismatch`, `Eolent.TenantSuspended` |
 | `404` | The resource or route does not exist, or is not visible to the caller (section 6) | `Eolent.NotFound` |
+| `404` | A tenant identified by header or host name does not exist (see the [tenancy contract](tenancy.md)) | `Eolent.TenantNotFound` |
 | `405` | The path exists but not for this method. The response carries an `Allow` header | `Eolent.MethodNotAllowed` |
 | `406` | The `Accept` header allows no representation the API can produce | `Eolent.NotAcceptable` |
 | `409` | The request conflicts with the current state of the resource, for example a duplicate | module code |

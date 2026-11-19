@@ -4,7 +4,7 @@
 
 This profile defines how an Eolent backend describes and shapes its HTTP API. An implementation exposes an OpenAPI 3.1 description of its API, and the description follows these conventions. The frontend kit and API client generators rely on them, so that one generated client works against any conforming backend.
 
-The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Error responses are defined by the [error format profile](error-format.md) and tenancy and permissions by their own contracts (planned); this document only states how they appear in the API description.
+The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Error responses are defined by the [error format profile](error-format.md) and tenancy by the [tenancy contract](tenancy.md) and permissions by their own contract (planned); this document only states how they appear in the API description.
 
 ## 1. Description and versioning
 
@@ -84,7 +84,7 @@ The `totalCount` property in this example is present only when the request sets 
 
 - Authentication is OAuth 2.0 / OpenID Connect bearer tokens, declared as a security scheme named `bearerAuth` of type `http` and scheme `bearer`.
 - Every operation that requires a permission declares it with the extension `x-eolent-permission`, whose value is a permission name from the module manifest (for example `Identity.Users.Create`). The permission MUST be declared in the manifest of the module the operation belongs to, that is, the module named by the operation's tag. An operation cannot reference a permission declared by another module.
-- Every operation declares `x-eolent-tenancy` with the same vocabulary as the manifest's entity `tenancy`: `tenantScoped` for operations that act within one tenant, and `none` for operations that are not tenant-scoped (for example host administration or public endpoints). Unlike the manifest's entity `tenancy`, the operation-level value has no default: an operation without `x-eolent-tenancy` does not conform. How the tenant is identified is defined by the tenancy contract (planned).
+- Every operation declares `x-eolent-tenancy` with the same vocabulary as the manifest's entity `tenancy`: `tenantScoped` for operations that act within one tenant, and `none` for operations that are not tenant-scoped (for example host administration or public endpoints). Unlike the manifest's entity `tenancy`, the operation-level value has no default: an operation without `x-eolent-tenancy` does not conform. How the tenant is identified is defined by the [tenancy contract](tenancy.md).
 
 ## 7. Concurrency and idempotency
 

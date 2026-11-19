@@ -36,7 +36,7 @@ Do not promise every database on day one. EF Core makes switching providers look
 
 ### Multi-tenancy
 
-Three isolation modes are planned: shared database with a tenant column, schema per tenant, and database per tenant. PostgreSQL row-level security can add defence in depth. Schema- and database-per-tenant are where database differences matter most, so the documentation states which modes each tier supports.
+Three isolation modes are planned: shared database with a tenant column, schema per tenant, and database per tenant. PostgreSQL row-level security can add defence in depth. Schema- and database-per-tenant are where database differences matter most, so the documentation states which modes each tier supports. The contract is in [spec/tenancy.md](../spec/tenancy.md) and the mode decisions are in [ADR 0006](adr/0006-tenant-isolation-modes.md).
 
 ### Other decisions
 
