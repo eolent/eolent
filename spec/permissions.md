@@ -12,9 +12,9 @@ A permission is a named right to perform a kind of action, for example `Identity
 
 - **Name.** Names follow [ADR 0004](../docs/adr/0004-naming-and-versioning-conventions.md): PascalCase segments separated by dots, starting with the module's PascalCase name, by convention `Module.Resource.Action`. A module declares only permissions with its own prefix.
 - **Declaration.** A module declares every permission it checks in the `permissions` array of its manifest. A permission that is not declared does not exist: it cannot be granted and checking it is an error.
-- **Hierarchy.** A permission can name a `parent` in the same module. The parent chain MUST NOT contain a cycle and MUST end at a permission with no parent.
-- **Inheritance.** Holding a permission means holding every permission below it. A check for permission `P` succeeds if the caller holds `P` or any ancestor of `P`. So a caller who holds `Identity.Users` passes checks for `Identity.Users.Create`, and a caller who holds only `Identity.Users.Create` does not pass a check for `Identity.Users`.
-- **Parent permissions as groups.** Because holding a parent grants everything below it, a parent permission is a convenient group, and should be declared with `displayName` and `description` that say so.
+- **Hierarchy.** A permission can name a `parent` in the same module. The parent chain MUST NOT contain a cycle and MUST end at a permission with no parent. The hierarchy groups permissions for the interface and for menus. It grants nothing.
+- **Exact match.** A check for permission `P` succeeds only if the caller holds `P`. Holding a parent does not pass the check for a child, and holding a child does not pass the check for the parent. A permission added to a module in a later release therefore changes nobody's access until it is granted (the administrator role below is the one stated exception).
+- **Groups in the interface.** An interface that grants a whole group (a parent and its children) expands it when the grant is made, to the children that exist then, as separate grants, so each one is a recorded decision. It grants only permissions whose scope suits the role: a tenant role never receives a host permission this way.
 
 ### Operation checks
 
@@ -29,12 +29,13 @@ The permission is checked before the feature so that the response to a caller wi
 
 ## 2. Grants
 
-- **Roles.** Permissions are granted to roles, and roles are assigned to users. In 0.1 there are no permissions granted directly to a user and no deny rules; grants are only additive. A user's effective permissions are the union of the permissions of all their roles, with inheritance applied.
+- **Roles.** Permissions are granted to roles, and roles are assigned to users. In 0.1 there are no permissions granted directly to a user and no deny rules; grants are only additive. A user's effective permissions are the union of the permissions of all their roles.
 - **Per tenant.** Roles, role assignments and therefore grants belong to a tenant. A user's permissions in tenant A say nothing about tenant B.
-- **Host permissions.** A host permission is one that only a host principal can hold. Host principals are granted permissions through host-level roles, which exist outside every tenant and are managed by the tenants module; tenant roles never contain host permissions. A manifest marks a host permission with `scope` `host`, and the ancestors of a host permission are host permissions too; the platform host permissions are listed in section 5. An implementation MUST refuse to add to a tenant role a host permission or any permission that has a host permission among its descendants (for example an ancestor of one), with `400 Eolent.Validation` and an `Eolent.Validation.UnknownValue` item for the permission, and MUST NOT let a tenant principal pass a check for one.
+- **Host permissions.** A host permission is one that only a host principal can hold. Host principals are granted permissions through host-level roles, which exist outside every tenant and are managed by the tenants module; tenant roles never contain host permissions. A manifest marks a host permission with `scope` `host`; the platform host permissions are listed in section 5. An implementation MUST refuse to add a host permission to a tenant role, with `400 Eolent.Validation` and an `Eolent.Validation.UnknownValue` item for the permission, and MUST NOT let a tenant principal pass a check for one.
 - **Evaluated on the server.** Permissions are not carried in the access token. The server evaluates them for each request, so a change takes effect without waiting for a new token. Implementations MAY cache grants, and a change MUST take effect within 60 seconds.
-- **Agents.** An agent acting for a user MUST NOT hold more permissions than that user. Its effective permissions are the intersection of the user's permissions and the permissions granted to the agent, each taken as the full set of permissions it passes checks for (inheritance applied, that is, the held permissions plus all their descendants), not as the raw grants. How agents are identified and audited is defined by the [audit log contract](audit.md).
-- **System roles.** An implementation MAY provide built-in roles (for example an administrator role). They are ordinary roles, with grants the implementation documents, and they obey the same rules.
+- **Agents.** An agent acting for a user MUST NOT hold more permissions than that user. Its effective permissions are the intersection of the permissions the user holds and the permissions granted to the agent. How agents are identified and audited is defined by the [audit log contract](audit.md).
+- **Tenant administrator.** Every tenant has a built-in system role, the tenant administrator. It holds every permission with scope `tenant` that the installed modules declare. This is evaluated when a check is made and is not stored as grants, so a permission added by an installed or upgraded module reaches administrators without a grant. Its permissions cannot be edited, and it cannot be deleted. It never holds a host permission. It is the only exception to "nothing changes until it is granted": every other role gains a permission only by a grant.
+- **Other system roles.** An implementation MAY provide other built-in roles. They are ordinary roles with documented grants, and they obey the same rules.
 
 ## 3. Features
 
@@ -64,7 +65,7 @@ The response is `200` with:
 | Property | Description |
 |---|---|
 | `tenantId` | The resolved tenant |
-| `permissions` | Every permission the caller passes a check for in that tenant, that is, the permissions they hold plus all their descendants, so a client tests membership and needs no hierarchy logic. Sorted, without duplicates |
+| `permissions` | Every permission the caller holds in that tenant, including the permissions of the tenant administrator role, so a client tests membership and needs no hierarchy logic. Sorted, without duplicates |
 | `features` | The effective value of every feature declared by the installed modules, by feature name |
 
 The response carries `Cache-Control: private, no-store`. The endpoint is a convenience for the interface and not a security boundary: the server checks permissions again on every operation, and clients MUST NOT treat a permission in this response as authorisation.
@@ -82,7 +83,9 @@ The platform codes `Eolent.Forbidden` (`403`, a missing permission) and `Eolent.
 The conformance suite checks, against a running backend, that:
 
 - a caller without the permission declared by an operation's `x-eolent-permission` receives `403 Eolent.Forbidden`, and with it succeeds
-- a caller holding a parent permission passes the check for a child, and a caller holding only the child does not pass the check for the parent
+- a caller holding a parent permission does not pass the check for a child, and a caller holding only the child does not pass the check for the parent
+- the tenant administrator passes the check for every tenant permission that an installed module declares, including one that an upgrade adds afterwards, and a role created by an administrator does not pass the check for a permission added by an upgrade until it is granted
+- a group grant in the interface creates one grant per child that exists at that time
 - permissions granted in tenant A do not apply in tenant B for the same user
 - removing a permission from a role stops the user passing checks within 60 seconds, without a new token
 - a request that fails authentication returns `401` before any permission or feature check, and a caller without the permission gets `403 Eolent.Forbidden` rather than `Eolent.FeatureDisabled` when both would fail
@@ -92,4 +95,4 @@ The conformance suite checks, against a running backend, that:
 - every permission in `permissions` is declared in some installed module's manifest, and the `parent` chains in the manifests have no cycles
 - an agent acting for a user cannot pass a check the user could not pass
 - a host principal without `Tenants.Tenants.Switch` cannot act within a tenant
-- adding `Tenants.Tenants.Switch`, or any permission that is its ancestor, to a tenant role is refused with `400 Eolent.Validation`, and no tenant principal passes a check for it
+- adding a host permission such as `Tenants.Tenants.Switch` to a tenant role is refused with `400 Eolent.Validation`, and no tenant principal, including a tenant administrator, passes a check for it

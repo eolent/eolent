@@ -54,12 +54,6 @@ export function checkManifest(m) {
       }
       seenParents.add(a);
     }
-    // The ancestors of a host permission are host permissions too.
-    if ((p.scope ?? "tenant") === "host") {
-      for (let a = p.parent, n = 0; a !== undefined && perms.has(a) && n < 100; a = perms.get(a).parent, n++) {
-        if ((perms.get(a).scope ?? "tenant") !== "host") out.push(`host permission "${p.name}" has ancestor "${a}" that is not a host permission`);
-      }
-    }
   }
   const ops = new Map((m.operations ?? []).map((o) => [o.operationId, o]));
   for (const o of m.operations ?? []) {

@@ -18,7 +18,7 @@ Manifest `0.2` is a breaking change to the draft `0.1`, which allows breaking ch
 | `operations` | Each API operation: `operationId`, `method`, `path`, and the `permission`, `feature`, `tenancy` and `entity` it uses. It mirrors the `x-eolent-*` annotations of the OpenAPI description, so the two can be checked against each other |
 | `agentTools` | The operations a module opts in to expose to AI agents: `operation`, a `description` for the model, a `risk` class and `requiresApproval` |
 | `errors` | The error codes the module defines: `code`, `status`, `description` |
-| `permissions[].scope` | `tenant` (default) or `host`. A host permission can only be held by host principals, and its ancestors are host permissions too |
+| `permissions[].scope` | `tenant` (default) or `host`. A host permission can only be held by host principals |
 | `entities[].sensitiveProperties` | Names of properties, as in the API, that hold sensitive values |
 
 ### Agent tools
@@ -31,7 +31,7 @@ Manifest `0.2` is a breaking change to the draft `0.1`, which allows breaking ch
 
 ### Checks that go beyond the schema
 
-JSON Schema cannot express references between parts of a manifest. The validation of manifests in this repository checks that: names of permissions, features, settings and error codes start with the module's PascalCase name; operation ids start with its camelCase name; every named permission, feature, entity, operation and parent exists in the manifest; a feature named by an operation is boolean and the operation is tenant-scoped; an operation has the same tenancy as its entity; permission parent chains have no cycles; there are no duplicates; and the host-permission and agent-risk rules above hold. Implementations SHOULD run the same checks when loading a manifest; the reference implementation of the loader is part of the kernel (D2). Uniqueness of operation ids across modules is checked when the modules are installed together, not by the check of a single manifest.
+JSON Schema cannot express references between parts of a manifest. The validation of manifests in this repository checks that: names of permissions, features, settings and error codes start with the module's PascalCase name; operation ids start with its camelCase name; every named permission, feature, entity, operation and parent exists in the manifest; a feature named by an operation is boolean and the operation is tenant-scoped; an operation has the same tenancy as its entity; permission parent chains have no cycles; there are no duplicates; and the agent-risk rules above hold. Implementations SHOULD run the same checks when loading a manifest; the reference implementation of the loader is part of the kernel (D2). Uniqueness of operation ids across modules is checked when the modules are installed together, not by the check of a single manifest.
 
 ## Consequences
 

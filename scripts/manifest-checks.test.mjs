@@ -50,10 +50,6 @@ test("rejects a non-boolean feature on an operation", () => {
   assert.match(problems((m) => (m.features[0].valueType = "integer"))[0], /not boolean/);
 });
 
-test("host permissions need host ancestors", () => {
-  assert.match(problems((m) => delete m.permissions[0].scope).join("\n"), /not a host permission/);
-});
-
 test("agent risk rules", () => {
   assert.match(problems((m) => (m.agentTools[1].risk = "low"))[0], /cannot have risk "low"/);
   assert.match(problems((m) => (m.agentTools[1].risk = "medium"))[0], /must have risk "high"/);
@@ -80,10 +76,3 @@ test("operationId prefix needs a segment boundary", () => {
   assert.match(problems((m) => (m.operations[0].operationId = "billingCorex"))[0], /followed by a capital letter/);
 });
 
-test("a deeper host permission chain and a hyphenated module pass", () => {
-  const m = base();
-  m.permissions.push({ name: "BillingCore.Invoices.Read.Export", parent: "BillingCore.Invoices.Read", scope: "host" });
-  assert.deepEqual(checkManifest(m), []);
-  m.permissions[1].scope = "tenant";
-  assert.match(checkManifest(m).join("\n"), /not a host permission/);
-});
