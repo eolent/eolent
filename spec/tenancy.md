@@ -29,7 +29,7 @@ The tenant of a request is resolved in this order. Each step that applies yields
 
 If more than one of these identifies a tenant and they identify different tenants, the request is rejected with `Eolent.TenantMismatch` (section 5). A request is never resolved by guessing or from request bodies or query parameters.
 
-4. **Fixed tenant.** A deployment that has exactly one tenant MAY configure it as the fixed tenant. It is used only when steps 1 to 3 yield no tenant, and it is never compared with them, so a token claim, header or host label for another tenant is handled by the rules above and not by this step. A deployment with more than one tenant MUST NOT configure a fixed tenant.
+4. **Fixed tenant.** A deployment that has exactly one tenant MAY configure it as the fixed tenant. It is used only when steps 1 to 3 yield no tenant, for tenant principals and host principals alike, so in such a deployment `Eolent.TenantRequired` never occurs. It is never compared with steps 1 to 3, so a token claim, header or host label for another tenant is handled by the rules above and not by this step. A deployment with more than one tenant MUST NOT configure a fixed tenant.
 
 A deployment with a single tenant still has a tenant; without a fixed tenant it is resolved by steps 1 to 3 like any other.
 
@@ -81,7 +81,7 @@ The conformance suite creates at least two tenants with users and data, then che
 - a `tenantScoped` operation with no resolvable tenant returns `400 Eolent.TenantRequired`
 - a host principal without a tenant context calling a `tenantScoped` operation returns `400 Eolent.TenantRequired`
 - a host principal sending `X-Eolent-Tenant` without the tenant-switching permission receives `403 Eolent.Forbidden`, and with it acts within that tenant
-- a deployment with a fixed tenant resolves requests with no tenant signal to it, and still rejects a header naming another tenant with the errors above
+- a deployment with a fixed tenant resolves requests with no tenant signal, from tenant principals and host principals alike, to it, and still rejects a header naming another tenant with the errors above
 - a suspended tenant does not change the result of a `none` operation, and its users receive `403 Eolent.TenantSuspended` on `tenantScoped` operations
 - a `none` operation succeeds with no tenant, returns the same result whichever valid tenant is resolved, returns no tenant-scoped data, and still returns `403 Eolent.TenantMismatch` for a tenant principal whose header names another tenant
 - the same checks pass in every isolation mode the implementation claims to support
