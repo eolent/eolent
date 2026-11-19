@@ -63,4 +63,4 @@ Implementations that support several databases run the suite once per supported 
 
 ## Not yet covered
 
-The audit and events categories need a way to observe audit entries and published events from outside the backend. That mechanism is not defined yet and will be added with those categories. Until then the checks in the audit and event specifications cannot be run.
+The audit category has no runnable tests yet, so the conformance bullets in the audit specification are requirements that the suite does not check until it can observe audit entries. The audit and events categories need a way to observe audit entries and published events from outside the backend. That mechanism is not defined yet and will be added with those categories. Until then the checks in the audit and event specifications cannot be run.
