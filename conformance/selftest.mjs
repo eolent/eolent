@@ -12,6 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 // Every test that asserts the problem details shape. Faults that break the shape for all errors fail all of them.
 const shapeTests = [
+  "a host principal naming a nonexistent tenant also gets Forbidden",
   "an unknown path returns 404 problem details",
   "a disallowed method returns 405 with an Allow header",
   "an unauthenticated request returns 401 with WWW-Authenticate: Bearer",
@@ -34,7 +35,8 @@ const faults = {
   unknownTenantNotMismatch: ["a tenant header naming a nonexistent tenant is also a tenant mismatch"],
   nonUuidHeaderAccepted: ["a tenant header that is not a UUID is a validation error"],
   hostWithoutTenantAllowed: ["a host principal without a tenant context gets TenantRequired"],
-  hostHeaderAllowed: ["a host principal without the switching permission cannot send a tenant header"],
+  hostHeaderAllowed: ["a host principal without the switching permission cannot send a tenant header", "a host principal naming a nonexistent tenant also gets Forbidden"],
+  hostUnknownTenantNotFound: ["a host principal naming a nonexistent tenant also gets Forbidden"],
   wrongProblemType: shapeTests,
   noCacheControl: shapeTests,
   noWwwAuthenticate: ["an unauthenticated request returns 401 with WWW-Authenticate: Bearer"],
@@ -52,7 +54,8 @@ function runSuite(port) {
       EOLENT_FIXTURES: join(here, "fixtures/example.json"),
       EOLENT_TOKEN_TENANT_A: "token-a",
       EOLENT_TOKEN_TENANT_B: "token-b",
-      EOLENT_TOKEN_HOST: "token-host"
+      EOLENT_TOKEN_HOST: "token-host",
+      EOLENT_REQUIRE_HOST: "1"
     };
     const child = spawn(process.execPath, ["--test", "--test-reporter=tap", join(here, "tests/tenancy.test.mjs"), join(here, "tests/problem-details.test.mjs")], { env });
     let out = "";
@@ -80,9 +83,9 @@ const good = await withStub(undefined, runSuite);
 if (good.code !== 0) failures.push(`the correct stub failed the suite:\n${failedTests(good.out).join("\n") || good.out.slice(-1500)}`);
 else {
   const counts = Object.fromEntries([...good.out.matchAll(/^# (tests|pass|fail|skipped) (\d+)$/gm)].map((m) => [m[1], Number(m[2])]));
-  // 16 tests run: 10 tenancy and 6 error format, none skipped, so the host tests really ran.
-  if (counts.pass !== 16 || counts.skipped !== 0) failures.push(`the correct stub run should pass 16 tests with none skipped, got ${JSON.stringify(counts)}`);
-  else console.log("ok: the correct stub passes 16 tests, none skipped");
+  // 17 tests run: 11 tenancy and 6 error format, none skipped, so the host tests really ran.
+  if (counts.pass !== 17 || counts.skipped !== 0) failures.push(`the correct stub run should pass 17 tests with none skipped, got ${JSON.stringify(counts)}`);
+  else console.log("ok: the correct stub passes 17 tests, none skipped");
   // Every title that a fault expects must exist, so renaming a test cannot silently break the self-test.
   const names = new Set([...good.out.matchAll(/^\s*ok \d+ - (.+)$/gm)].map((m) => m[1].trim()));
   for (const title of new Set(Object.values(faults).flat())) {

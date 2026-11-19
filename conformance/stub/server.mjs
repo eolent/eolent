@@ -6,7 +6,7 @@
 //
 // Faults: crossTenantRead, crossTenantList, ignoreTenantHeader, wrongProblemType, noCacheControl, noWwwAuthenticate,
 // no405Allow, hostWithoutTenantAllowed, hostHeaderAllowed, nonUuidHeaderAccepted, unknownTenantNotMismatch,
-// noMalformedItem, acceptsEmptyBody, ignoreUnknownFilter.
+// noMalformedItem, acceptsEmptyBody, ignoreUnknownFilter, hostUnknownTenantNotFound.
 
 import { createServer } from "node:http";
 import { randomUUID, randomBytes } from "node:crypto";
@@ -65,6 +65,7 @@ export function createStub({ fault } = {}) {
       }
       let tenant = principal.tenant;
       if (tenant === null) {
+        if (header !== undefined && fault === "hostUnknownTenantNotFound" && header.toLowerCase() !== TENANT_A && header.toLowerCase() !== TENANT_B) return problem(404, "Eolent.TenantNotFound", "Tenant not found");
         if (header !== undefined && fault !== "hostHeaderAllowed") return problem(403, "Eolent.Forbidden", "Forbidden");
         if (header === undefined && fault !== "hostWithoutTenantAllowed") return problem(400, "Eolent.TenantRequired", "A tenant is required");
         tenant = header ?? TENANT_A;

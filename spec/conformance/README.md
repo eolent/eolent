@@ -34,6 +34,7 @@ conformance/
 | Setting | Meaning |
 |---|---|
 | `EOLENT_BASE_URL` | Base URL of the deployment under test, required |
+| `EOLENT_REQUIRE_HOST` | Set to `1` to fail, instead of skipping, when the host principal or its token is missing. CI sets it |
 | `EOLENT_REQUEST_TIMEOUT_MS` | Timeout of each request in milliseconds, default `10000` |
 | `EOLENT_FIXTURES` | Path to a fixtures file, default `conformance/fixtures/example.json` |
 | the variables named in `tokenEnv` | Bearer tokens of the principals in the fixtures file |
@@ -54,7 +55,7 @@ The tests create entities and do not remove them, and the list checks read every
 
 ### Self-test
 
-`npm run conformance:selftest` starts the stub backend, runs the suite and checks that it passes, then starts stubs that each break one rule (14 faults, such as reading another tenant's entity, listing across tenants, ignoring or mishandling the tenant header, a wrong problem type, a missing `Cache-Control`, `Allow` or `WWW-Authenticate` header, a missing validation item, or accepting an empty body) and checks that the suite fails on exactly the tests that cover that rule. CI runs it for every change.
+`npm run conformance:selftest` starts the stub backend, runs the suite and checks that it passes, then starts stubs that each break one rule (15 faults, such as reading another tenant's entity, listing across tenants, ignoring or mishandling the tenant header, a wrong problem type, a missing `Cache-Control`, `Allow` or `WWW-Authenticate` header, a missing validation item, or accepting an empty body) and checks that the suite fails on exactly the tests that cover that rule. CI runs it for every change.
 
 ## Running against a database matrix
 

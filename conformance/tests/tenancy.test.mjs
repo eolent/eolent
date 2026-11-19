@@ -86,4 +86,9 @@ describe("tenancy isolation", () => {
     const res = await request(cfg, { path: collectionPath, principal: "host", headers: { "x-eolent-tenant": tenantA.id } });
     assertProblem(res, { status: 403, code: "Eolent.Forbidden" });
   });
+
+  test("a host principal naming a nonexistent tenant also gets Forbidden", { skip: hostSkip }, async () => {
+    const res = await request(cfg, { path: collectionPath, principal: "host", headers: { "x-eolent-tenant": randomUUID() } });
+    assertProblem(res, { status: 403, code: "Eolent.Forbidden" });
+  });
 });
