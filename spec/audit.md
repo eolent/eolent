@@ -32,7 +32,7 @@ An audit entry is a JSON object. Property names are `camelCase`.
 | `actor` | object | yes | Who performed the action (section 3) |
 | `onBehalfOf` | object | when `actor.type` is `agent` | The user the agent acted for (section 4). Absent otherwise |
 | `kind` | string | yes | `create`, `update`, `delete`, `restore`, `action` or `tenantSwitch` |
-| `outcome` | string | yes | `succeeded` or `denied` |
+| `outcome` | string | yes | `succeeded` or `denied`. For `tenantSwitch` it is always `succeeded` and means that the switch was made; the result of the request is not part of the entry |
 | `operation` | string | no | The `operationId` of the API operation, when the action came through the API |
 | `action` | string | for `kind` `action` | The custom action name as in its path, or for another mutating operation a short name that identifies it |
 | `resource` | object | for all kinds except `tenantSwitch` | `type` (the module's PascalCase name, a dot, then the manifest entity name, for example `Identity.User` for entity `User` in module `identity`) and `id`. `id` is absent for a `denied` create, which has no resource yet, and when the request named an id that is not visible in the current tenant |
@@ -87,7 +87,7 @@ An AI agent is a principal of its own. When it acts for a user:
 - `onBehalfOf` is an object with `type` `user` and `id` the user. It is required for every entry whose actor is an agent. An agent with no user to act for is not defined in 0.1
 - the permissions that were checked are those of the permission contract: the intersection of the user's and the agent's permissions, so an entry whose outcome is `succeeded` implies that the user could have performed the same action
 
-A user acting directly never has `onBehalfOf`. Readers MUST NOT infer from a missing `onBehalfOf` anything other than that the actor acted for themselves.
+A user acting directly never has `onBehalfOf`, and neither does a `system` actor. Readers MUST NOT infer from a missing `onBehalfOf` anything other than that the actor did not act for another principal.
 
 The optional `approval` object records that a human approved the action before it ran, for operations an agent may only perform with approval (planned for manifest `0.2`):
 
@@ -114,7 +114,7 @@ Rules:
 - for `create`, `changes` contains one item per property that has a value, with `new` only, except that a secret property is recorded with `redacted` `true` and no `new`
 - for `update`, `changes` contains one item per property whose value changed, and none for a property whose value did not change
 - for `delete` and `restore`, `changes` MAY be absent. A soft delete is recorded as `delete` and its restore as `restore`
-- an implementation MUST record a property it treats as a secret (passwords, tokens, keys, credentials) with `redacted` `true`, never with its value. How an entity marks properties as sensitive is planned for manifest `0.2`; until then, implementations decide which properties these are, and the redaction conformance check is therefore not portable across implementations until then; the suite runs it only against implementations whose conformance configuration names a secret property
+- a property MUST be recorded with `redacted` `true`, never with its value, when its name, compared without case, ends with `password`, `secret`, `token`, `apikey` or `privatekey`, and also when the entity marks it as sensitive. An implementation MAY treat more properties as secret. A manifest marker for sensitive properties is planned for `0.2`
 - `path` uses the property names of the API representation, not storage names, so entries read the same in every implementation
 
 An implementation MAY cap the number of items in one entry. When it does, it sets the entry property `changesTruncated` to `true`, as the error format does with `errorsTruncated`; otherwise the property is absent and the list is complete.
@@ -145,9 +145,11 @@ The list operation supports `limit`, `cursor`, `sort` and `includeTotal` as in t
 The conformance suite checks that:
 
 - creating, updating and deleting an audited entity each produce one entry with the right `kind`, `tenantId`, `actor`, `resource` and `traceId`, and that the `traceId` equals the trace id in the request's `traceparent` header
-- an update records exactly the changed properties in `changes`, with `old` and `new`, and, where the conformance configuration names a secret property, that property is recorded with `redacted` `true` and no values
+- an update records exactly the changed properties in `changes`, with `old` and `new`
 - a host mutation that is rolled back leaves its `tenantSwitch` entry and no ordinary entry
 - a failed request that changed nothing leaves no `succeeded` entry, other than a `tenantSwitch` entry, which records the switch and not the outcome of the request
+- a property that matches the secret-name rule in section 5, such as `password`, is recorded with `redacted` `true` and no values
+- the `denied` entry rule is a SHOULD and is not checked in 0.1
 - a call made with an agent token on behalf of a user produces an entry with `actor.type` `agent` and `onBehalfOf` set to that user, and a call made by the user directly has no `onBehalfOf`
 - a host principal acting within a tenant, for a read and for a mutation, produces a `tenantSwitch` entry with `actor.level` `host`, and a tenant principal's read produces none
 - the list operation returns only the current tenant's entries, including under filters, and a request for another tenant's entry returns the same response as for a nonexistent one
