@@ -80,7 +80,7 @@ export function checkLocalization(manifest, files) {
     for (const i of manifest.ui?.menu ?? []) if (i.titleKey) need.push(i.titleKey);
     for (const e of manifest.errors ?? []) need.push(`${e.code}.Title`);
     for (const key of new Set(need)) {
-      if (!(key in defaults)) out.push(`default culture file lacks the key "${key}" that the manifest names`);
+      if (!Object.hasOwn(defaults, key)) out.push(`default culture file lacks the key "${key}" that the manifest names`);
     }
   }
   // A key in another culture must also exist in the default culture file.
@@ -90,7 +90,7 @@ export function checkLocalization(manifest, files) {
       const content = files.get(path);
       if (!isObject(content)) continue;
       for (const key of Object.keys(content)) {
-        if (!(key in defaults)) out.push(`${path}: key "${key}" has no counterpart in the default culture file`);
+        if (!Object.hasOwn(defaults, key)) out.push(`${path}: key "${key}" has no counterpart in the default culture file`);
       }
     }
   }
