@@ -16,7 +16,7 @@ An implementation MUST write an audit entry for each of these:
 
 An implementation SHOULD also write an entry with outcome `denied` when a request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. Reads are not audited in 0.1.
 
-An entry is written in the same unit of work as the change it describes: either both are committed or neither is. A change that is rolled back leaves no entry, and a committed change always has one.
+An entry is written in the same unit of work as the change it describes: either both are committed or neither is. A change that is rolled back leaves no entry, and a committed change always has one. An entry with outcome `denied` has no change to commit with, so it is written independently of any unit of work.
 
 ## 2. Entry
 
