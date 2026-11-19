@@ -76,3 +76,9 @@ test("operationId prefix needs a segment boundary", () => {
   assert.match(problems((m) => (m.operations[0].operationId = "billingCorex"))[0], /followed by a capital letter/);
 });
 
+
+test("a multi-level permission chain and a hyphenated module pass", () => {
+  const m = base();
+  m.permissions.push({ name: "BillingCore.Invoices.Read.Export", parent: "BillingCore.Invoices.Read", scope: "host" });
+  assert.deepEqual(checkManifest(m), []);
+});
