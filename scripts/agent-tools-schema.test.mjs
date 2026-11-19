@@ -33,3 +33,8 @@ test("medium and high risk tools must require approval", () => {
   assert.equal(validate(tool("high", false)), false);
   assert.equal(validate(tool("high")), false);
 });
+
+test("low risk with approval explicitly false is accepted", () => {
+  assert.equal(validate(tool("low", false)), true);
+});
+
