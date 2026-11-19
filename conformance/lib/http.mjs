@@ -21,3 +21,19 @@ export async function request(cfg, { method = "GET", path, principal, headers = 
   }
   return { status: res.status, headers: res.headers, text, json };
 }
+
+// Returns every item of a list by following nextCursor (at most maxPages pages).
+export async function listAll(cfg, path, principal, { maxPages = 100 } = {}) {
+  const items = [];
+  let cursor;
+  for (let page = 0; page < maxPages; page++) {
+    const sep = path.includes("?") ? "&" : "?";
+    const q = `${path}${sep}limit=200${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`;
+    const res = await request(cfg, { path: q, principal });
+    if (res.status !== 200 || !Array.isArray(res.json?.items)) return { res, items };
+    items.push(...res.json.items);
+    cursor = res.json.nextCursor;
+    if (!cursor) return { res, items };
+  }
+  return { res: undefined, items, truncated: true };
+}

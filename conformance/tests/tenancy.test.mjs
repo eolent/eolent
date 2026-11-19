@@ -4,7 +4,7 @@ import { test, describe, before } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { loadConfig } from "../lib/config.mjs";
-import { request } from "../lib/http.mjs";
+import { request, listAll } from "../lib/http.mjs";
 import { assertProblem } from "../lib/problem.mjs";
 
 const cfg = loadConfig();
@@ -38,16 +38,18 @@ describe("tenancy isolation", () => {
   });
 
   test("another tenant cannot list the entity", async () => {
-    const res = await request(cfg, { path: `${collectionPath}?limit=200`, principal: "tenantB" });
+    const { res, items, truncated } = await listAll(cfg, collectionPath, "tenantB");
+    assert.ok(!truncated, "the list has too many pages to check; use a smaller test deployment");
     assert.equal(res.status, 200);
     assert.ok(Array.isArray(res.json.items), "the list must be an envelope with items");
-    assert.ok(!res.json.items.some((i) => i.id === created.id), "tenant B's list contains tenant A's entity");
+    assert.ok(!items.some((i) => i.id === created.id), "tenant B's list contains tenant A's entity");
   });
 
   test("the owner tenant sees the entity in its list", async () => {
-    const res = await request(cfg, { path: `${collectionPath}?limit=200`, principal: "tenantA" });
+    const { res, items, truncated } = await listAll(cfg, collectionPath, "tenantA");
+    assert.ok(!truncated, "the list has too many pages to check; use a smaller test deployment");
     assert.equal(res.status, 200);
-    assert.ok(res.json.items.some((i) => i.id === created.id));
+    assert.ok(items.some((i) => i.id === created.id));
   });
 
   test("a tenant header that differs from the token is a tenant mismatch", async () => {
