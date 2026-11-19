@@ -4,7 +4,9 @@
 //
 //   node conformance/stub/server.mjs [--port 8080] [--fault <name>]
 //
-// Faults: crossTenantRead, crossTenantList, wrongProblemType, noWwwAuthenticate, ignoreTenantHeader.
+// Faults: crossTenantRead, crossTenantList, ignoreTenantHeader, wrongProblemType, noCacheControl, noWwwAuthenticate,
+// no405Allow, hostWithoutTenantAllowed, hostHeaderAllowed, nonUuidHeaderAccepted, unknownTenantNotMismatch,
+// noMalformedItem, acceptsEmptyBody, ignoreUnknownFilter.
 
 import { createServer } from "node:http";
 import { randomUUID, randomBytes } from "node:crypto";
@@ -25,7 +27,8 @@ export function createStub({ fault } = {}) {
 
     const problem = (status, code, title, extra = {}, headers = {}) => {
       const type = fault === "wrongProblemType" ? `urn:example:${code}` : `urn:eolent:error:${code}`;
-      res.writeHead(status, { "content-type": "application/problem+json", "cache-control": "no-store", ...headers });
+      const cache = fault === "noCacheControl" ? {} : { "cache-control": "no-store" };
+      res.writeHead(status, { "content-type": "application/problem+json", ...cache, ...headers });
       res.end(JSON.stringify({ type, title, status, code, traceId, ...extra }));
     };
     const json = (status, body) => {
@@ -41,7 +44,7 @@ export function createStub({ fault } = {}) {
       const item = /^\/api\/v1\/widgets\/([^/]+)$/.exec(path);
       if (!collection && !item) return problem(404, "Eolent.NotFound", "Not found");
       if (collection && !["GET", "POST"].includes(req.method)) {
-        return problem(405, "Eolent.MethodNotAllowed", "Method not allowed", {}, { allow: "GET, POST" });
+        return problem(405, "Eolent.MethodNotAllowed", "Method not allowed", {}, fault === "no405Allow" ? {} : { allow: "GET, POST" });
       }
       if (item && req.method !== "GET") return problem(405, "Eolent.MethodNotAllowed", "Method not allowed", {}, { allow: "GET" });
 
@@ -55,17 +58,19 @@ export function createStub({ fault } = {}) {
 
       // Tenancy
       const header = req.headers["x-eolent-tenant"];
-      if (header !== undefined && !uuidRe.test(header)) {
+      if (header !== undefined && !uuidRe.test(header) && fault !== "nonUuidHeaderAccepted") {
         return problem(400, "Eolent.Validation", "The request is not valid", {
           errors: [{ code: "Eolent.Validation.Invalid", parameter: "X-Eolent-Tenant", detail: "Must be a tenant id." }]
         });
       }
       let tenant = principal.tenant;
       if (tenant === null) {
-        if (header !== undefined) return problem(403, "Eolent.Forbidden", "Forbidden");
-        return problem(400, "Eolent.TenantRequired", "A tenant is required");
+        if (header !== undefined && fault !== "hostHeaderAllowed") return problem(403, "Eolent.Forbidden", "Forbidden");
+        if (header === undefined && fault !== "hostWithoutTenantAllowed") return problem(400, "Eolent.TenantRequired", "A tenant is required");
+        tenant = header ?? TENANT_A;
       }
-      if (header !== undefined && header.toLowerCase() !== tenant && fault !== "ignoreTenantHeader") {
+      if (header !== undefined && header.toLowerCase() !== tenant && fault !== "ignoreTenantHeader" && principal.tenant !== null) {
+        if (fault === "unknownTenantNotMismatch" && header.toLowerCase() !== TENANT_B) return problem(404, "Eolent.TenantNotFound", "Tenant not found");
         return problem(403, "Eolent.TenantMismatch", "Tenant mismatch");
       }
 
@@ -77,7 +82,7 @@ export function createStub({ fault } = {}) {
       if (req.method === "GET") {
         const filters = [...url.searchParams.keys()].filter((k) => k.startsWith("filter["));
         const bad = filters.filter((k) => k !== "filter[name]");
-        if (bad.length) {
+        if (bad.length && fault !== "ignoreUnknownFilter") {
           return problem(400, "Eolent.Validation", "The request is not valid", {
             errors: bad.map((k) => ({ code: "Eolent.Validation.UnknownValue", parameter: k, detail: "Unsupported filter." }))
           });
@@ -92,15 +97,15 @@ export function createStub({ fault } = {}) {
         body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
       } catch {
         return problem(400, "Eolent.Validation", "The request is not valid", {
-          errors: [{ code: "Eolent.Validation.Malformed", detail: "The body is not valid JSON." }]
+          errors: [{ code: fault === "noMalformedItem" ? "Eolent.Validation.Invalid" : "Eolent.Validation.Malformed", detail: "The body is not valid JSON." }]
         });
       }
-      if (typeof body?.name !== "string" || body.name === "") {
+      if ((typeof body?.name !== "string" || body.name === "") && fault !== "acceptsEmptyBody") {
         return problem(400, "Eolent.Validation", "The request is not valid", {
           errors: [{ code: "Eolent.Validation.Required", pointer: "/name", detail: "Name is required." }]
         });
       }
-      const w = { id: randomUUID(), tenantId: tenant, name: body.name };
+      const w = { id: randomUUID(), tenantId: tenant, name: body?.name ?? "" };
       widgets.push(w);
       json(201, { id: w.id, name: w.name });
     });

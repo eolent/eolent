@@ -10,27 +10,38 @@ import { createStub } from "./stub/server.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-// fault -> substrings of the tests that must fail (and only those)
+// Every test that asserts the problem details shape. Faults that break the shape for all errors fail all of them.
+const shapeTests = [
+  "an unknown path returns 404 problem details",
+  "a disallowed method returns 405 with an Allow header",
+  "an unauthenticated request returns 401 with WWW-Authenticate: Bearer",
+  "a malformed body returns a validation error with a Malformed item",
+  "a body with missing required fields returns validation items",
+  "an unsupported filter property returns an UnknownValue item for the parameter",
+  "another tenant's entity looks exactly like a nonexistent one",
+  "a tenant header that differs from the token is a tenant mismatch",
+  "a tenant header naming a nonexistent tenant is also a tenant mismatch",
+  "a tenant header that is not a UUID is a validation error",
+  "a host principal without a tenant context gets TenantRequired",
+  "a host principal without the switching permission cannot send a tenant header"
+];
+
+// fault -> the tests that must fail, and only those
 const faults = {
   crossTenantRead: ["another tenant's entity looks exactly like a nonexistent one"],
   crossTenantList: ["another tenant cannot list the entity"],
   ignoreTenantHeader: ["a tenant header that differs from the token is a tenant mismatch", "a tenant header naming a nonexistent tenant is also a tenant mismatch"],
-  wrongProblemType: [
-    // every test that asserts the problem details shape fails, because the type is not urn:eolent:error:<code>
-    "an unknown path returns 404 problem details",
-    "a disallowed method returns 405 with an Allow header",
-    "an unauthenticated request returns 401 with WWW-Authenticate: Bearer",
-    "a malformed body returns a validation error with a Malformed item",
-    "a body with missing required fields returns validation items",
-    "an unsupported filter property returns an UnknownValue item for the parameter",
-    "another tenant's entity looks exactly like a nonexistent one",
-    "a tenant header that differs from the token is a tenant mismatch",
-    "a tenant header naming a nonexistent tenant is also a tenant mismatch",
-    "a tenant header that is not a UUID is a validation error",
-    "a host principal without a tenant context gets TenantRequired",
-    "a host principal without the switching permission cannot send a tenant header"
-  ],
-  noWwwAuthenticate: ["an unauthenticated request returns 401 with WWW-Authenticate: Bearer"]
+  unknownTenantNotMismatch: ["a tenant header naming a nonexistent tenant is also a tenant mismatch"],
+  nonUuidHeaderAccepted: ["a tenant header that is not a UUID is a validation error"],
+  hostWithoutTenantAllowed: ["a host principal without a tenant context gets TenantRequired"],
+  hostHeaderAllowed: ["a host principal without the switching permission cannot send a tenant header"],
+  wrongProblemType: shapeTests,
+  noCacheControl: shapeTests,
+  noWwwAuthenticate: ["an unauthenticated request returns 401 with WWW-Authenticate: Bearer"],
+  no405Allow: ["a disallowed method returns 405 with an Allow header"],
+  noMalformedItem: ["a malformed body returns a validation error with a Malformed item"],
+  acceptsEmptyBody: ["a body with missing required fields returns validation items"],
+  ignoreUnknownFilter: ["an unsupported filter property returns an UnknownValue item for the parameter"]
 };
 
 function runSuite(port) {
