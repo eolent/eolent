@@ -12,7 +12,7 @@ const { collectionPath, createBody } = cfg.fixtures.resource;
 const tenantA = cfg.fixtures.tenants.a;
 const tenantB = cfg.fixtures.tenants.b;
 const hasHost = cfg.tokens.host !== undefined;
-const hostSkip = hasHost ? false : `no host principal token: the fixtures name ${cfg.fixtures.principals.host?.tokenEnv ?? "no host principal"}, which is not set`;
+const hostSkip = hasHost ? false : cfg.fixtures.principals.host ? `the host principal token is not set (environment variable ${cfg.fixtures.principals.host.tokenEnv})` : "the fixtures have no host principal";
 
 describe("tenancy isolation", () => {
   let created;

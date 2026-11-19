@@ -22,6 +22,8 @@ jobs:
       - run: npm run conformance:selftest
       - name: Build the runner image
         run: docker build -f conformance/Dockerfile -t eolent-conformance .
+      # The tokens below are placeholders that only the local stub accepts. Do not copy them into a workflow
+      # that runs against a real deployment.
       - name: Run the image against the stub
         run: |
           node conformance/stub/server.mjs --port 8080 &

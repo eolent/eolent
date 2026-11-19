@@ -78,7 +78,17 @@ const failedTests = (out) => [...out.matchAll(/^\s*not ok \d+ - (.+)$/gm)].map((
 // 1. The correct stub passes.
 const good = await withStub(undefined, runSuite);
 if (good.code !== 0) failures.push(`the correct stub failed the suite:\n${failedTests(good.out).join("\n") || good.out.slice(-1500)}`);
-else console.log("ok: the correct stub passes");
+else {
+  const counts = Object.fromEntries([...good.out.matchAll(/^# (tests|pass|fail|skipped) (\d+)$/gm)].map((m) => [m[1], Number(m[2])]));
+  // 16 tests run: 10 tenancy and 6 error format, none skipped, so the host tests really ran.
+  if (counts.pass !== 16 || counts.skipped !== 0) failures.push(`the correct stub run should pass 16 tests with none skipped, got ${JSON.stringify(counts)}`);
+  else console.log("ok: the correct stub passes 16 tests, none skipped");
+  // Every title that a fault expects must exist, so renaming a test cannot silently break the self-test.
+  const names = new Set([...good.out.matchAll(/^\s*ok \d+ - (.+)$/gm)].map((m) => m[1].trim()));
+  for (const title of new Set(Object.values(faults).flat())) {
+    if (!names.has(title)) failures.push(`the self-test expects a test titled "${title}", which does not exist`);
+  }
+}
 
 // 2. Each faulty stub fails on the expected tests.
 for (const [fault, expected] of Object.entries(faults)) {
