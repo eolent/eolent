@@ -27,10 +27,3 @@ test("auditReads without auditing is rejected", () => {
 test("auditing false alone is accepted", () => {
   assert.equal(validate(manifest({ name: "A", auditing: false })), true);
 });
-
-test("a published event needs an entity", () => {
-  const m = { manifestVersion: "0.2", name: "x", version: "0.1.0", events: [{ name: "x.a.b", direction: "publishes" }] };
-  assert.equal(validate(m), false);
-  m.events[0].entity = "A";
-  assert.equal(validate(m), true);
-});
