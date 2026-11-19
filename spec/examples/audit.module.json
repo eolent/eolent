@@ -1,0 +1,24 @@
+{
+  "$schema": "../module.schema.json",
+  "manifestVersion": "0.2",
+  "name": "audit",
+  "version": "0.1.0",
+  "displayName": "Audit",
+  "description": "The audit log: consumes audit events and exposes them read-only.",
+  "permissions": [
+    { "name": "Audit.AuditLogs", "displayName": "Audit log" },
+    { "name": "Audit.AuditLogs.Read", "displayName": "Read the audit log", "parent": "Audit.AuditLogs" }
+  ],
+  "entities": [
+    { "name": "AuditEntry", "tenancy": "tenantScoped", "auditing": false },
+    { "name": "HostAuditEntry", "tenancy": "none", "auditing": false }
+  ],
+  "events": [
+    { "name": "audit.entry.recorded", "direction": "publishes", "entity": "AuditEntry" },
+    { "name": "audit.host-entry.recorded", "direction": "publishes", "entity": "HostAuditEntry" }
+  ],
+  "operations": [
+    { "operationId": "auditAuditLogsList", "method": "GET", "path": "/api/v1/audit-logs", "permission": "Audit.AuditLogs.Read", "entity": "AuditEntry" },
+    { "operationId": "auditAuditLogsGet", "method": "GET", "path": "/api/v1/audit-logs/{id}", "permission": "Audit.AuditLogs.Read", "entity": "AuditEntry" }
+  ]
+}
