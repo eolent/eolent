@@ -14,7 +14,7 @@ The [tenancy contract](../../spec/tenancy.md) defines what a tenant is and how r
 | Mode | Isolation | Cost and limits |
 |---|---|---|
 | `shared` | One database and schema. Every tenant-scoped table has a tenant column. The implementation filters by it on every query | Cheapest, simplest migrations, scales to many small tenants. A filter bug leaks data, so defence in depth is advised |
-| `schema` | One schema per tenant in one database | Stronger separation. Migrations run once per tenant. Practical on PostgreSQL; on SQL Server schemas are possible but not supported in 0.1 |
+| `schema` | One schema per tenant in one database | Stronger separation. Migrations run once per tenant. Practical on PostgreSQL; on SQL Server schemas are possible but not planned |
 | `database` | One database per tenant | Strongest separation and per-tenant backup and restore. Highest operational cost; migrations run per tenant |
 
 ### Support by tier
