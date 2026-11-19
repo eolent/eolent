@@ -66,7 +66,7 @@ const failedTests = (out) => [...out.matchAll(/^\s*not ok \d+ - (.+)$/gm)].map((
 
 // 1. The correct stub passes.
 const good = await withStub(undefined, runSuite);
-if (good.code !== 0) failures.push(`the correct stub failed the suite:\n${failedTests(good.out).join("\n")}`);
+if (good.code !== 0) failures.push(`the correct stub failed the suite:\n${failedTests(good.out).join("\n") || good.out.slice(-1500)}`);
 else console.log("ok: the correct stub passes");
 
 // 2. Each faulty stub fails on the expected tests.
@@ -75,6 +75,8 @@ for (const [fault, expected] of Object.entries(faults)) {
   const failed = failedTests(r.out).filter((n) => !n.startsWith("tenancy isolation") && !n.startsWith("problem details"));
   if (r.code === 0) {
     failures.push(`fault "${fault}" was not detected`);
+  } else if (failedTests(r.out).length === 0) {
+    failures.push(`fault "${fault}": the suite crashed without a failing test:\n${r.out.slice(-1500)}`);
   } else if (expected && !expected.every((e) => failed.some((f) => f === e)) ) {
     failures.push(`fault "${fault}": expected failures ${JSON.stringify(expected)} but got ${JSON.stringify(failed)}`);
   } else if (expected && failed.some((f) => !expected.includes(f))) {

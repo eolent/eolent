@@ -2,7 +2,7 @@
 
 > **Status:** skeleton. The runner, the fixtures format and two categories (tenancy isolation and error format) exist in [`conformance/`](../../conformance). The other categories below are planned.
 
-The conformance suite is a set of black-box HTTP tests. It runs against any backend that claims to follow the Eolent specification, regardless of language. It runs from a container image or directly with Node.js 20 or later, configured with the base URL of a test deployment.
+The conformance suite is a set of black-box HTTP tests. It runs against any backend that claims to follow the Eolent specification, regardless of language. It runs from a container image or directly with Node.js 20 or later (the image and CI use Node.js 22), configured with the base URL of a test deployment.
 
 ## Test categories
 
@@ -50,7 +50,7 @@ The same, from the image: `docker build -f conformance/Dockerfile -t eolent-conf
 
 A fixtures file ([schema](../../conformance/fixtures.schema.json)) names two tenants that exist in the deployment, the principals that can call it (a token for each tenant, and optionally a host principal without the tenant-switching permission) and one tenant-scoped collection that supports create and get by id. Tokens are never stored in the file; each principal names the environment variable that holds its token. The deployment is set up with these tenants and principals before the run. The host principal must not hold the tenant-switching permission; a token that does makes its tests fail. If the environment variable of the optional host principal is not set, that principal is left out and its tests are skipped. The check for `405` sends `DELETE` to the collection, so it assumes that the collection exists and does not support `DELETE`. The host principal is optional: the tests that need it are skipped, with the name of the missing variable as the reason, when the file has no host principal or its token variable is not set.
 
-The tests create entities and do not remove them, and the list checks read every page (up to 100 pages of 200 items), so use a test deployment that is reset between runs; one that accumulates more than that makes the list checks skip, with a message that says so, because a list that cannot be read in full proves nothing.
+The tests create entities and do not remove them, and the list checks read every page (up to 100 pages of 200 items), so use a test deployment that is reset between runs; one that accumulates more than that fails the list checks, with a message that says so, because a list that cannot be read in full proves nothing and a skipped test would look like a pass.
 
 ### Self-test
 
