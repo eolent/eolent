@@ -12,7 +12,7 @@ The `type` of an event is the event `name` declared in the publishing module's m
 
 - the name is lowercase, dot-separated, as the manifest schema requires. By convention it is the module's manifest name, then the entity in lowercase, then a past-tense verb: `identity.user.created`, `billing.invoices.invoice.paid`
 - only the module that declares an event as `publishes` may publish it, and the name begins with the module's manifest name followed by a dot (`user-admin.user.created`, `billing.invoices.invoice.paid`)
-- an event type is stable. Adding optional properties to `data` is compatible. Any other change to `data` is breaking and is published as a new type that ends in a version segment, for example `identity.user.created.v2`. Both types are published during a deprecation period set by the module and stated in the module's documentation; 0.1 has no manifest field for it
+- an event type is stable. Adding optional properties to `data` is compatible. Any other change to `data` is breaking and is published as a new type that ends in a version segment, for example `identity.user.created.v2`. Each type, including every `.vN` type, has its own `events` entry in the manifest. Both types are published during a deprecation period set by the module and stated in the module's documentation; 0.1 has no manifest field for it
 
 ## 2. Attributes
 
@@ -28,7 +28,7 @@ Events use the CloudEvents attributes below. "Required" is stricter than CloudEv
 | `datacontenttype` | string | yes | `application/json` |
 | `dataschema` | URI | no | The schema of `data`, from the `dataSchema` of the manifest event. It MUST be an absolute URI: a relative manifest path is resolved against a schema base URI that the deployment configures, and a deployment where any module uses a relative `dataSchema` MUST configure one |
 | `subject` | string | no | The identifier of the entity the event is about, when there is one |
-| `data` | object | yes | The payload. A JSON object, valid against the declared `dataSchema` |
+| `data` | object | yes (CloudEvents: optional; an event with no facts carries `{}`) | The payload. A JSON object, valid against the declared `dataSchema` |
 
 An event carries only the attributes in this document (including the optional `tracestate`) and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; a module-defined name MUST NOT equal any attribute name defined by CloudEvents or by this document (for example `tenantid`), and modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
 
@@ -53,7 +53,7 @@ The attributes are:
 | `actorid` | string (UUID) | for `user` and `agent` | The principal that caused the event |
 | `onbehalfof` | string (UUID) | when `actortype` is `agent` | The id of the user the agent acted for. Absent otherwise |
 
-`tenantid` is thus present on every event except those about data that is not tenant-scoped, and a conformance check covers both cases (section 8).
+An event is about data that is not tenant-scoped when the manifest entity it is about has `tenancy` `none`. The entity is the segment of the event type that follows the module name, matched to a manifest entity name without regard to case (`identity.user.created` is about `User`). An event that matches no entity is treated as tenant-scoped, so the rule fails closed. `tenantid` is thus present on every event except those about data that is not tenant-scoped, and a conformance check covers both cases (section 8).
 
 ## 4. Data
 
@@ -103,7 +103,7 @@ The manifest remains the source of truth for what a module publishes and subscri
 The conformance suite will observe published events through a means the implementation provides for conformance runs. That mechanism is not defined yet; it is defined with the conformance runner (planned), and until then these checks cannot be run. Once it exists, the suite checks that:
 
 - every observed event has the required attributes, `specversion` `1.0`, a `source` that matches its module, a `type` that the manifest declares as published, and `data` valid against the declared `dataSchema`
-- after de-duplicating by `source` and `id`, a change that declares an event produces exactly one such event, with the `tenantid`, `actortype`, `actorid` (for `user` and `agent` actors) and `traceparent` of the request, and the `traceparent` trace id equals that of the request's own `traceparent` header
+- after de-duplicating by `source` and `id`, a change that declares an event produces exactly one such event, with the `tenantid`, `actortype`, `actorid` (for `user` and `agent` actors) and `traceparent` of the request, and, when a request caused the event, the `traceparent` trace id equals that of the request's own `traceparent` header
 - an agent acting for a user produces events with `actortype` `agent` and `onbehalfof` set to the user
 - a change that is rolled back publishes no event
 - events about tenant-scoped data carry `tenantid`, events about data that is not tenant-scoped have none, and an event for tenant A is never delivered to a subscriber of tenant B
