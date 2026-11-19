@@ -11,7 +11,7 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 An implementation MUST write an audit entry for each of these:
 
 - a successful create, update, delete or restore of an entity whose manifest `auditing` is `true` (the default)
-- a successful custom action ([API conventions](api-conventions.md)) on such an entity, and any other successful mutating operation whose resource is an audited entity
+- a successful custom action ([API conventions](api-conventions.md)) on such an entity (`kind` `action`); every successful mutating operation on an audited entity is recorded with one of these kinds, using the closest of `create`, `update`, `delete` or `restore`, or `action` when none fits
 - every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
 
 An implementation SHOULD also write an entry with outcome `denied` when a mutating request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. A denied entry is written only when the tenant of the request was resolved, so that `tenantId` is a real tenant. Denied reads, and any rejection before the tenant is resolved (including a refused tenant switch, which happens before resolution), are deliberately not recorded in 0.1, to keep the log free of probing noise; this is a known gap. Reads are not audited in 0.1, apart from the `tenantSwitch` rule above.
@@ -111,10 +111,10 @@ The `approval` property is reserved. Implementations that have no approval flow 
 
 Rules:
 
-- for `create`, `changes` contains one item per property that has a value, with `new` only
+- for `create`, `changes` contains one item per property that has a value, with `new` only, except that a secret property is recorded with `redacted` `true` and no `new`
 - for `update`, `changes` contains one item per property whose value changed, and none for a property whose value did not change
 - for `delete` and `restore`, `changes` MAY be absent. A soft delete is recorded as `delete` and its restore as `restore`
-- a property that holds a secret (passwords, tokens, keys, credentials) MUST be recorded with `redacted` `true`, never with its value. How an entity marks properties as sensitive is planned for manifest `0.2`; until then, implementations decide which properties these are, and the redaction conformance check is therefore not portable across implementations until then; the suite runs it only against implementations whose conformance configuration names a secret property
+- an implementation MUST record a property it treats as a secret (passwords, tokens, keys, credentials) with `redacted` `true`, never with its value. How an entity marks properties as sensitive is planned for manifest `0.2`; until then, implementations decide which properties these are, and the redaction conformance check is therefore not portable across implementations until then; the suite runs it only against implementations whose conformance configuration names a secret property
 - `path` uses the property names of the API representation, not storage names, so entries read the same in every implementation
 
 An implementation MAY cap the number of items in one entry. When it does, it sets the entry property `changesTruncated` to `true`, as the error format does with `errorsTruncated`; otherwise the property is absent and the list is complete.
@@ -145,7 +145,7 @@ The conformance suite checks that:
 
 - creating, updating and deleting an audited entity each produce one entry with the right `kind`, `tenantId`, `actor`, `resource` and `traceId`, and that the `traceId` equals the trace id in the request's `traceparent` header
 - an update records exactly the changed properties in `changes`, with `old` and `new`, and, where the conformance configuration names a secret property, that property is recorded with `redacted` `true` and no values
-- a failed request that changed nothing leaves no `succeeded` entry
+- a failed request that changed nothing leaves no `succeeded` entry, other than a `tenantSwitch` entry, which records the switch and not the outcome of the request
 - a call made with an agent token on behalf of a user produces an entry with `actor.type` `agent` and `onBehalfOf` set to that user, and a call made by the user directly has no `onBehalfOf`
 - a host principal acting within a tenant, for a read and for a mutation, produces a `tenantSwitch` entry with `actor.level` `host`, and a tenant principal's read produces none
 - the list operation returns only the current tenant's entries, including under filters, and a request for another tenant's entry returns the same response as for a nonexistent one
