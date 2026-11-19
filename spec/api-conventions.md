@@ -4,7 +4,7 @@
 
 This profile defines how an Eolent backend describes and shapes its HTTP API. An implementation exposes an OpenAPI 3.1 description of its API, and the description follows these conventions. The frontend kit and API client generators rely on them, so that one generated client works against any conforming backend.
 
-The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Error responses are defined by the [error format profile](error-format.md) and tenancy by the [tenancy contract](tenancy.md) and permissions by their own contract (planned); this document only states how they appear in the API description.
+The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Error responses are defined by the [error format profile](error-format.md) and tenancy by the [tenancy contract](tenancy.md) and permissions and features by the [permission contract](permissions.md); this document only states how they appear in the API description.
 
 ## 1. Description and versioning
 
@@ -42,6 +42,8 @@ For a resource `users` in module `identity`:
 | Custom action | `POST /api/v1/users/{userId}/actions/deactivate` (one literal path per action) | `200` or `202` | Each action is its own path with its own `operationId`, `x-eolent-permission` and responses. Action names are lowercase, hyphen-separated verbs. Use `202` when the work continues asynchronously |
 
 Nested resources are used only when the child cannot exist without its parent: `/api/v1/roles/{roleId}/permissions`.
+
+The one singleton resource is `me`, the current caller, with sub-resources such as `/api/v1/me/access`. Its `operationId` follows the same rule, for example `identityMeAccessGet`.
 
 ## 4. Representations
 
@@ -84,6 +86,7 @@ The `totalCount` property in this example is present only when the request sets 
 
 - Authentication is OAuth 2.0 / OpenID Connect bearer tokens, declared as a security scheme named `bearerAuth` of type `http` and scheme `bearer`.
 - Every operation that requires a permission declares it with the extension `x-eolent-permission`, whose value is a permission name from the module manifest (for example `Identity.Users.Create`). The permission MUST be declared in the manifest of the module the operation belongs to, that is, the module named by the operation's tag. An operation cannot reference a permission declared by another module.
+- An operation MAY declare `x-eolent-feature`, the name of a boolean feature that must be enabled for the tenant, as defined by the [permission contract](permissions.md). It is allowed only on `tenantScoped` operations.
 - Every operation declares `x-eolent-tenancy` with the same vocabulary as the manifest's entity `tenancy`: `tenantScoped` for operations that act within one tenant, and `none` for operations that are not tenant-scoped (for example host administration or public endpoints). Unlike the manifest's entity `tenancy`, the operation-level value has no default: an operation without `x-eolent-tenancy` does not conform. How the tenant is identified is defined by the [tenancy contract](tenancy.md).
 
 ## 7. Concurrency and idempotency
@@ -136,5 +139,6 @@ The conformance suite checks, against a running backend, that:
 - `filter` parameters are accepted exactly for the properties in `x-eolent-filterable`, `sort` for those in `x-eolent-sortable`, and `q` only where `x-eolent-searchable` is `true`; anything else returns a validation error
 - a create operation returns `201` with a `Location` header
 - for a resource that exposes `version`, `PATCH` and `DELETE`, and `PUT` where that operation exists, return `428` without `If-Match` and `412` for a stale value, and the `ETag` header equals `"<version>"` (the `version` value in double quotes)
+- every `x-eolent-feature` value names a boolean feature declared by the module named by the operation's tag
 - every `x-eolent-permission` value is declared in the manifest of the module named by the operation's tag
 - a request with an unsupported filter or sort property returns a validation error

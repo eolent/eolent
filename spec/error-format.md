@@ -46,6 +46,7 @@ Example:
 | `401` | Missing, invalid or expired credentials. The response carries a `WWW-Authenticate: Bearer` header | `Eolent.Unauthenticated` |
 | `403` | The caller is authenticated but lacks the required permission or feature | `Eolent.Forbidden` |
 | `403` | The tenant claim, header and host name identify different tenants, or the resolved tenant is suspended | `Eolent.TenantMismatch`, `Eolent.TenantSuspended` |
+| `403` | The operation is gated by a feature that is off for the tenant (see the [permission contract](permissions.md)) | `Eolent.FeatureDisabled` |
 | `404` | The resource or route does not exist, or is not visible to the caller (section 6) | `Eolent.NotFound` |
 | `404` | A tenant identified by header or host name does not exist (see the [tenancy contract](tenancy.md)) | `Eolent.TenantNotFound` |
 | `405` | The path exists but not for this method. The response carries an `Allow` header | `Eolent.MethodNotAllowed` |

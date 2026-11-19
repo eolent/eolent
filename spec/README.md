@@ -12,10 +12,11 @@ The specification is the language-neutral contract that every Eolent implementat
 | [api-conventions.md](api-conventions.md) | OpenAPI profile: paths, naming, pagination, filtering, concurrency, permission annotations |
 | [error-format.md](error-format.md) | Error responses: RFC 9457 problem details, status codes, error code registry, validation errors |
 | [tenancy.md](tenancy.md) | Tenants, tenant resolution, data isolation rules, tenancy errors |
+| [permissions.md](permissions.md) | Permissions, inheritance, grants, features, the access endpoint for the frontend |
 | [examples/](examples/) | Example manifests; each must validate against the schema |
 | [conformance/](conformance/README.md) | Layout and categories of the black-box conformance tests |
 
-Planned additions: event envelope (CloudEvents), permission contract, audit log schema.
+Planned additions: event envelope (CloudEvents), audit log schema.
 
 ## The module manifest
 
@@ -38,3 +39,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (API conventions) Added the API conventions profile (draft).
 - **0.1** (error format) Added the error format profile (draft).
 - **0.1** (tenancy) Added the tenancy contract (draft) and the platform codes `Eolent.TenantRequired`, `Eolent.TenantNotFound`, `Eolent.TenantMismatch` and `Eolent.TenantSuspended` to the error format profile.
+- **0.1** (permissions) Added the permission and feature contract (draft), the extension `x-eolent-feature`, the platform code `Eolent.FeatureDisabled` and the host permission `Tenants.Tenants.Switch`.
