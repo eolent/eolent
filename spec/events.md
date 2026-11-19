@@ -30,7 +30,7 @@ Events use the CloudEvents attributes below. "Required" is stricter than CloudEv
 | `subject` | string | no | The identifier of the entity the event is about, when there is one |
 | `data` | object | yes | The payload. A JSON object, valid against the declared `dataSchema` |
 
-An event carries only the attributes in this document and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; a module-defined name MUST NOT equal any attribute name defined by CloudEvents or by this document (for example `tenantid`), and modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
+An event carries only the attributes in this document (including the optional `tracestate`) and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; a module-defined name MUST NOT equal any attribute name defined by CloudEvents or by this document (for example `tenantid`), and modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
 
 ## 3. Context extensions
 
@@ -57,7 +57,7 @@ These extension attributes carry the context of the request or job that caused t
 ## 4. Data
 
 - `data` is a JSON object described by the `dataSchema` of the manifest event. An event without a `dataSchema` is not conformant in 0.1 if it carries data other than an empty object
-- `data` SHOULD carry the facts a consumer needs, not a copy of the whole entity. It MUST NOT contain secrets (passwords, tokens, keys), the same properties the [audit log](audit.md) redacts
+- `data` SHOULD carry the facts a consumer needs, not a copy of the whole entity. It MUST NOT contain a property that the [audit log](audit.md) redacts: any property whose name ends with `password`, `secret`, `token`, `apikey` or `privatekey` (compared without case), and any property the entity marks as sensitive. An implementation MAY exclude more
 - property names are `camelCase`, timestamps are RFC 3339 in UTC, and identifiers are strings, as in the [API conventions](api-conventions.md)
 
 Example:
