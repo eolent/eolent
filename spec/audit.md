@@ -12,7 +12,7 @@ An implementation MUST write an audit entry for each of these:
 
 - a successful create, update, delete or restore of an entity whose manifest `auditing` is `true` (the default)
 - any other successful mutating operation on such an entity, including custom actions ([API conventions](api-conventions.md)), recorded with `kind` `action`
-- every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), whichever way the tenant was resolved: header, host name or fixed tenant, recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
+- every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), whichever way the tenant was resolved: header, host name or fixed tenant. The trigger is a `tenantScoped` operation; a `none` operation never produces a `tenantSwitch` entry, even when tenant resolution succeeds, recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
 
 An implementation SHOULD also write an entry with outcome `denied` when a mutating request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. A denied entry is written only when the tenant of the request was resolved, so that `tenantId` is a real tenant. Denied reads, and any rejection before the tenant is resolved (including a refused tenant switch, which happens before resolution), are deliberately not recorded in 0.1, to keep the log free of probing noise; this is a known gap. Reads are not audited in 0.1, apart from the `tenantSwitch` rule above.
 
@@ -34,7 +34,7 @@ An audit entry is a JSON object. Property names are `camelCase`.
 | `kind` | string | yes | `create`, `update`, `delete`, `restore`, `action` or `tenantSwitch` |
 | `outcome` | string | yes | `succeeded` or `denied`. For `tenantSwitch` it is always `succeeded` and means that the switch was made; the result of the request is not part of the entry |
 | `operation` | string | no | The `operationId` of the API operation, when the action came through the API |
-| `action` | string | for `kind` `action` | The custom action name as in its path, or for another mutating operation a short name that identifies it |
+| `action` | string | for `kind` `action` | The custom action name as in its path. For another mutating operation, the `operationId` |
 | `resource` | object | for all kinds except `tenantSwitch` | `type` (the module's PascalCase name, a dot, then the manifest entity name, for example `Identity.User` for entity `User` in module `identity`) and `id`. `id` is absent for a `denied` create, which has no resource yet, and when the request named an id that is not visible in the current tenant |
 | `changes` | array | no | The change set (section 5) |
 | `changesTruncated` | boolean | no | `true` only when `changes` was capped and omits some items |
@@ -128,7 +128,7 @@ The audit log is exposed as a read-only collection by the audit module. The oper
 | `GET /api/v1/audit-logs` | `auditAuditLogsList` | `Audit.AuditLogs.Read` |
 | `GET /api/v1/audit-logs/{id}` | `auditAuditLogsGet` | `Audit.AuditLogs.Read` |
 
-Both are `tenantScoped` and return only entries whose `tenantId` is the current tenant. A request for the identifier of another tenant's entry returns `404 Eolent.NotFound`, as for any tenant-scoped entity. Entries with a `null` `tenantId` are not exposed by the API in 0.1; deployments read them from their own store.
+Both are `tenantScoped` and return only entries whose `tenantId` is the current tenant. A request for the identifier of another tenant's entry returns `404 Eolent.NotFound`, as for any tenant-scoped entity. Entries with a `null` `tenantId` are not exposed by the API in 0.1; deployments read them from their own store. This is a known gap: host administrators have no API way to read the audit trail of host-level changes.
 
 The list operation supports `limit`, `cursor`, `sort` and `includeTotal` as in the API conventions. It declares `x-eolent-filterable` with `occurredAt` (range filters `gte`, `gt`, `lte`, `lt`), `actor.id`, `actor.type`, `onBehalfOf.id`, `kind`, `outcome`, `operation`, `resource.type`, `resource.id` and `traceId`, and `x-eolent-sortable` with `occurredAt`; it is not searchable. Dotted names address nested properties of the entry, so filters take the form `filter[actor.id]=...`. This is a deliberate extension of the property naming in the API conventions. Results are sorted by `occurredAt` descending unless the client sorts otherwise. The collection has no create, update or delete operation.
 
