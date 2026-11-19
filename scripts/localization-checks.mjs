@@ -3,6 +3,7 @@
 
 import { pascalModule } from "./manifest-checks.mjs";
 
+const isObject = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
 const keyRe = /^[A-Z][A-Za-z0-9]*(\.[A-Z][A-Za-z0-9]*)+$/;
 
 // Whether the braces of an ICU message are balanced, honouring ICU quoting:
@@ -73,7 +74,7 @@ export function checkLocalization(manifest, files) {
   }
   // Every key the manifest names must exist in the default culture file.
   const defaults = files.get(byCulture.get(loc.defaultCulture));
-  if (defaults && typeof defaults === "object") {
+  if (isObject(defaults)) {
     const need = [];
     for (const r of manifest.ui?.routes ?? []) if (r.titleKey) need.push(r.titleKey);
     for (const i of manifest.ui?.menu ?? []) if (i.titleKey) need.push(i.titleKey);
@@ -83,11 +84,11 @@ export function checkLocalization(manifest, files) {
     }
   }
   // A key in another culture must also exist in the default culture file.
-  if (defaults && typeof defaults === "object") {
+  if (isObject(defaults)) {
     for (const path of resources) {
       if (path === byCulture.get(loc.defaultCulture)) continue;
       const content = files.get(path);
-      if (!content || typeof content !== "object") continue;
+      if (!isObject(content)) continue;
       for (const key of Object.keys(content)) {
         if (!(key in defaults)) out.push(`${path}: key "${key}" has no counterpart in the default culture file`);
       }
