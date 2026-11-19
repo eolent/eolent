@@ -12,7 +12,7 @@ The `type` of an event is the event `name` declared in the publishing module's m
 
 - the name is lowercase, dot-separated, as the manifest schema requires. By convention it is the module's manifest name, then the entity in lowercase, then a past-tense verb: `identity.user.created`, `billing.invoices.invoice.paid`
 - only the module that declares an event as `publishes` may publish it, and the name begins with the module's manifest name followed by a dot (`user-admin.user.created`, `billing.invoices.invoice.paid`)
-- an event type is stable. Adding optional properties to `data` is compatible. Any other change to `data` is breaking and is published as a new type that ends in a version segment, for example `identity.user.created.v2`. Both types are published during a deprecation period set by the module
+- an event type is stable. Adding optional properties to `data` is compatible. Any other change to `data` is breaking and is published as a new type that ends in a version segment, for example `identity.user.created.v2`. Both types are published during a deprecation period set by the module and stated in the module's documentation; 0.1 has no manifest field for it
 
 ## 2. Attributes
 
@@ -43,6 +43,7 @@ These extension attributes carry the context of the request or job that caused t
 | `onbehalfof` | `onBehalfOf.id` (the `type` is always `user`) |
 | `traceparent` | `traceId`: the audit `traceId` equals the trace id inside `traceparent`; the other `traceparent` fields (parent id, flags) have no audit counterpart |
 
+The attributes are:
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
@@ -52,13 +53,15 @@ These extension attributes carry the context of the request or job that caused t
 | `actorid` | string (UUID) | for `user` and `agent` | The principal that caused the event |
 | `onbehalfof` | string (UUID) | when `actortype` is `agent` | The id of the user the agent acted for. Absent otherwise |
 
-`tenantid` is thus present on every event except those about data that is not tenant-scoped, and the conformance checks test exactly that.
+`tenantid` is thus present on every event except those about data that is not tenant-scoped, and a conformance check covers both cases (section 8).
 
 ## 4. Data
 
 - `data` is a JSON object described by the `dataSchema` of the manifest event. An event without a `dataSchema` is not conformant in 0.1 if it carries data other than an empty object
-- `data` SHOULD carry the facts a consumer needs, not a copy of the whole entity. It MUST NOT contain a property that the [audit log](audit.md) redacts: any property whose name ends with `password`, `secret`, `token`, `apikey` or `privatekey` (compared without case), and any property the entity marks as sensitive. An implementation MAY exclude more
+- `data` SHOULD carry the facts a consumer needs, not a copy of the whole entity. It MUST NOT contain a property that the [audit log](audit.md) redacts: any property whose name ends with `password`, `secret`, `token`, `apikey` or `privatekey` (compared without case), and, once manifest `0.2` defines the marker, any property the entity marks as sensitive. In 0.1 only the name rule applies. An implementation MAY exclude more
 - property names are `camelCase`, timestamps are RFC 3339 in UTC, and identifiers are strings, as in the [API conventions](api-conventions.md)
+
+`data` can contain personal data, such as the email address in the example below. It is subject to the same tenant isolation as any tenant-scoped data, and the deployment decides which fields are published.
 
 Example:
 
@@ -103,6 +106,6 @@ The conformance suite will observe published events through a means the implemen
 - after de-duplicating by `source` and `id`, a change that declares an event produces exactly one such event, with the `tenantid`, `actortype`, `actorid` (for `user` and `agent` actors) and `traceparent` of the request, and the `traceparent` trace id equals that of the request's own `traceparent` header
 - an agent acting for a user produces events with `actortype` `agent` and `onbehalfof` set to the user
 - a change that is rolled back publishes no event
-- events about tenant-scoped data carry `tenantid`, and an event for tenant A is never delivered to a subscriber of tenant B
+- events about tenant-scoped data carry `tenantid`, events about data that is not tenant-scoped have none, and an event for tenant A is never delivered to a subscriber of tenant B
 - a redelivered event keeps the same `id`
 - the published event types are exactly those the manifest declares
