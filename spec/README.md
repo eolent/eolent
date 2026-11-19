@@ -24,7 +24,11 @@ Every module ships a manifest that declares what it provides, so tools and agent
 
 - identity (`name`, `version`, `displayName`, `description`) and `dependencies`
 - `permissions`, `features` and `settings`
-- `entities`, with tenancy, soft-delete and auditing behaviour
+- `entities`, with tenancy, soft-delete, auditing behaviour and `sensitiveProperties`
+- `operations`: each API operation with the permission, feature and entity it uses
+- `agentTools`: the operations the module opts in to expose to AI agents, each with a risk class and an approval flag
+- `errors`: the error codes the module defines
+- `permissions` can be marked `scope: host`
 - `events` the module publishes or subscribes to
 - `ui`: routes and menu items, each tied to a permission
 - `localization` resources
@@ -44,3 +48,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (audit) Added the audit log contract (draft) and the permission `Audit.AuditLogs.Read`, which the audit module declares in its manifest.
 - **0.1** (events) Added the event envelope profile (draft), a CloudEvents 1.0 profile.
 - **0.1** (manifest) Added the `entity` property of manifest events, which names the entity an event is about; it is required for events with direction `publishes`. This is a breaking change to the draft manifest `0.1`, which allows breaking changes until the first release; no example outside this repository is affected.
+- **0.2** (manifest) Manifest `0.2`, see [ADR 0007](../docs/adr/0007-manifest-0-2.md): added `operations`, `agentTools`, `errors`, `permissions[].scope` and `entities[].sensitiveProperties`; `manifestVersion` is now `0.2`. `0.1` manifests are not valid under `0.2`. Added the example `tenants.module.json`, and cross-reference checks to the validation of manifests.

@@ -1,6 +1,6 @@
 {
   "$schema": "../module.schema.json",
-  "manifestVersion": "0.1",
+  "manifestVersion": "0.2",
   "name": "identity",
   "version": "0.1.0",
   "displayName": "Identity",
@@ -20,11 +20,25 @@
     { "name": "Identity.Password.MinimumLength", "valueType": "integer", "default": 12, "scope": "tenant" }
   ],
   "entities": [
-    { "name": "User", "tenancy": "tenantScoped", "softDelete": true, "auditing": true },
+    { "name": "User", "tenancy": "tenantScoped", "softDelete": true, "auditing": true, "sensitiveProperties": ["password"] },
     { "name": "Role", "tenancy": "tenantScoped", "auditing": true }
   ],
   "events": [
     { "name": "identity.user.created", "direction": "publishes", "entity": "User", "dataSchema": "events/user-created.schema.json" }
+  ],
+  "operations": [
+    { "operationId": "identityUsersList", "method": "GET", "path": "/api/v1/users", "permission": "Identity.Users", "entity": "User" },
+    { "operationId": "identityUsersCreate", "method": "POST", "path": "/api/v1/users", "permission": "Identity.Users.Create", "entity": "User" },
+    { "operationId": "identityUsersDelete", "method": "DELETE", "path": "/api/v1/users/{userId}", "permission": "Identity.Users", "entity": "User" },
+    { "operationId": "identityUsersResetTwoFactor", "method": "POST", "path": "/api/v1/users/{userId}/actions/reset-two-factor", "permission": "Identity.Users", "feature": "Identity.TwoFactor", "entity": "User" }
+  ],
+  "agentTools": [
+    { "operation": "identityUsersList", "description": "List the users of the current tenant, optionally filtered.", "risk": "low" },
+    { "operation": "identityUsersCreate", "description": "Create a user in the current tenant.", "risk": "medium", "requiresApproval": true },
+    { "operation": "identityUsersDelete", "description": "Delete a user. The user is soft-deleted and can be restored by an administrator.", "risk": "high", "requiresApproval": true }
+  ],
+  "errors": [
+    { "code": "Identity.Users.EmailTaken", "status": 409, "description": "A user with this email address already exists in the tenant." }
   ],
   "ui": {
     "routes": [

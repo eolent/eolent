@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/eolent/eolent/main/spec/module.schema.json",
   "title": "Eolent module manifest",
-  "description": "Describes what an Eolent module provides: permissions, features, settings, entities, events, UI contributions and localization. Draft 0.1.",
+  "description": "Describes what an Eolent module provides: permissions, features, settings, entities, events, UI contributions and localization. Draft 0.2.",
   "type": "object",
   "required": ["manifestVersion", "name", "version"],
   "additionalProperties": false,
@@ -10,7 +10,7 @@
     "$schema": { "type": "string" },
     "manifestVersion": {
       "description": "Version of this manifest format.",
-      "const": "0.1"
+      "const": "0.2"
     },
     "name": {
       "description": "Unique module name: lowercase segments separated by dots.",
@@ -48,6 +48,21 @@
       "type": "array",
       "items": { "$ref": "#/$defs/event" }
     },
+    "operations": {
+      "description": "The API operations of the module, linked to the permission, feature and entity they use.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/operation" }
+    },
+    "agentTools": {
+      "description": "Operations the module opts in to expose to AI agents as tools. Nothing is exposed unless listed here.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/agentTool" }
+    },
+    "errors": {
+      "description": "Error codes the module defines, as in the error format profile.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/error" }
+    },
     "ui": { "$ref": "#/$defs/ui" },
     "localization": { "$ref": "#/$defs/localization" }
   },
@@ -79,6 +94,11 @@
         "parent": {
           "description": "Name of the parent permission, if this one is nested.",
           "type": "string"
+        },
+        "scope": {
+          "description": "Who can hold the permission. A host permission can only be held by host principals and never by a tenant role. The ancestors of a host permission are host permissions too.",
+          "enum": ["tenant", "host"],
+          "default": "tenant"
         }
       }
     },
@@ -124,7 +144,80 @@
           "default": "tenantScoped"
         },
         "softDelete": { "type": "boolean", "default": false },
-        "auditing": { "type": "boolean", "default": true }
+        "auditing": { "type": "boolean", "default": true },
+        "sensitiveProperties": {
+          "description": "Names of properties, as in the API representation, that hold sensitive values. The audit log records them as redacted and events do not carry them.",
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "required": ["operationId", "method", "path"],
+      "additionalProperties": false,
+      "properties": {
+        "operationId": {
+          "description": "The operationId of the API description, for example \"identityUsersCreate\".",
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*$"
+        },
+        "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+        "path": { "type": "string", "pattern": "^/api/v1/" },
+        "description": { "type": "string" },
+        "permission": {
+          "description": "Permission the caller needs (x-eolent-permission). Omitted for operations that need none.",
+          "type": "string"
+        },
+        "feature": {
+          "description": "Boolean feature that must be on for the tenant (x-eolent-feature).",
+          "type": "string"
+        },
+        "tenancy": {
+          "description": "x-eolent-tenancy of the operation.",
+          "enum": ["none", "tenantScoped"],
+          "default": "tenantScoped"
+        },
+        "entity": {
+          "description": "Entity of this module the operation reads or changes, if any.",
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]*$"
+        }
+      }
+    },
+    "agentTool": {
+      "type": "object",
+      "required": ["operation", "description", "risk"],
+      "additionalProperties": false,
+      "properties": {
+        "operation": { "description": "operationId of an operation declared in operations.", "type": "string" },
+        "description": { "description": "What the tool does, written for a model that has to decide when to use it.", "type": "string", "minLength": 1 },
+        "risk": {
+          "description": "low: reads only. medium: changes data that can be undone. high: destructive, irreversible or security-relevant.",
+          "enum": ["low", "medium", "high"]
+        },
+        "requiresApproval": {
+          "description": "Whether a person must approve each call before it runs. Always true for high risk.",
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "if": { "properties": { "risk": { "const": "high" } } },
+      "then": { "required": ["requiresApproval"], "properties": { "requiresApproval": { "const": true } } }
+    },
+    "error": {
+      "type": "object",
+      "required": ["code", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "Error code starting with the module's PascalCase name, for example \"Identity.Users.EmailTaken\".",
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]*(\\.[A-Z][A-Za-z0-9]*)+$"
+        },
+        "status": { "type": "integer", "minimum": 400, "maximum": 599 },
+        "description": { "type": "string" }
       }
     },
     "event": {

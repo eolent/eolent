@@ -1,0 +1,21 @@
+{
+  "$schema": "../module.schema.json",
+  "manifestVersion": "0.2",
+  "name": "tenants",
+  "version": "0.1.0",
+  "displayName": "Tenants",
+  "description": "Tenant management and host administration.",
+  "permissions": [
+    { "name": "Tenants.Tenants", "displayName": "Tenant management", "scope": "host" },
+    { "name": "Tenants.Tenants.Switch", "displayName": "Act within a tenant", "parent": "Tenants.Tenants", "scope": "host" }
+  ],
+  "entities": [
+    { "name": "Tenant", "tenancy": "none", "auditing": true }
+  ],
+  "operations": [
+    { "operationId": "tenantsTenantsList", "method": "GET", "path": "/api/v1/tenants", "permission": "Tenants.Tenants", "tenancy": "none", "entity": "Tenant" }
+  ],
+  "errors": [
+    { "code": "Tenants.Tenants.SlugTaken", "status": 409, "description": "A tenant with this slug already exists." }
+  ]
+}
