@@ -38,7 +38,7 @@ For a resource `users` in module `identity`:
 | Create | `POST /api/v1/users` | `201` | Returns the created resource and a `Location` header |
 | Update | `PATCH /api/v1/users/{userId}` | `200` | JSON Merge Patch ([RFC 7396](https://www.rfc-editor.org/rfc/rfc7396)) |
 | Replace | `PUT /api/v1/users/{userId}` | `200` | Optional |
-| Delete | `DELETE /api/v1/users/{userId}` | `204` | Soft-deleted entities are hidden from all other operations |
+| Delete | `DELETE /api/v1/users/{userId}` | `204` | For entities with `softDelete: true`, the resource is soft-deleted and hidden from all other operations. Otherwise it is removed |
 | Custom action | `POST /api/v1/users/{userId}/actions/deactivate` (one literal path per action) | `200` or `202` | Each action is its own path with its own `operationId`, `x-eolent-permission` and responses. Action names are lowercase, hyphen-separated verbs. Use `202` when the work continues asynchronously |
 
 Nested resources are used only when the child cannot exist without its parent: `/api/v1/roles/{roleId}/permissions`.
