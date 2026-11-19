@@ -30,7 +30,7 @@ Events use the CloudEvents attributes below. "Required" is stricter than CloudEv
 | `subject` | string | no | The identifier of the entity the event is about, when there is one |
 | `data` | object | yes (CloudEvents: optional; an event with no facts carries `{}`) | The payload. A JSON object, valid against the declared `dataSchema` |
 
-An event carries only the attributes in this document (including the optional `tracestate`) and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; a module-defined name MUST NOT equal any attribute name defined by CloudEvents or by this document (for example `tenantid`), and modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
+An event carries only the attributes in this document (including the optional `tracestate`, listed in section 3) and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; a module-defined name MUST NOT equal any attribute name defined by CloudEvents or by this document (for example `tenantid`), and modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
 
 ## 3. Context extensions
 
@@ -108,4 +108,4 @@ The conformance suite will observe published events through a means the implemen
 - a change that is rolled back publishes no event
 - events about tenant-scoped data carry `tenantid`, events about data that is not tenant-scoped have none, and an event for tenant A is never delivered to a subscriber of tenant B
 - a redelivered event keeps the same `id`
-- the published event types are exactly those the manifest declares
+- the published event types are exactly those the manifest declares, and every `entity` named by a manifest event is declared in that module's `entities` (the validation of the manifests in this repository checks the same)
