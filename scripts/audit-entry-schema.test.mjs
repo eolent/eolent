@@ -42,3 +42,10 @@ test("an unknown kind or property is rejected, an x- property is allowed", () =>
 test("a redacted change carries no values", () => {
   assert.equal(validate({ ...entry(), changes: [{ path: "/password", redacted: true }] }), true);
 });
+
+test("a system actor needs no onBehalfOf and a suppressed count must be at least 1", () => {
+  assert.equal(validate({ ...entry(), actor: { type: "system" } }), true);
+  assert.equal(validate({ ...entry(), outcome: "denied", suppressed: 3 }), true);
+  assert.equal(validate({ ...entry(), outcome: "denied", suppressed: 0 }), false);
+});
+
