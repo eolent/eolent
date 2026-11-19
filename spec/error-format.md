@@ -76,7 +76,7 @@ A code is a dotted name. Each segment is PascalCase ASCII letters and digits, st
 - **Module codes** begin with the module's PascalCase name, the same prefix used for permission names, followed by at least one more segment, for example `Identity.Users.EmailTaken`. A module MUST NOT define codes outside its own prefix, and no module may use the prefix `Eolent`.
 - A code identifies one failure condition and maps to one status. A condition that can arise with different statuses uses different codes.
 
-A module declares its codes in the `errors` property of its manifest, with the status of each. Every code returned by one of its operations is declared there.
+A module declares its codes in the `errors` property of its manifest, with the status of each. Every code that one of its operations returns SHOULD be declared there. The manifest does not list the codes of each operation, so this cannot be checked from the manifest alone.
 
 ## 4. Validation errors
 

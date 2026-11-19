@@ -36,6 +36,7 @@ JSON Schema cannot express references between parts of a manifest. The validatio
 ## Consequences
 
 - Tools, agents and the conformance suite can learn what a module offers and what it needs from the manifest alone, and the manifest can be compared with the running OpenAPI description (manifest consistency category)
+- The check against the OpenAPI description does not exist yet. Until the manifest consistency check lands with the OpenAPI generation (D11), nothing stops `operations` from drifting from the real API
 - A module author now writes `operations` by hand or generates them from code; the duplication with OpenAPI is accepted for introspectability and is guarded by the consistency check
 - A manifest that is valid under `0.1` is not valid under `0.2`. Since no release exists, only the examples in this repository are affected
-- Permissions are declared by the module that owns them, so an operation cannot require a permission of another module in `0.2`
+- Permissions and features are declared by the module that owns them, so an operation cannot require a permission or a feature of another module in `0.2`

@@ -10,6 +10,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
+import { checkManifest } from "./manifest-checks.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skipDirs = new Set([".git", "node_modules"]);
@@ -28,87 +29,6 @@ function walk(dir) {
 
 const rel = (p) => relative(root, p).split(sep).join("/");
 const files = walk(root);
-
-// Cross-reference rules that JSON Schema cannot express (ADR 0004, ADR 0007).
-function pascalModule(name) {
-  return name
-    .split(".")
-    .map((seg) => seg.split("-").map((p) => p[0].toUpperCase() + p.slice(1)).join(""))
-    .join(".");
-}
-function camelModule(name) {
-  const joined = name.split(/[.-]/).map((p, i) => (i === 0 ? p : p[0].toUpperCase() + p.slice(1))).join("");
-  return joined;
-}
-function checkManifest(m) {
-  const out = [];
-  const prefix = pascalModule(m.name) + ".";
-  const idPrefix = camelModule(m.name);
-  const names = (list) => new Set((list ?? []).map((x) => x.name));
-  const perms = new Map((m.permissions ?? []).map((p) => [p.name, p]));
-  const features = new Map((m.features ?? []).map((f) => [f.name, f]));
-  const entities = names(m.entities);
-
-  for (const [kind, list] of [["permission", m.permissions], ["feature", m.features], ["setting", m.settings]]) {
-    for (const x of list ?? []) {
-      if (!x.name.startsWith(prefix)) out.push(`${kind} "${x.name}" must start with "${prefix}"`);
-    }
-  }
-  for (const e of m.errors ?? []) {
-    if (!e.code.startsWith(prefix)) out.push(`error code "${e.code}" must start with "${prefix}"`);
-  }
-  const dup = (kind, values) => {
-    const seen = new Set();
-    for (const v of values) {
-      if (seen.has(v)) out.push(`duplicate ${kind} "${v}"`);
-      seen.add(v);
-    }
-  };
-  dup("permission", (m.permissions ?? []).map((p) => p.name));
-  dup("error code", (m.errors ?? []).map((e) => e.code));
-  dup("operationId", (m.operations ?? []).map((o) => o.operationId));
-  dup("method and path", (m.operations ?? []).map((o) => `${o.method} ${o.path}`));
-  dup("agent tool", (m.agentTools ?? []).map((t) => t.operation));
-
-  for (const p of m.permissions ?? []) {
-    if (p.parent !== undefined && !perms.has(p.parent)) out.push(`permission "${p.name}" has undeclared parent "${p.parent}"`);
-    // The ancestors of a host permission are host permissions too.
-    if ((p.scope ?? "tenant") === "host") {
-      for (let a = p.parent, n = 0; a !== undefined && perms.has(a) && n < 100; a = perms.get(a).parent, n++) {
-        if ((perms.get(a).scope ?? "tenant") !== "host") out.push(`host permission "${p.name}" has ancestor "${a}" that is not a host permission`);
-      }
-    }
-  }
-  const ops = new Map((m.operations ?? []).map((o) => [o.operationId, o]));
-  for (const o of m.operations ?? []) {
-    if (!o.operationId.startsWith(idPrefix)) out.push(`operationId "${o.operationId}" must start with "${idPrefix}"`);
-    if (o.permission !== undefined && !perms.has(o.permission)) out.push(`operation "${o.operationId}" names undeclared permission "${o.permission}"`);
-    if (o.feature !== undefined) {
-      const f = features.get(o.feature);
-      if (!f) out.push(`operation "${o.operationId}" names undeclared feature "${o.feature}"`);
-      else if (f.valueType !== "boolean") out.push(`operation "${o.operationId}" names feature "${o.feature}" that is not boolean`);
-      if ((o.tenancy ?? "tenantScoped") !== "tenantScoped") out.push(`operation "${o.operationId}" has a feature but is not tenantScoped`);
-    }
-    if (o.entity !== undefined && !entities.has(o.entity)) out.push(`operation "${o.operationId}" names undeclared entity "${o.entity}"`);
-  }
-  for (const t of m.agentTools ?? []) {
-    const o = ops.get(t.operation);
-    if (!o) out.push(`agent tool names undeclared operation "${t.operation}"`);
-    else if (o.method !== "GET" && t.risk === "low") out.push(`agent tool "${t.operation}" changes data and cannot have risk "low"`);
-    else if (o.method === "DELETE" && t.risk !== "high") out.push(`agent tool "${t.operation}" deletes data and must have risk "high"`);
-  }
-  // An event's entity must be declared in the same manifest's entities.
-  for (const ev of m.events ?? []) {
-    if (ev.entity !== undefined && !entities.has(ev.entity)) out.push(`event "${ev.name}" names undeclared entity "${ev.entity}"`);
-  }
-  for (const r of m.ui?.routes ?? []) {
-    if (r.permission !== undefined && !perms.has(r.permission)) out.push(`ui route "${r.path}" names undeclared permission "${r.permission}"`);
-  }
-  for (const i of m.ui?.menu ?? []) {
-    if (i.permission !== undefined && !perms.has(i.permission)) out.push(`ui menu item "${i.key}" names undeclared permission "${i.permission}"`);
-  }
-  return out;
-}
 
 // 1. JSON files parse
 const parsed = new Map();
