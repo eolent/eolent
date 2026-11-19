@@ -24,12 +24,14 @@ The tenants module owns tenant management. There is also a **host** level above 
 The tenant of a request is resolved in this order. Each step that applies yields a tenant; a host name label is first looked up by `slug` to find the tenant `id`. The first step that yields a tenant decides, and later steps are only used to detect conflicts by comparing tenant ids.
 
 1. **Token claim.** An authenticated tenant principal carries the claim `tenant_id` in its access token, whose value is the tenant `id`. This is authoritative.
-2. **Header.** `X-Eolent-Tenant`, whose value is a tenant `id`. A tenant principal MAY send it, but it MUST equal the token claim. A host principal MAY send it to act within that tenant, if it holds the host permission that allows switching tenants (defined by the permission contract). An unauthenticated request MAY send it for any public operation, `tenantScoped` or `none`, and it is resolved and checked the same way for both.
+2. **Header.** `X-Eolent-Tenant`, whose value is a tenant `id`. A tenant principal MAY send it, but it MUST equal the token claim. A host principal MAY send it to act within that tenant, if it holds the host permission that allows switching tenants (defined by the permission contract); a host principal that sends it without that permission gets `403 Eolent.Forbidden`. An unauthenticated request MAY send it for any public operation, `tenantScoped` or `none`, and it is resolved and checked the same way for both.
 3. **Host name.** The first label of the request host, when the deployment has a base domain configured and the host is `<label>.<base domain>`. Labels the deployment lists as reserved (for example `api` or `www`) are ignored and do not take part in resolution. Any other label is looked up as a tenant `slug`; one that matches no tenant is `Eolent.TenantNotFound`, except when the request carries a tenant principal's token: then a label that differs from the token's tenant, including one that matches no tenant, is `Eolent.TenantMismatch`. This is how unauthenticated tenant-scoped operations (for example a tenant's sign-in) find their tenant.
 
-If more than one of these identifies a tenant and they identify different tenants, the request is rejected with `Eolent.TenantMismatch` (section 5). A request is never resolved by guessing, by a default tenant, or from request bodies or query parameters.
+If more than one of these identifies a tenant and they identify different tenants, the request is rejected with `Eolent.TenantMismatch` (section 5). A request is never resolved by guessing or from request bodies or query parameters.
 
-A deployment with a single tenant still has a tenant; it is resolved the same way, and a deployment MAY configure that tenant as the fixed one so clients need not send anything.
+4. **Fixed tenant.** A deployment that has exactly one tenant MAY configure it as the fixed tenant. It is used only when steps 1 to 3 yield no tenant, and it is never compared with them, so a token claim, header or host label for another tenant is handled by the rules above and not by this step. A deployment with more than one tenant MUST NOT configure a fixed tenant.
+
+A deployment with a single tenant still has a tenant; without a fixed tenant it is resolved by steps 1 to 3 like any other.
 
 ## 3. Operations and tenant context
 
@@ -62,6 +64,7 @@ Events and audit entries carry the `tenantId` of the tenant they concern, as def
 | A tenant is identified by header or host name but does not exist, for an unauthenticated request or a host principal | `404` | `Eolent.TenantNotFound` |
 | The token claim, header and host name identify different tenants, or a tenant principal's header or host label names any tenant other than their own, existing or not | `403` | `Eolent.TenantMismatch` |
 | The resolved tenant is suspended | `403` | `Eolent.TenantSuspended` |
+| A host principal sends `X-Eolent-Tenant` without the permission to switch tenants | `403` | `Eolent.Forbidden` |
 | The token claim names a tenant that does not exist | `401` | `Eolent.Unauthenticated` |
 
 A tenant principal who sends an `X-Eolent-Tenant` value that differs from their own tenant receives `Eolent.TenantMismatch`, whether or not the other tenant exists. This keeps one tenant's users from probing which other tenants exist through their authenticated session. `Eolent.TenantNotFound` applies to unauthenticated requests and to host principals. For unauthenticated requests this does let anyone test whether a slug exists, which is accepted: slugs are public because they appear in host names. Tenant ids are unguessable UUIDs. This contract therefore gives no guarantee that tenant existence is secret from anonymous callers.
@@ -77,6 +80,8 @@ The conformance suite creates at least two tenants with users and data, then che
 - an unauthenticated request to a public `tenantScoped` operation resolves the tenant from the header or host name, and an unknown tenant returns `404 Eolent.TenantNotFound`
 - a `tenantScoped` operation with no resolvable tenant returns `400 Eolent.TenantRequired`
 - a host principal without a tenant context calling a `tenantScoped` operation returns `400 Eolent.TenantRequired`
+- a host principal sending `X-Eolent-Tenant` without the tenant-switching permission receives `403 Eolent.Forbidden`, and with it acts within that tenant
+- a deployment with a fixed tenant resolves requests with no tenant signal to it, and still rejects a header naming another tenant with the errors above
 - a suspended tenant's users receive `403 Eolent.TenantSuspended`
 - a `none` operation succeeds with no tenant, returns the same result whichever valid tenant is resolved, returns no tenant-scoped data, and still returns `403 Eolent.TenantMismatch` for a tenant principal whose header names another tenant
 - the same checks pass in every isolation mode the implementation claims to support
