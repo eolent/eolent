@@ -25,6 +25,6 @@ The audit entry of an approved call records who approved it and when, in the `ap
 ## Consequences
 
 - The first release can carry agents safely and without a new principal kind, and the fields reserved in the audit log and the manifest are used as designed.
-- Every medium risk write by an agent costs a person's approval until an administrator relaxes it. This is intentional and is the price of keeping a prompt injection from changing data silently. Background automation has to wait for the later decision, or use the ordinary API with a service account of the deployment's own.
+- Every medium risk write by an agent costs a person's approval until an administrator relaxes it. This is intentional and is the price of keeping a prompt injection from changing data silently. Background automation has to wait for the later decision. A deployment's own service account that calls the ordinary API is not an agent: it is governed by the permissions of that account like any API client, and it is outside this posture.
 - The manifest schema now requires `requiresApproval` to be `true` for `medium` and `high`. An implementation cannot lower the baseline that a module declares.
 - Conformance for agent actions (H18) tests these three rules.
