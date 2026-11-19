@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/eolent/eolent/main/spec/audit-entry.schema.json",
+  "title": "Eolent audit entry",
+  "description": "An audit entry, and the data of the audit events (spec/audit.md).",
+  "type": "object",
+  "required": ["id", "occurredAt", "tenantId", "actor", "kind", "outcome", "traceId"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "tenantId": { "type": ["string", "null"], "format": "uuid" },
+    "actor": { "$ref": "#/$defs/principal" },
+    "onBehalfOf": { "$ref": "#/$defs/principal", "type": "object", "properties": { "type": { "const": "user" } } },
+    "kind": { "enum": ["create", "update", "delete", "restore", "action", "read", "tenantSwitch"] },
+    "outcome": { "enum": ["succeeded", "denied"] },
+    "operation": { "type": "string" },
+    "action": { "type": "string" },
+    "resource": {
+      "type": "object",
+      "required": ["type"],
+      "properties": { "type": { "type": "string" }, "id": { "type": "string" } },
+      "patternProperties": { "^x-": {} },
+      "additionalProperties": false
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "old": {},
+          "new": {},
+          "redacted": { "type": "boolean" }
+        },
+        "required": ["path"],
+        "patternProperties": { "^x-": {} },
+        "additionalProperties": false
+      }
+    },
+    "changesTruncated": { "type": "boolean" },
+    "suppressed": { "type": "integer", "minimum": 1 },
+    "approval": {
+      "type": "object",
+      "required": ["approvedBy", "approvedAt"],
+      "properties": { "approvedBy": { "$ref": "#/$defs/principal" }, "approvedAt": { "type": "string", "format": "date-time" } },
+      "patternProperties": { "^x-": {} },
+      "additionalProperties": false
+    },
+    "traceId": { "type": "string" },
+    "client": {
+      "type": "object",
+      "properties": { "ip": { "type": "string" }, "userAgent": { "type": "string" } },
+      "patternProperties": { "^x-": {} },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": { "^x-": {} },
+  "if": { "type": "object", "properties": { "actor": { "type": "object", "properties": { "type": { "const": "agent" } }, "required": ["type"] } }, "required": ["actor"] },
+  "then": { "required": ["onBehalfOf"], "properties": { "onBehalfOf": true } },
+  "additionalProperties": false,
+  "$defs": {
+    "principal": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["user", "agent", "system"] },
+        "id": { "type": "string", "format": "uuid" },
+        "level": { "enum": ["tenant", "host"] },
+        "name": { "type": "string" }
+      },
+      "patternProperties": { "^x-": {} },
+      "additionalProperties": false
+    }
+  }
+}
