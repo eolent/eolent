@@ -61,7 +61,7 @@ A manifest that names `titleKey` values or declares `errors` MUST have a `locali
 
 The platform ships messages for its own codes (`Eolent.*`, see the [error format](error-format.md)) in English. Implementations MAY ship more cultures.
 
-Values for named arguments in an error's `detail` are extension properties of the problem details. A module lists the arguments its messages can use in the `arguments` property of the code's entry in `errors` in the manifest, and a `Detail` message MUST NOT use an argument that is not listed there. The static checks cannot parse messages, so this is verified by the implementation's tests and by the conformance suite.
+Values for named arguments in an error's `detail` are extension properties of the problem details. A module lists the arguments its messages can use in the `arguments` property of the code's entry in `errors` in the manifest, and a `Detail` message MUST NOT use an argument that is not listed there. The validation of manifests in this repository checks it for the arguments of simple, formatted, plural and select forms.
 
 ## 5. Choosing a culture and falling back
 

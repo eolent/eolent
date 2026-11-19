@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bracesBalanced, checkLocalization } from "./localization-checks.mjs";
+import { bracesBalanced, checkLocalization, messageArguments } from "./localization-checks.mjs";
 
 const manifest = () => ({
   name: "billing-core",
@@ -54,4 +54,16 @@ test("a missing file is reported", () => assert.match(run((m, f) => f.set("i18n/
 test("reserved prefix and orphan keys in other cultures", () => {
   assert.match(run((m, f) => (f.get("i18n/en.json")["Eolent.Custom"] = "x")).join("\n"), /reserved prefix/);
   assert.match(run((m, f) => (f.get("i18n/cs.json")["BillingCore.Extra"] = "x")).join("\n"), /no counterpart/);
+});
+
+test("message arguments are extracted", () => {
+  assert.deepEqual([...messageArguments("Hello {name}, {n, number} items")].sort(), ["n", "name"]);
+  assert.deepEqual([...messageArguments("{count, plural, one {# user of {org}} other {# users}}")].sort(), ["count", "org"]);
+  assert.deepEqual([...messageArguments("{g, select, male {He} other {They}} said '{x}'")].sort(), ["g"]);
+  assert.equal(messageArguments("Hello {name"), null);
+});
+test("a Detail message may only use listed arguments", () => {
+  const lockedDetail = (m, f) => (f.get("i18n/en.json")["BillingCore.Invoices.Locked.Detail"] = "Locked by {user}");
+  assert.match(run(lockedDetail).join("\n"), /uses argument "user"/);
+  assert.deepEqual(run((m, f) => { m.errors[0].arguments = ["user"]; lockedDetail(m, f); }), []);
 });
