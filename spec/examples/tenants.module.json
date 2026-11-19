@@ -17,5 +17,9 @@
   ],
   "errors": [
     { "code": "Tenants.Tenants.SlugTaken", "status": 409, "description": "A tenant with this slug already exists." }
-  ]
+  ],
+  "localization": {
+    "defaultCulture": "en",
+    "resources": ["i18n/tenants/en.json"]
+  }
 }

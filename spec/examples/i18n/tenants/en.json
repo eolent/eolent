@@ -1,0 +1,4 @@
+{
+  "Tenants.Tenants.SlugTaken.Title": "Tenant slug already in use",
+  "Tenants.Tenants.SlugTaken.Detail": "A tenant with the slug {slug} already exists."
+}

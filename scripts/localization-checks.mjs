@@ -35,7 +35,11 @@ export function bracesBalanced(message) {
 export function checkLocalization(manifest, files) {
   const out = [];
   const loc = manifest.localization;
-  if (!loc) return out;
+  if (!loc) {
+    const names = [...(manifest.ui?.routes ?? []), ...(manifest.ui?.menu ?? [])].some((x) => x.titleKey) || (manifest.errors ?? []).length > 0;
+    if (names) out.push("the manifest names title keys or error codes but has no localization block with a default culture file");
+    return out;
+  }
   const prefix = pascalModule(manifest.name) + ".";
   const resources = loc.resources ?? [];
   const cultureOf = (path) => path.split("/").pop().replace(/\.json$/, "");

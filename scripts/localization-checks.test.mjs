@@ -39,6 +39,10 @@ test("the default culture file must exist and name every manifest key", () => {
   assert.match(run((m, f) => delete f.get("i18n/en.json")["BillingCore.Invoices"]).join("\n"), /lacks the key "BillingCore\.Invoices"/);
   assert.match(run((m, f) => delete f.get("i18n/en.json")["BillingCore.Invoices.Locked.Title"]).join("\n"), /Locked\.Title/);
 });
+test("title keys or errors without a localization block are reported", () => {
+  assert.match(run((m) => delete m.localization).join("\n"), /no localization block/);
+  assert.deepEqual(checkLocalization({ name: "x" }, new Map()), []);
+});
 test("a missing defaultCulture is reported", () => {
   assert.match(run((m) => delete m.localization.defaultCulture).join("\n"), /defaultCulture is missing/);
 });

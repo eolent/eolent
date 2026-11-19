@@ -71,8 +71,8 @@ For each message key, the text comes from the first of these that has the key:
 
 1. the culture chosen for the request
 2. the culture with its last subtag removed, repeated down to the language alone
-3. the tenant's default culture, when a tenant is resolved. It is the tenant setting `Localization.DefaultCulture`
-4. the deployment's default culture
+3. the tenant's default culture, when a tenant is resolved: the tenant value of the setting `Localization.DefaultCulture`
+4. the deployment's default culture: the global value of the same setting, which is `en` unless the deployment sets it
 5. `en`
 6. the module's own `defaultCulture`, which is guaranteed to have every key the manifest names
 
@@ -80,7 +80,7 @@ If no file has the key, the text is the key itself. This never happens for keys 
 
 Responses that carry localized text, such as error responses, set `Content-Language` to the culture that supplied the `title`. When parts come from different fallback cultures, `Content-Language` names the culture of the first part.
 
-A user preference for the interface language is a client concern: the frontend sends it as `Accept-Language`. The tenant setting `Localization.DefaultCulture` is declared by the localization module (a platform module, not yet written) with scope `tenant`. Where it is not declared, step 3 is skipped.
+A user preference for the interface language is a client concern: the frontend sends it as `Accept-Language`. The setting `Localization.DefaultCulture` is declared by the localization module (a platform module, not yet written) with scope `tenant`, so a tenant can override its global value. Where the module is not installed, steps 3 and 4 use no setting and the deployment default is `en`.
 
 ## 6. Resources for the frontend
 
