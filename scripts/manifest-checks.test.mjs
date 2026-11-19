@@ -63,6 +63,15 @@ test("rejects duplicates", () => {
   assert.match(problems((m) => m.operations.push({ ...m.operations[0] }))[0], /duplicate operationId/);
 });
 
+test("operation tenancy must match its entity", () => {
+  assert.match(problems((m) => (m.operations[0].tenancy = "none"))[0], /but its entity/);
+  assert.match(problems((m) => (m.entities[0].tenancy = "none"))[0], /but its entity/);
+});
+
+test("cyclic permission parents are reported without hanging", () => {
+  assert.match(problems((m) => (m.permissions[0].parent = "BillingCore.Invoices.Read")).join("\n"), /cyclic parent chain/);
+});
+
 test("module names with repeated hyphens do not throw", () => {
   assert.doesNotThrow(() => checkManifest({ ...base(), name: "billing--core-" }));
 });

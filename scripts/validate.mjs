@@ -64,7 +64,7 @@ if (!schema) {
         for (const err of validate.errors) {
           errors.push(`${rel(file)}: ${err.instancePath || "/"} ${err.message}`);
         }
-        continue; // the entity check below needs a schema-valid manifest
+        continue; // the cross-reference checks need a schema-valid manifest
       }
       for (const problem of checkManifest(manifest)) errors.push(`${rel(file)}: ${problem}`);
     }
