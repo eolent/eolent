@@ -3,7 +3,7 @@
 #   docker build -f conformance/Dockerfile -t eolent-conformance .
 #   docker run --rm \
 #     -e EOLENT_BASE_URL=http://host.docker.internal:8080 \
-#     -e EOLENT_TOKEN_TENANT_A=... -e EOLENT_TOKEN_TENANT_B=... \
+#     -e EOLENT_TOKEN_TENANT_A=... -e EOLENT_TOKEN_TENANT_B=... -e EOLENT_TOKEN_HOST=... \
 #     -v "$PWD/my-fixtures.json:/fixtures.json:ro" -e EOLENT_FIXTURES=/fixtures.json \
 #     eolent-conformance
 FROM node:22-alpine

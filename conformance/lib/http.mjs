@@ -11,7 +11,7 @@ export async function request(cfg, { method = "GET", path, principal, headers = 
     payload = JSON.stringify(body);
     h["content-type"] ??= "application/json";
   }
-  const res = await fetch(cfg.baseUrl + path, { method, headers: h, body: payload, redirect: "manual" });
+  const res = await fetch(cfg.baseUrl + path, { method, headers: h, body: payload, redirect: "manual", signal: AbortSignal.timeout(cfg.timeoutMs) });
   const text = await res.text();
   let json;
   try {

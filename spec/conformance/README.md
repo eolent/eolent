@@ -34,6 +34,7 @@ conformance/
 | Setting | Meaning |
 |---|---|
 | `EOLENT_BASE_URL` | Base URL of the deployment under test, required |
+| `EOLENT_REQUEST_TIMEOUT_MS` | Timeout of each request in milliseconds, default `10000` |
 | `EOLENT_FIXTURES` | Path to a fixtures file, default `conformance/fixtures/example.json` |
 | the variables named in `tokenEnv` | Bearer tokens of the principals in the fixtures file |
 
@@ -48,6 +49,8 @@ The same, from the image: `docker build -f conformance/Dockerfile -t eolent-conf
 ### Fixtures
 
 A fixtures file ([schema](../../conformance/fixtures.schema.json)) names two tenants that exist in the deployment, the principals that can call it (a token for each tenant, and optionally a host principal without the tenant-switching permission) and one tenant-scoped collection that supports create and get by id. Tokens are never stored in the file; each principal names the environment variable that holds its token. The deployment is set up with these tenants and principals before the run. The host principal must not hold the tenant-switching permission; a token that does makes its tests fail. If the environment variable of the optional host principal is not set, that principal is left out and its tests are skipped. The check for `405` sends `DELETE` to the collection, so it assumes that the collection exists and does not support `DELETE`. The host principal is optional: the tests that need it are skipped, with the name of the missing variable as the reason, when the file has no host principal or its token variable is not set.
+
+The tests create entities and do not remove them, and the list checks read every page (up to 100 pages of 200 items), so use a test deployment that is reset between runs; one that accumulates more than that fails the list checks with a message that says so.
 
 ### Self-test
 

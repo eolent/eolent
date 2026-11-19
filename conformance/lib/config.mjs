@@ -2,6 +2,7 @@
 //
 //   EOLENT_BASE_URL   base URL of the deployment under test, for example http://localhost:8080 (required)
 //   EOLENT_FIXTURES   path to a fixtures file (conformance/fixtures.schema.json), default conformance/fixtures/example.json
+//   EOLENT_REQUEST_TIMEOUT_MS   timeout of each request in milliseconds, default 10000 (optional)
 //   tokens            read from the environment variables that the fixtures name in tokenEnv
 
 import { readFileSync } from "node:fs";
@@ -24,5 +25,7 @@ export function loadConfig(env = process.env) {
       // The optional host principal is skipped, with its tests, when its token is not set.
     }
   }
-  return { baseUrl: baseUrl.replace(/\/+$/, ""), fixtures, tokens };
+  const timeoutMs = Number(env.EOLENT_REQUEST_TIMEOUT_MS ?? 10000);
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error("EOLENT_REQUEST_TIMEOUT_MS must be a positive number");
+  return { baseUrl: baseUrl.replace(/\/+$/, ""), fixtures, tokens, timeoutMs };
 }

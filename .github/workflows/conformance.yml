@@ -22,3 +22,11 @@ jobs:
       - run: npm run conformance:selftest
       - name: Build the runner image
         run: docker build -f conformance/Dockerfile -t eolent-conformance .
+      - name: Run the image against the stub
+        run: |
+          node conformance/stub/server.mjs --port 8080 &
+          sleep 2
+          docker run --rm --network host \
+            -e EOLENT_BASE_URL=http://127.0.0.1:8080 \
+            -e EOLENT_TOKEN_TENANT_A=token-a -e EOLENT_TOKEN_TENANT_B=token-b -e EOLENT_TOKEN_HOST=token-host \
+            eolent-conformance
