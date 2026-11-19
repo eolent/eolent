@@ -4,7 +4,7 @@
 
 This profile defines how an Eolent backend describes and shapes its HTTP API. An implementation exposes an OpenAPI 3.1 description of its API, and the description follows these conventions. The frontend kit and API client generators rely on them, so that one generated client works against any conforming backend.
 
-The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Error responses are defined by the error format profile (planned) and tenancy and permissions by their own contracts (planned); this document only states how they appear in the API description.
+The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119). Error responses are defined by the [error format profile](error-format.md) and tenancy and permissions by their own contracts (planned); this document only states how they appear in the API description.
 
 ## 1. Description and versioning
 
