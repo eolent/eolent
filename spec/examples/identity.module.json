@@ -24,7 +24,7 @@
     { "name": "Role", "tenancy": "tenantScoped", "auditing": true }
   ],
   "events": [
-    { "name": "identity.user.created", "direction": "publishes", "dataSchema": "events/user-created.schema.json" }
+    { "name": "identity.user.created", "direction": "publishes", "entity": "User", "dataSchema": "events/user-created.schema.json" }
   ],
   "ui": {
     "routes": [

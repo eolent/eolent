@@ -42,4 +42,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (permissions) Added the permission and feature contract (draft), the extension `x-eolent-feature`, the platform code `Eolent.FeatureDisabled` and the host permission `Tenants.Tenants.Switch`.
 - **0.1** (API conventions) Filter and sort property names may be dotted paths to nested properties.
 - **0.1** (audit) Added the audit log contract (draft) and the permission `Audit.AuditLogs.Read`, which the audit module declares in its manifest.
-- **0.1** (events) Added the event envelope profile (draft), a CloudEvents 1.0 profile.
+- **0.1** (events) Added the event envelope profile (draft), a CloudEvents 1.0 profile, and the optional `entity` property of manifest events.
