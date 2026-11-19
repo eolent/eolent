@@ -89,7 +89,7 @@ An AI agent is a principal of its own. When it acts for a user:
 
 A user acting directly never has `onBehalfOf`, and neither does a `system` actor. Readers MUST NOT infer from a missing `onBehalfOf` anything other than that the actor did not act for another principal.
 
-The optional `approval` object records that a human approved the action before it ran, for operations an agent may only perform with approval (planned for manifest `0.2`):
+The optional `approval` object records that a human approved the action before it ran, for operations an agent may only perform with approval (`requiresApproval` of an entry in `agentTools` in the manifest):
 
 | Property | Type | Description |
 |---|---|---|
@@ -114,7 +114,7 @@ Rules:
 - for `create`, `changes` contains one item per property that has a value, with `new` only, except that a secret property is recorded with `redacted` `true` and no `new`
 - for `update`, `changes` contains one item per property whose value changed, and none for a property whose value did not change
 - for `delete` and `restore`, `changes` MAY be absent. A soft delete is recorded as `delete` and its restore as `restore`
-- a property MUST be recorded with `redacted` `true`, never with its value, when its name, compared without case, ends with `password`, `secret`, `token`, `apikey` or `privatekey`, and also when the entity marks it as sensitive. An implementation MAY treat more properties as secret. A manifest marker for sensitive properties is planned for `0.2`
+- a property MUST be recorded with `redacted` `true`, never with its value, when its name, compared without case, ends with `password`, `secret`, `token`, `apikey` or `privatekey`, and also when the entity lists it in `sensitiveProperties` in the manifest. An implementation MAY treat more properties as secret
 - `path` uses the property names of the API representation, not storage names, so entries read the same in every implementation
 
 An implementation MAY cap the number of items in one entry. When it does, it sets the entry property `changesTruncated` to `true`, as the error format does with `errorsTruncated`; otherwise the property is absent and the list is complete.
@@ -148,7 +148,7 @@ The conformance suite checks that:
 - an update records exactly the changed properties in `changes`, with `old` and `new`
 - a host mutation that is rolled back leaves its `tenantSwitch` entry and no ordinary entry
 - a failed request that changed nothing leaves no `succeeded` entry, other than a `tenantSwitch` entry, which records the switch and not the outcome of the request
-- a property that matches the secret-name rule in section 5, such as `password`, is recorded with `redacted` `true` and no values
+- a property that matches the secret-name rule in section 5, such as `password`, or that the entity lists in `sensitiveProperties`, is recorded with `redacted` `true` and no values
 - the `denied` entry rule is a SHOULD and is not checked in 0.1
 - a call made with an agent token on behalf of a user produces an entry with `actor.type` `agent` and `onBehalfOf` set to that user, and a call made by the user directly has no `onBehalfOf`
 - a host principal acting within a tenant, for a read and for a mutation, produces a `tenantSwitch` entry with `actor.level` `host`, and a tenant principal's read produces none

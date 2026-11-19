@@ -59,7 +59,7 @@ An event is about data that is not tenant-scoped when its manifest `events` entr
 ## 4. Data
 
 - `data` is a JSON object described by the `dataSchema` of the manifest event. An event without a `dataSchema` is not conformant in 0.1 if it carries data other than an empty object
-- `data` SHOULD carry the facts a consumer needs, not a copy of the whole entity. This is a rule for event payloads, separate from the change-set redaction in the [audit log](audit.md). It MUST NOT contain a property that the audit log redacts: any property whose name ends with `password`, `secret`, `token`, `apikey` or `privatekey` (compared without case), and, once manifest `0.2` defines the marker, any property the entity marks as sensitive. In 0.1 only the name rule applies. An implementation MAY exclude more
+- `data` SHOULD carry the facts a consumer needs, not a copy of the whole entity. This is a rule for event payloads, separate from the change-set redaction in the [audit log](audit.md). It MUST NOT contain a property that the audit log redacts: any property whose name ends with `password`, `secret`, `token`, `apikey` or `privatekey` (compared without case), and any property the entity lists in `sensitiveProperties` in the manifest. An implementation MAY exclude more
 - property names are `camelCase`, timestamps are RFC 3339 in UTC, and identifiers are strings, as in the [API conventions](api-conventions.md)
 
 `data` can contain personal data, such as the email address in the example below. It is subject to the same tenant isolation as any tenant-scoped data, and the deployment decides which fields are published.

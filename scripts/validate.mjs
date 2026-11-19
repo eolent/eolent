@@ -1,7 +1,7 @@
 // Validates the Eolent hub repository:
 //   1. every .json file parses
-//   2. every spec/examples/*.json validates against spec/module.schema.json,
-//      and every event's entity is declared in that manifest
+//   2. every spec/examples/*.json validates against spec/module.schema.json
+//      and passes the cross-reference rules in checkManifest
 //   3. relative links in Markdown files resolve to existing files
 // Usage: npm run validate
 
@@ -10,6 +10,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
+import { checkManifest } from "./manifest-checks.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skipDirs = new Set([".git", "node_modules"]);
@@ -63,15 +64,9 @@ if (!schema) {
         for (const err of validate.errors) {
           errors.push(`${rel(file)}: ${err.instancePath || "/"} ${err.message}`);
         }
-        continue; // the entity check below needs a schema-valid manifest
+        continue; // the cross-reference checks need a schema-valid manifest
       }
-      // An event's entity must be declared in the same manifest's entities.
-      const declared = new Set((manifest.entities ?? []).map((e) => e.name));
-      for (const ev of manifest.events ?? []) {
-        if (ev.entity !== undefined && !declared.has(ev.entity)) {
-          errors.push(`${rel(file)}: event "${ev.name}" names undeclared entity "${ev.entity}"`);
-        }
-      }
+      for (const problem of checkManifest(manifest)) errors.push(`${rel(file)}: ${problem}`);
     }
   }
 }

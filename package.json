@@ -4,7 +4,7 @@
   "description": "Validation tooling for the Eolent specification hub. Not published.",
   "type": "module",
   "scripts": {
-    "validate": "node scripts/validate.mjs"
+    "validate": "node scripts/validate.mjs && node --test scripts/manifest-checks.test.mjs"
   },
   "engines": {
     "node": ">=20"
