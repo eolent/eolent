@@ -41,4 +41,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (error format) Added the error format profile (draft).
 - **0.1** (tenancy) Added the tenancy contract (draft) and the platform codes `Eolent.TenantRequired`, `Eolent.TenantNotFound`, `Eolent.TenantMismatch` and `Eolent.TenantSuspended` to the error format profile.
 - **0.1** (permissions) Added the permission and feature contract (draft), the extension `x-eolent-feature`, the platform code `Eolent.FeatureDisabled` and the host permission `Tenants.Tenants.Switch`.
-- **0.1** (audit) Added the audit log contract (draft) and the permission `Audit.AuditLogs.Read`.
+- **0.1** (audit) Added the audit log contract (draft) and the permission `Audit.AuditLogs.Read`, which the audit module declares in its manifest.
