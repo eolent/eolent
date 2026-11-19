@@ -1,6 +1,6 @@
 # ADR 0007: Manifest 0.2: operations, agent tools, errors and markers
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-19
 
 ## Context
