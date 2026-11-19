@@ -44,7 +44,7 @@ Example:
 | `400` | The request is malformed or fails validation, including unsupported filter, sort or `q` parameters | `Eolent.Validation` |
 | `400` | A tenant-scoped operation was called and no tenant can be resolved | `Eolent.TenantRequired` |
 | `401` | Missing, invalid or expired credentials. The response carries a `WWW-Authenticate: Bearer` header | `Eolent.Unauthenticated` |
-| `403` | The caller is authenticated but lacks the required permission or feature | `Eolent.Forbidden` |
+| `403` | The caller is authenticated but lacks the required permission | `Eolent.Forbidden` |
 | `403` | The tenant claim, header and host name identify different tenants, or the resolved tenant is suspended | `Eolent.TenantMismatch`, `Eolent.TenantSuspended` |
 | `403` | The operation is gated by a feature that is off for the tenant (see the [permission contract](permissions.md)) | `Eolent.FeatureDisabled` |
 | `404` | The resource or route does not exist, or is not visible to the caller (section 6) | `Eolent.NotFound` |

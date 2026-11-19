@@ -25,7 +25,7 @@ An operation that declares `x-eolent-permission` requires the caller to pass a c
 3. the permission check (`403 Eolent.Forbidden`)
 4. the feature check (section 3)
 
-The permission is checked before the feature so that a caller without the permission learns nothing about which features are enabled.
+The permission is checked before the feature so that the response to a caller without the permission is the same whatever the feature state. Feature values are not secret from authenticated callers of a tenant: the access endpoint (section 4) returns them to every one of them.
 
 ## 2. Grants
 
