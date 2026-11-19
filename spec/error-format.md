@@ -113,7 +113,7 @@ Example:
 
 - The `code` and `errors[].code` values are never translated.
 - `title` and `detail` are localized using the request's `Accept-Language` header, falling back as defined by the [localization contract](localization.md) (section 5). The response carries `Content-Language` with the language used. How localization resources are supplied is defined by the [localization contract](localization.md).
-- Messages for a code are keyed by the code (`<code>.Title` and `<code>.Detail`), so a translation can be added without changing the API.
+- Messages for a code are keyed by the code (`<code>.Title` and `<code>.Detail`), so a translation can be added without changing the API. A code with no `Detail` message in any culture has no `detail` in the response.
 
 ## 6. Safety rules
 

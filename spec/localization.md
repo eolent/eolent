@@ -26,7 +26,7 @@ A resource file is a UTF-8 JSON object that maps message keys to message strings
 - a key is a dotted name whose segments are PascalCase ASCII letters and digits, starting with a letter. It begins with the module's PascalCase name followed by a dot, the same prefix used for permission names ([ADR 0004](../docs/adr/0004-naming-and-versioning-conventions.md)), so keys of different modules never collide. The prefix `Eolent` is reserved for the platform's own messages
 - a message is written in [ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/) (the stable syntax of ICU 4J and ICU 4C, also known as MessageFormat 1). Arguments are named, in `camelCase`: `Hello, {name}`. Plural and select forms use the culture's CLDR rules: `{count, plural, one {# user} other {# users}}`. Number and date arguments use the ICU styles. Custom formatting functions are not part of this contract
 - the characters `{` and `}` in a literal text are quoted as in ICU (`'{'`). A message with unbalanced braces is invalid
-- an argument that a message declares and the caller does not supply is a defect, and the message is not shown with a placeholder: it falls back (section 5) to the next culture, and finally to the key
+- an argument that a message declares and the caller does not supply is a defect, and the message is not shown with a placeholder: it falls back (section 5) to the next culture, and finally to the key. This is a run-time requirement of implementations, which parse the messages; the static checks of this repository cannot see it
 
 Example, `i18n/en.json` and `i18n/cs.json` of the identity module:
 
@@ -57,7 +57,7 @@ Example, `i18n/en.json` and `i18n/cs.json` of the identity module:
 | Error `detail` | `<code>.Detail` |
 | Detail of a validation item | `<item code>.Detail`, for example `Eolent.Validation.Required.Detail` |
 
-Every key that the manifest names (`titleKey` values) and every code the manifest declares in `errors` MUST exist in the file of the module's `defaultCulture`: the `Title` key for a code. A `Detail` key is optional, because the manifest does not say which codes have a detail; a `Detail` key in another culture must exist in the default culture (below). The `defaultCulture` file MUST be listed in `resources`. Other cultures are optional and may be incomplete, but a key in another culture file MUST also exist in the `defaultCulture` file, so a `Detail` or `Title` message cannot exist without its default.
+A manifest that names `titleKey` values or declares `errors` MUST have a `localization` block. Every key that the manifest names (`titleKey` values) and every code the manifest declares in `errors` MUST exist in the file of the module's `defaultCulture`: the `Title` key for a code. A `Detail` key is optional, because the manifest does not say which codes have a detail; a `Detail` key in another culture must exist in the default culture (below). The `defaultCulture` file MUST be listed in `resources`. Other cultures are optional and may be incomplete, but a key in another culture file MUST also exist in the `defaultCulture` file, so a `Detail` or `Title` message cannot exist without its default.
 
 The platform ships messages for its own codes (`Eolent.*`, see the [error format](error-format.md)) in English. Implementations MAY ship more cultures.
 
@@ -65,7 +65,7 @@ Values for named arguments in an error's `detail` are the properties that the mo
 
 ## 5. Choosing a culture and falling back
 
-For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which any message exists. Matching of a requested culture is case-insensitive: the implementation compares the requested tag with the file's culture after lowercasing both, and file names themselves keep their spelling. A requested culture matches a file with the same tag, or a file for the tag with its last subtags removed (`cs-CZ` matches `cs`).
+For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which a resource file exists (a file of that culture or of a parent tag). The other listed cultures are not used for per-key fallback. Matching of a requested culture is case-insensitive: the implementation compares the requested tag with the file's culture after lowercasing both, and file names themselves keep their spelling. A requested culture matches a file with the same tag, or a file for the tag with its last subtags removed (`cs-CZ` matches `cs`).
 
 For each message key, the text comes from the first of these that has the key:
 
@@ -76,7 +76,7 @@ For each message key, the text comes from the first of these that has the key:
 5. `en`
 6. the module's own `defaultCulture`, which is guaranteed to have every key the manifest names
 
-If no file has the key, the text is the key itself. This never happens for keys that satisfy section 4.
+If no file has the key, the text is the key itself for UI labels. For an error `detail` there is no such fallback: a code with no `<code>.Detail` message in any culture has no `detail` in the problem details, which is allowed because `detail` is optional. A missing `Title` never happens for codes that satisfy section 4.
 
 Responses that carry localized text, such as error responses, set `Content-Language` to the culture that supplied the `title`. When parts come from different fallback cultures, `Content-Language` names the culture of the first part.
 
@@ -92,7 +92,7 @@ The frontend loads the messages for the interface from one operation instead of 
 
 It returns `200` with the media type `application/json` and an object `culture` (the culture the request resolved to under steps 1 and 2 of section 5, or the deployment's default culture when no file matches; it is also the `Content-Language`) and `messages` (a flat map of every message key of every installed module and the platform to its text, for that culture, with the fallback of section 5 already applied, except step 3, since the operation does not use a tenant). The client does not need to know the fallback chain.
 
-The endpoint chooses the culture from the path parameter only and ignores `Accept-Language`. It exposes every message of every installed module, so message files MUST NOT contain internal or confidential wording; the operation is public by design, so a login page can be shown in the user's language. The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture it resolved to, as above. Individual messages can still come from a later fallback step. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
+The endpoint chooses the culture from the path parameter only and ignores `Accept-Language`. It also ignores the tenant, so a tenant whose default culture is `cs` gets error responses in Czech but this operation in the deployment default unless the shell asks for `cs`; the shell therefore passes the culture it wants explicitly. It exposes every message of every installed module, so message files MUST NOT contain internal or confidential wording; the operation is public by design, so a login page can be shown in the user's language. The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture it resolved to, as above. Individual messages can still come from a later fallback step. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
 
 ## 7. llms.txt
 
@@ -114,4 +114,5 @@ The conformance suite checks, against a running backend, that:
 - a requested culture with a region that has no file is served from the file of its language, and an unsupported culture falls back to the default
 - `Accept-Language` quality values are respected
 - `GET /api/v1/localization/resources/{culture}` returns, for every module installed, all keys of its `defaultCulture` file, with `Content-Language`, an `ETag` and the `Cache-Control` above, and an invalid culture returns `400 Eolent.Validation`
+- a message that declares an argument the caller does not supply falls back instead of showing a placeholder
 - every `titleKey` and error code declared in a module manifest has its message in the module's default culture (the validation of manifests in this repository checks the same for the examples)

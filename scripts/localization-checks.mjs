@@ -45,6 +45,9 @@ export function checkLocalization(manifest, files) {
   const cultureOf = (path) => path.split("/").pop().replace(/\.json$/, "");
   const byCulture = new Map(resources.map((r) => [cultureOf(r), r]));
   if (byCulture.size !== resources.length) out.push("localization.resources lists two files for one culture");
+  if (new Set(resources.map((r) => cultureOf(r).toLowerCase())).size !== byCulture.size) {
+    out.push("localization.resources lists two files whose cultures differ only in case");
+  }
   if (loc.defaultCulture === undefined) {
     out.push("localization.defaultCulture is missing; every module with localization must name its default culture");
   } else if (!byCulture.has(loc.defaultCulture)) {

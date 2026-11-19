@@ -43,6 +43,9 @@ test("title keys or errors without a localization block are reported", () => {
   assert.match(run((m) => delete m.localization).join("\n"), /no localization block/);
   assert.deepEqual(checkLocalization({ name: "x" }, new Map()), []);
 });
+test("cultures that differ only in case are reported", () => {
+  assert.match(run((m, f) => { m.localization.resources.push("i18n/EN.json"); f.set("i18n/EN.json", {}); }).join("\n"), /differ only in case/);
+});
 test("a missing defaultCulture is reported", () => {
   assert.match(run((m) => delete m.localization.defaultCulture).join("\n"), /defaultCulture is missing/);
 });
