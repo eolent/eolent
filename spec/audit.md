@@ -14,7 +14,7 @@ An implementation MUST write an audit entry for each of these:
 - a successful custom action ([API conventions](api-conventions.md)) on such an entity, and any other successful mutating operation an audited entity's module exposes
 - every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
 
-An implementation SHOULD also write an entry with outcome `denied` when a mutating request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`, and when a host principal's attempt to act within a tenant is refused for lack of the tenant-switching permission (`kind` `tenantSwitch`). Other denied reads are not recorded. Reads are not audited in 0.1, apart from the `tenantSwitch` rule above.
+An implementation SHOULD also write an entry with outcome `denied` when a mutating request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. Denied reads, and refused tenant switches, are not recorded in 0.1. Reads are not audited in 0.1, apart from the `tenantSwitch` rule above.
 
 A `tenantSwitch` entry has outcome `succeeded`. It is written once the permission check has passed and the tenant is resolved, before the response is sent, independently of any unit of work, so a read produces one too. A request rejected before that point, for example because the named tenant does not exist, produces no entry.
 
@@ -128,9 +128,9 @@ The audit log is exposed as a read-only collection by the audit module. The oper
 | `GET /api/v1/audit-logs` | `auditAuditLogsList` | `Audit.AuditLogs.Read` |
 | `GET /api/v1/audit-logs/{id}` | `auditAuditLogsGet` | `Audit.AuditLogs.Read` |
 
-Both are `tenantScoped` and return only entries whose `tenantId` is the current tenant. A request for the identifier of another tenant's entry returns `404 Eolent.NotFound`, as for any tenant-scoped entity. Entries with a `null` `tenantId` are not returned by these operations; the audit module defines a host-level operation for them, guarded by a host permission it declares, which tenant roles cannot hold.
+Both are `tenantScoped` and return only entries whose `tenantId` is the current tenant. A request for the identifier of another tenant's entry returns `404 Eolent.NotFound`, as for any tenant-scoped entity. Entries with a `null` `tenantId` are not exposed by the API in 0.1; deployments read them from their own store.
 
-The collection supports cursor pagination and the filters `occurredAt` (range), `actor.id`, `actor.type`, `onBehalfOf.id`, `kind`, `outcome`, `operation`, `resource.type`, `resource.id` and `traceId`. Results are sorted by `occurredAt` descending unless the client sorts otherwise. The collection has no create, update or delete operation.
+The list operation supports `limit`, `cursor`, `sort` and `includeTotal` as in the API conventions. It declares `x-eolent-filterable` with `occurredAt` (range filters `gte`, `gt`, `lte`, `lt`), `actor.id`, `actor.type`, `onBehalfOf.id`, `kind`, `outcome`, `operation`, `resource.type`, `resource.id` and `traceId`, and `x-eolent-sortable` with `occurredAt`; it is not searchable. Filters use the form `filter[actor.id]=...`. Results are sorted by `occurredAt` descending unless the client sorts otherwise. The collection has no create, update or delete operation.
 
 ## 7. Integrity and retention
 
