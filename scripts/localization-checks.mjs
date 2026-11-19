@@ -58,6 +58,7 @@ export function checkLocalization(manifest, files) {
       if (typeof value !== "string") out.push(`${path}: value of "${key}" must be a string`);
       else if (!bracesBalanced(value)) out.push(`${path}: message "${key}" has unbalanced braces`);
       if (!keyRe.test(key)) out.push(`${path}: key "${key}" is not a dotted PascalCase name`);
+      else if (key.startsWith("Eolent.")) out.push(`${path}: key "${key}" uses the reserved prefix "Eolent."`);
       else if (!key.startsWith(prefix)) out.push(`${path}: key "${key}" must start with "${prefix}"`);
     }
   }
@@ -70,6 +71,17 @@ export function checkLocalization(manifest, files) {
     for (const e of manifest.errors ?? []) need.push(`${e.code}.Title`);
     for (const key of new Set(need)) {
       if (!(key in defaults)) out.push(`default culture file lacks the key "${key}" that the manifest names`);
+    }
+  }
+  // A key in another culture must also exist in the default culture file.
+  if (defaults && typeof defaults === "object") {
+    for (const path of resources) {
+      if (path === byCulture.get(loc.defaultCulture)) continue;
+      const content = files.get(path);
+      if (!content || typeof content !== "object") continue;
+      for (const key of Object.keys(content)) {
+        if (!(key in defaults)) out.push(`${path}: key "${key}" has no counterpart in the default culture file`);
+      }
     }
   }
   return out;

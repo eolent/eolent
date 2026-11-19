@@ -16,7 +16,7 @@ Formatting of numbers, dates and currencies follows the culture of the request a
 
 ## 2. Cultures
 
-A culture is a [BCP 47](https://www.rfc-editor.org/rfc/rfc5646) language tag, for example `en`, `cs` or `pt-BR`. In 0.1 a culture is a language with an optional region. In the module manifest, `defaultCulture` is the culture the module's own texts are written in, and `localization.resources` lists one file per culture.
+A culture is a [BCP 47](https://www.rfc-editor.org/rfc/rfc5646) language tag, for example `en`, `cs` or `pt-BR`. Matching drops subtags from the end: `zh-Hant-TW` matches `zh-Hant`, then `zh`. In the module manifest, `defaultCulture` is the culture the module's own texts are written in, and `localization.resources` lists one file per culture.
 
 ## 3. Resource files
 
@@ -57,7 +57,7 @@ Example, `i18n/en.json` and `i18n/cs.json` of the identity module:
 | Error `detail` | `<code>.Detail` |
 | Detail of a validation item | `<item code>.Detail`, for example `Eolent.Validation.Required.Detail` |
 
-Every key that the manifest names (`titleKey` values) and every code the manifest declares in `errors` MUST exist in the file of the module's `defaultCulture`: the `Title` key for a code, and the `Detail` key where the code has a detail. The `defaultCulture` file MUST be listed in `resources`. Other cultures are optional and may be incomplete.
+Every key that the manifest names (`titleKey` values) and every code the manifest declares in `errors` MUST exist in the file of the module's `defaultCulture`: the `Title` key for a code, and the `Detail` key where the code has a detail. The `defaultCulture` file MUST be listed in `resources`. Other cultures are optional and may be incomplete, but a key in another culture file MUST also exist in the `defaultCulture` file, so a `Detail` or `Title` message cannot exist without its default.
 
 The platform ships messages for its own codes (`Eolent.*`, see the [error format](error-format.md)) in English. Implementations MAY ship more cultures.
 
@@ -65,12 +65,12 @@ Values for named arguments in an error's `detail` are the properties that the mo
 
 ## 5. Choosing a culture and falling back
 
-For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which any message exists. A requested culture matches a file with the same tag, or, when it has a region, a file for the language alone (`cs-CZ` matches `cs`).
+For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which any message exists. A requested culture matches a file with the same tag, or a file for the tag with its last subtags removed (`cs-CZ` matches `cs`).
 
 For each message key, the text comes from the first of these that has the key:
 
 1. the culture chosen for the request
-2. the language of that culture, when it has a region
+2. the culture with its last subtag removed, repeated down to the language alone
 3. the tenant's default culture, when a tenant is resolved. It is the tenant setting `Localization.DefaultCulture`
 4. the deployment's default culture
 5. `en`
@@ -80,7 +80,7 @@ If no file has the key, the text is the key itself. This never happens for keys 
 
 Responses that carry localized text, such as error responses, set `Content-Language` to the culture that supplied the `title`. When parts come from different fallback cultures, `Content-Language` names the culture of the first part.
 
-A user preference for the interface language is a client concern: the frontend sends it as `Accept-Language`. The tenant setting `Localization.DefaultCulture` is declared by the localization module, with scope `tenant`.
+A user preference for the interface language is a client concern: the frontend sends it as `Accept-Language`. The tenant setting `Localization.DefaultCulture` is declared by the localization module (a platform module, not yet written) with scope `tenant`. Where it is not declared, step 3 is skipped.
 
 ## 6. Resources for the frontend
 
@@ -92,7 +92,7 @@ The frontend loads the messages for the interface from one operation instead of 
 
 It returns `200` with the media type `application/json` and an object `culture` (the culture served) and `messages` (a flat map of every message key of every installed module and the platform to its text, for that culture, with the fallback of section 5 already applied, except step 3, since the operation does not use a tenant). The client does not need to know the fallback chain.
 
-The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture that the first fallback step used. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
+The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture whose file supplied the response, the same value as `Content-Language`. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
 
 ## 7. llms.txt
 
@@ -104,7 +104,7 @@ A module ships a file `llms.txt` at the root of its documentation, in the format
 
 An Eolent module's `llms.txt` MUST have these sections: `Contract`, with links to the module manifest and the OpenAPI description; and `Docs`, with links to the module's documentation pages. It MAY have `Optional`, for links that a tool can skip when short of context. Links are relative to the file or absolute. The `llms.txt` of a release describes that release.
 
-The hub repository has a root `llms.txt` that indexes the specification. Its links resolve in the same way and are checked by the validation of this repository.
+The hub repository has a root `llms.txt` that indexes the specification. Its links are checked by the validation of this repository, like the links in Markdown files.
 
 ## 8. Conformance
 

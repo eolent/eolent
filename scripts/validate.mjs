@@ -2,7 +2,7 @@
 //   1. every .json file parses
 //   2. every spec/examples/*.json validates against spec/module.schema.json
 //      and passes the cross-reference rules in checkManifest and the localization checks
-//   3. relative links in Markdown files resolve to existing files
+//   3. relative links in Markdown files and llms.txt files resolve to existing files
 // Usage: npm run validate
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
@@ -57,7 +57,7 @@ if (!schema) {
   }
   if (validate) {
     const examplesDir = join(root, "spec", "examples") + sep;
-    const examples = [...parsed.keys()].filter((f) => f.startsWith(examplesDir) && f.endsWith(".module.json"));
+    const examples = [...parsed.keys()].filter((f) => f.startsWith(examplesDir) && !f.startsWith(join(examplesDir, "i18n") + sep));
     if (examples.length === 0) errors.push("spec/examples: no example manifests found");
     for (const file of examples) {
       const manifest = parsed.get(file);
@@ -86,7 +86,7 @@ if (!schema) {
 // Angle-bracket destinations ([x](<path with spaces.md>)), targets containing
 // ")" or whitespace, reference-style links and HTML links are not checked.
 const linkRe = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
-for (const file of files.filter((f) => f.endsWith(".md"))) {
+for (const file of files.filter((f) => f.endsWith(".md") || f.endsWith("/llms.txt"))) {
   const text = readFileSync(file, "utf8").replace(/```[\s\S]*?```/g, "");
   for (const match of text.matchAll(linkRe)) {
     const target = match[1];

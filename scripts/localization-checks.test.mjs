@@ -40,3 +40,8 @@ test("the default culture file must exist and name every manifest key", () => {
   assert.match(run((m, f) => delete f.get("i18n/en.json")["BillingCore.Invoices.Locked.Title"]).join("\n"), /Locked\.Title/);
 });
 test("a missing file is reported", () => assert.match(run((m, f) => f.set("i18n/cs.json", undefined)).join("\n"), /missing or not valid JSON/));
+
+test("reserved prefix and orphan keys in other cultures", () => {
+  assert.match(run((m, f) => (f.get("i18n/en.json")["Eolent.Custom"] = "x")).join("\n"), /reserved prefix/);
+  assert.match(run((m, f) => (f.get("i18n/cs.json")["BillingCore.Extra"] = "x")).join("\n"), /no counterpart/);
+});
