@@ -26,25 +26,33 @@ Events use the CloudEvents attributes below. "Required" is stricter than CloudEv
 | `type` | string | yes | The event type (section 1) |
 | `time` | timestamp | yes (CloudEvents: optional) | When the change that caused the event was committed, [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) in UTC |
 | `datacontenttype` | string | yes | `application/json` |
-| `dataschema` | URI | no | The schema of `data`, taken from the `dataSchema` of the manifest event |
+| `dataschema` | URI | no | The schema of `data`, from the `dataSchema` of the manifest event. It MUST be an absolute URI: a relative manifest path is resolved against the module's published schema location, and the attribute is omitted when the deployment has none |
 | `subject` | string | no | The identifier of the entity the event is about, when there is one |
 | `data` | object | yes | The payload. A JSON object, valid against the declared `dataSchema` |
 
-An event carries no attribute beyond those in this document, except attributes defined by CloudEvents extensions or by the module for its own events; names of module-defined attributes begin with the module name with dots and hyphens removed, for example `identityscope`. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
+An event carries only the attributes in this document and, in addition, extension attributes that a module defines for its own events. The names of module-defined attributes begin with the module's manifest name with dots and hyphens removed, for example `identityscope`; modules whose names reduce to the same prefix MUST NOT define attributes with the same name. Attribute names follow CloudEvents: lowercase letters and digits only. Consumers MUST ignore attributes they do not know.
 
 ## 3. Context extensions
 
-These extension attributes carry the context of the request or job that caused the event. They use the same identifiers as the [audit log](audit.md).
+These extension attributes carry the context of the request or job that caused the event. They have the same meaning as the corresponding fields of the [audit log](audit.md), under names that CloudEvents requires to be lowercase letters and digits:
+
+| Event attribute | Audit field |
+|---|---|
+| `tenantid` | `tenantId` |
+| `actortype`, `actorid` | `actor.type`, `actor.id` |
+| `onbehalfof` | `onBehalfOf.id` (the `type` is always `user`) |
+| `traceparent` | `traceId`, which is the trace id field of `traceparent` |
+
 
 | Attribute | Type | Required | Description |
 |---|---|---|---|
-| `tenantid` | string (UUID) | when the event concerns a tenant | The tenant the event concerns ([tenancy contract](tenancy.md)). Absent only for events about data that is not tenant-scoped |
+| `tenantid` | string (UUID) | when the event concerns a tenant or carries tenant-scoped data | The tenant the event concerns ([tenancy contract](tenancy.md)). Absent only for events about data that is not tenant-scoped |
 | `traceparent` | string | yes | The [W3C trace context](https://www.w3.org/TR/trace-context/) of the causing request or job. It follows the CloudEvents distributed tracing extension. `tracestate` MAY accompany it |
 | `actortype` | string | yes | `user`, `agent` or `system`, as for the audit `actor` |
 | `actorid` | string (UUID) | for `user` and `agent` | The principal that caused the event |
-| `onbehalfof` | string (UUID) | when `actortype` is `agent` | The user the agent acted for. Absent otherwise |
+| `onbehalfof` | string (UUID) | when `actortype` is `agent` | The id of the user the agent acted for. Absent otherwise |
 
-An event whose `data` contains tenant-scoped data MUST carry `tenantid`. Events published by a module for data that is not tenant-scoped, such as host administration, have none.
+Events about data that is not tenant-scoped, such as host administration, have no `tenantid`; every other event carries one.
 
 ## 4. Data
 
@@ -92,7 +100,7 @@ The manifest remains the source of truth for what a module publishes and subscri
 The conformance suite observes published events through a means the implementation provides for conformance runs (defined with the conformance runner) and checks that:
 
 - every observed event has the required attributes, `specversion` `1.0`, a `source` that matches its module, a `type` that the manifest declares as published, and `data` valid against the declared `dataSchema`
-- a change that declares an event produces exactly one such event, with the `tenantid`, `actortype`, `actorid` and `traceparent` of the request, and the `traceparent` trace id equals that of the request's own `traceparent` header
+- after de-duplicating by `source` and `id`, a change that declares an event produces exactly one such event, with the `tenantid`, `actortype`, `actorid` and `traceparent` of the request, and the `traceparent` trace id equals that of the request's own `traceparent` header
 - an agent acting for a user produces events with `actortype` `agent` and `onbehalfof` set to the user
 - a change that is rolled back publishes no event
 - events about tenant-scoped data carry `tenantid`, and an event for tenant A is never delivered to a subscriber of tenant B
