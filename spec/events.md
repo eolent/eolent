@@ -26,7 +26,7 @@ Events use the CloudEvents attributes below. "Required" is stricter than CloudEv
 | `type` | string | yes | The event type (section 1) |
 | `time` | timestamp | yes (CloudEvents: optional) | When the change that caused the event was committed, [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) in UTC |
 | `datacontenttype` | string | yes | `application/json` |
-| `dataschema` | URI | no | The schema of `data`, from the `dataSchema` of the manifest event. It MUST be an absolute URI: a relative manifest path is resolved against the module's published schema location, and the attribute is omitted when the deployment has none |
+| `dataschema` | URI | no | The schema of `data`, from the `dataSchema` of the manifest event. It MUST be an absolute URI: a relative manifest path is resolved against a schema base URI that the deployment configures, and the attribute is omitted when none is configured |
 | `subject` | string | no | The identifier of the entity the event is about, when there is one |
 | `data` | object | yes | The payload. A JSON object, valid against the declared `dataSchema` |
 
@@ -41,7 +41,7 @@ These extension attributes carry the context of the request or job that caused t
 | `tenantid` | `tenantId` |
 | `actortype`, `actorid` | `actor.type`, `actor.id` |
 | `onbehalfof` | `onBehalfOf.id` (the `type` is always `user`) |
-| `traceparent` | `traceId`, which is the trace id field of `traceparent` |
+| `traceparent` | `traceId`: the audit `traceId` equals the trace id inside `traceparent`; the other `traceparent` fields (parent id, flags) have no audit counterpart |
 
 
 | Attribute | Type | Required | Description |
@@ -97,10 +97,10 @@ The manifest remains the source of truth for what a module publishes and subscri
 
 ## 8. Conformance
 
-The conformance suite observes published events through a means the implementation provides for conformance runs (defined with the conformance runner) and checks that:
+The conformance suite will observe published events through a means the implementation provides for conformance runs. That mechanism is not defined yet; it is defined with the conformance runner (planned), and until then these checks cannot be run. Once it exists, the suite checks that:
 
 - every observed event has the required attributes, `specversion` `1.0`, a `source` that matches its module, a `type` that the manifest declares as published, and `data` valid against the declared `dataSchema`
-- after de-duplicating by `source` and `id`, a change that declares an event produces exactly one such event, with the `tenantid`, `actortype`, `actorid` and `traceparent` of the request, and the `traceparent` trace id equals that of the request's own `traceparent` header
+- after de-duplicating by `source` and `id`, a change that declares an event produces exactly one such event, with the `tenantid`, `actortype`, `actorid` (for `user` and `agent` actors) and `traceparent` of the request, and the `traceparent` trace id equals that of the request's own `traceparent` header
 - an agent acting for a user produces events with `actortype` `agent` and `onbehalfof` set to the user
 - a change that is rolled back publishes no event
 - events about tenant-scoped data carry `tenantid`, and an event for tenant A is never delivered to a subscriber of tenant B
