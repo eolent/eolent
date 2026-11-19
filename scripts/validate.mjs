@@ -2,6 +2,7 @@
 //   1. every .json file parses
 //   2. every spec/examples/*.json validates against spec/module.schema.json
 //      and passes the cross-reference rules in checkManifest and the localization checks
+//   2b. conformance/fixtures/*.json validate against conformance/fixtures.schema.json
 //   3. relative links in Markdown files and llms.txt files resolve to existing files
 // Usage: npm run validate
 
@@ -78,6 +79,29 @@ if (!schema) {
       }
       for (const problem of checkLocalization(manifest, resourceFiles)) errors.push(`${rel(file)}: ${problem}`);
     }
+  }
+}
+
+// 2b. Conformance fixtures validate against conformance/fixtures.schema.json.
+const fixturesSchemaPath = join(root, "conformance", "fixtures.schema.json");
+const fixturesSchema = parsed.get(fixturesSchemaPath);
+if (!fixturesSchema) {
+  errors.push("conformance/fixtures.schema.json: missing or unparseable");
+} else {
+  const ajvF = new Ajv2020({ allErrors: true, strict: true });
+  addFormats(ajvF);
+  try {
+    const validateFixtures = ajvF.compile(fixturesSchema);
+    const dir = join(root, "conformance", "fixtures") + sep;
+    const fixtureFiles = [...parsed.keys()].filter((f) => f.startsWith(dir));
+    if (fixtureFiles.length === 0) errors.push("conformance/fixtures: no fixtures found");
+    for (const file of fixtureFiles) {
+      if (!validateFixtures(parsed.get(file))) {
+        for (const err of validateFixtures.errors) errors.push(`${rel(file)}: ${err.instancePath || "/"} ${err.message}`);
+      }
+    }
+  } catch (e) {
+    errors.push(`conformance/fixtures.schema.json: schema does not compile (${e.message})`);
   }
 }
 
