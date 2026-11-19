@@ -13,6 +13,7 @@ The conformance suite is a set of black-box HTTP tests. It runs against any back
 | Error format | Validation and domain errors use the documented problem details shape and error codes |
 | API conventions | Pagination, filtering, sorting and naming follow the OpenAPI profile |
 | Audit | Mutating calls produce audit entries with actor, tenant and change details; agent calls record "agent acting for user" |
+| Events (planned, no runnable checks yet) | Published events use the CloudEvents envelope with tenant, trace and actor context, are recorded with the change, and match the manifest |
 | Manifest consistency | The permissions, entities and events exposed at run time match each module's manifest |
 
 ## Running against a database matrix

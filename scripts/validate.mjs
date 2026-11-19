@@ -1,6 +1,7 @@
 // Validates the Eolent hub repository:
 //   1. every .json file parses
-//   2. every spec/examples/*.json validates against spec/module.schema.json
+//   2. every spec/examples/*.json validates against spec/module.schema.json,
+//      and every event's entity is declared in that manifest
 //   3. relative links in Markdown files resolve to existing files
 // Usage: npm run validate
 
@@ -57,9 +58,18 @@ if (!schema) {
     const examples = [...parsed.keys()].filter((f) => f.startsWith(examplesDir));
     if (examples.length === 0) errors.push("spec/examples: no example manifests found");
     for (const file of examples) {
-      if (!validate(parsed.get(file))) {
+      const manifest = parsed.get(file);
+      if (!validate(manifest)) {
         for (const err of validate.errors) {
           errors.push(`${rel(file)}: ${err.instancePath || "/"} ${err.message}`);
+        }
+        continue; // the entity check below needs a schema-valid manifest
+      }
+      // An event's entity must be declared in the same manifest's entities.
+      const declared = new Set((manifest.entities ?? []).map((e) => e.name));
+      for (const ev of manifest.events ?? []) {
+        if (ev.entity !== undefined && !declared.has(ev.entity)) {
+          errors.push(`${rel(file)}: event "${ev.name}" names undeclared entity "${ev.entity}"`);
         }
       }
     }

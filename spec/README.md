@@ -14,10 +14,9 @@ The specification is the language-neutral contract that every Eolent implementat
 | [tenancy.md](tenancy.md) | Tenants, tenant resolution, data isolation rules, tenancy errors |
 | [permissions.md](permissions.md) | Permissions, inheritance, grants, features, the access endpoint for the frontend |
 | [audit.md](audit.md) | Audit entries: actor, tenant, change set, agent-for-user fields, reading the log |
+| [events.md](events.md) | Event envelope: a CloudEvents 1.0 profile with tenant, trace and actor context and delivery rules |
 | [examples/](examples/) | Example manifests; each must validate against the schema |
 | [conformance/](conformance/README.md) | Layout and categories of the black-box conformance tests |
-
-Planned additions: event envelope (CloudEvents).
 
 ## The module manifest
 
@@ -43,3 +42,5 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (permissions) Added the permission and feature contract (draft), the extension `x-eolent-feature`, the platform code `Eolent.FeatureDisabled` and the host permission `Tenants.Tenants.Switch`.
 - **0.1** (API conventions) Filter and sort property names may be dotted paths to nested properties.
 - **0.1** (audit) Added the audit log contract (draft) and the permission `Audit.AuditLogs.Read`, which the audit module declares in its manifest.
+- **0.1** (events) Added the event envelope profile (draft), a CloudEvents 1.0 profile.
+- **0.1** (manifest) Added the `entity` property of manifest events, which names the entity an event is about; it is required for events with direction `publishes`. This is a breaking change to the draft manifest `0.1`, which allows breaking changes until the first release; no example outside this repository is affected.
