@@ -10,7 +10,7 @@
     "occurredAt": { "type": "string", "format": "date-time" },
     "tenantId": { "type": ["string", "null"], "format": "uuid" },
     "actor": { "$ref": "#/$defs/principal" },
-    "onBehalfOf": { "$ref": "#/$defs/principal" },
+    "onBehalfOf": { "$ref": "#/$defs/principal", "type": "object", "properties": { "type": { "const": "user" } } },
     "kind": { "enum": ["create", "update", "delete", "restore", "action", "read", "tenantSwitch"] },
     "outcome": { "enum": ["succeeded", "denied"] },
     "operation": { "type": "string" },

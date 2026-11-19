@@ -54,3 +54,9 @@ test("x- properties are allowed inside nested objects too", () => {
   assert.equal(validate({ ...entry(), resource: { type: "Identity.User", note: 1 } }), false);
 });
 
+test("onBehalfOf is always a user", () => {
+  const agent = { type: "agent", id: "b7a0c4d2-8e11-4a47-9c52-3d6f2a9e0b77" };
+  assert.equal(validate({ ...entry(), actor: agent, onBehalfOf: { type: "agent", id: "2c4e6a80-1f3b-4d5c-8e7a-9b0c1d2e3f40" } }), false);
+  assert.equal(validate({ ...entry(), actor: agent, onBehalfOf: { type: "user", id: "2c4e6a80-1f3b-4d5c-8e7a-9b0c1d2e3f40" } }), true);
+});
+
