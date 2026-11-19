@@ -80,7 +80,7 @@ The `totalCount` property in this example is present only when the request sets 
 
 - `nextCursor` is `null` or absent on the last page. Cursors are opaque and expire; clients MUST NOT parse them.
 - `totalCount` is present only when the request sets `includeTotal=true`, because counting can be expensive.
-- Range filters use `filter[<property>][gte]`, `[gt]`, `[lte]` and `[lt]`. A list operation declares what it supports with three extensions: `x-eolent-filterable` and `x-eolent-sortable`, each an array of property names, and `x-eolent-searchable`, a boolean. A request that filters or sorts by a property not in the declared array MUST return a validation error and MUST NOT be silently ignored. `q` is accepted only where the operation declares `x-eolent-searchable: true`.
+- Range filters use `filter[<property>][gte]`, `[gt]`, `[lte]` and `[lt]`. A list operation declares what it supports with three extensions: `x-eolent-filterable` and `x-eolent-sortable`, each an array of property names, and `x-eolent-searchable`, a boolean. A request that filters or sorts by a property not in the declared array MUST return a validation error and MUST NOT be silently ignored. `q` is accepted only where the operation declares `x-eolent-searchable: true`. A declared property name MAY be a dotted path to a nested property of the item (for example `actor.id`), and is then used as is inside the brackets, as in `filter[actor.id]`.
 
 ## 6. Tenancy, authentication and permissions in the description
 
