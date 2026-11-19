@@ -1,0 +1,6 @@
+{
+  "Identity.Menu": "Identita",
+  "Identity.Users": "Uživatelé",
+  "Identity.Users.EmailTaken.Title": "E-mailová adresa se už používá",
+  "Identity.Users.EmailTaken.Detail": "Uživatel s e-mailem {email} už v tomto tenantu existuje."
+}

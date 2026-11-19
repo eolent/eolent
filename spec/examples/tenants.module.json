@@ -16,6 +16,10 @@
     { "operationId": "tenantsTenantsList", "method": "GET", "path": "/api/v1/tenants", "permission": "Tenants.Tenants", "tenancy": "none", "entity": "Tenant" }
   ],
   "errors": [
-    { "code": "Tenants.Tenants.SlugTaken", "status": 409, "description": "A tenant with this slug already exists." }
-  ]
+    { "code": "Tenants.Tenants.SlugTaken", "status": 409, "description": "A tenant with this slug already exists.", "arguments": ["slug"] }
+  ],
+  "localization": {
+    "defaultCulture": "en",
+    "resources": ["i18n/tenants/en.json"]
+  }
 }

@@ -217,7 +217,13 @@
           "pattern": "^[A-Z][A-Za-z0-9]*(\\.[A-Z][A-Za-z0-9]*)+$"
         },
         "status": { "type": "integer", "minimum": 400, "maximum": 599 },
-        "description": { "type": "string" }
+        "description": { "type": "string" },
+        "arguments": {
+          "description": "Names of the arguments that the code's messages can use, as extension properties of the problem details (spec/localization.md).",
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "uniqueItems": true
+        }
       }
     },
     "event": {
@@ -282,13 +288,14 @@
     },
     "localization": {
       "type": "object",
+      "required": ["defaultCulture"],
       "additionalProperties": false,
       "properties": {
         "defaultCulture": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$" },
         "resources": {
-          "description": "Relative paths of localization resource files.",
+          "description": "Relative paths of localization resource files, one per culture. The file name is the culture tag followed by .json (spec/localization.md).",
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string", "pattern": "^([A-Za-z0-9_-][A-Za-z0-9_.-]*/)*[a-z]{2,3}(-[A-Za-z0-9]+)*\\.json$" }
         }
       }
     }

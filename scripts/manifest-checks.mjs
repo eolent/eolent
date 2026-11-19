@@ -1,7 +1,7 @@
 // Cross-reference rules for module manifests that JSON Schema cannot express (ADR 0004, ADR 0007).
 // Used by validate.mjs and tested by manifest-checks.test.mjs.
 
-function pascalModule(name) {
+export function pascalModule(name) {
   return name
     .split(".")
     .map((seg) => seg.split("-").filter(Boolean).map((p) => p[0].toUpperCase() + p.slice(1)).join(""))

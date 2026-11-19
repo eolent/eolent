@@ -1,0 +1,27 @@
+# Eolent
+
+> Open-source modular application framework for line-of-business and multi-tenant SaaS applications. This repository holds the language-neutral specification, the architecture decision records and the documentation.
+
+## Contract
+
+- [Specification overview](spec/README.md): contents, versioning and changelog of the specification
+- [Module manifest schema](spec/module.schema.json): JSON Schema for the module manifest
+- [API conventions](spec/api-conventions.md): the OpenAPI profile
+- [Error format](spec/error-format.md): RFC 9457 problem details and error codes
+- [Tenancy](spec/tenancy.md): tenants, tenant resolution and isolation
+- [Permissions](spec/permissions.md): permissions, features and the access endpoint
+- [Audit log](spec/audit.md): audit entries and agent-for-user fields
+- [Events](spec/events.md): the event envelope, a CloudEvents profile
+- [Localization](spec/localization.md): message files, culture fallback and llms.txt
+
+## Docs
+
+- [Vision](docs/vision.md): what Eolent is and why
+- [Architecture](docs/architecture.md): layers, modules and technology choices
+- [AI friendliness](docs/ai-friendliness.md): how agents build with and use Eolent
+- [Architecture decision records](docs/adr/0001-repository-structure.md): decisions and their reasons
+
+## Optional
+
+- [Roadmap](docs/roadmap.md): planned phases
+- [Contributing](CONTRIBUTING.md): how to contribute and the DCO sign-off

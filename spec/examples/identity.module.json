@@ -38,7 +38,7 @@
     { "operation": "identityUsersDelete", "description": "Delete a user. The user is soft-deleted and can be restored by an administrator.", "risk": "high", "requiresApproval": true }
   ],
   "errors": [
-    { "code": "Identity.Users.EmailTaken", "status": 409, "description": "A user with this email address already exists in the tenant." }
+    { "code": "Identity.Users.EmailTaken", "status": 409, "description": "A user with this email address already exists in the tenant.", "arguments": ["email"] }
   ],
   "ui": {
     "routes": [
