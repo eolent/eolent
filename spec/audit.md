@@ -152,7 +152,7 @@ The list operation supports `limit`, `cursor`, `sort` and `includeTotal` as in t
 
 ## 8. Conformance
 
-A conforming implementation passes the following checks. The conformance suite makes them as far as it can observe audit entries (see the [conformance README](conformance/README.md)):
+A conforming implementation passes the following checks. The conformance suite makes them as far as it can observe audit entries through the tenant-scoped audit log API (see the [conformance README](conformance/README.md)). Checks on entries with no tenant, such as denied attempts on operations with no tenant and summaries with no tenant, concern the host store and cannot be made until a host-level read exists:
 
 - creating, updating and deleting an audited entity each produce one entry with the right `kind`, `tenantId`, `actor`, `resource` and `traceId`, and that the `traceId` equals the trace id in the request's `traceparent` header
 - an update records exactly the changed properties in `changes`, with `old` and `new`
