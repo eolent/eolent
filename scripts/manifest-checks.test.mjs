@@ -87,4 +87,3 @@ test("a deeper host permission chain and a hyphenated module pass", () => {
   m.permissions[1].scope = "tenant";
   assert.match(checkManifest(m).join("\n"), /not a host permission/);
 });
-
