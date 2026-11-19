@@ -30,7 +30,7 @@ Only the `shared` mode is part of 0.1. The other modes are designed for now but 
 ### Rules that hold in every mode
 
 - The tenancy contract and its conformance checks are the same in all modes. A mode is an implementation detail behind the contract.
-- In `shared` mode the tenant filter is applied by the framework, not by module code, so a module author cannot forget it. Raw SQL in modules must include the tenant condition; the conformance suite and code review are the checks.
+- In `shared` mode the tenant filter is applied by the framework on the queries it builds, not by module code, so a module author cannot forget it there. Raw SQL is a known gap: the framework cannot filter it, so it must include the tenant condition itself, and only code review and the conformance suite catch a miss. Core modules avoid raw SQL ([architecture](../architecture.md)).
 - Where the database offers it, row-level security SHOULD be enabled as a second barrier (PostgreSQL row-level security, SQL Server security policies). It is optional in 0.1 and does not replace the application filter.
 - The mode is chosen per deployment, not per request. Switching a deployment between modes is a data migration, not a configuration change, and is out of scope for 0.1.
 - Tenant-aware caches, search indexes, file storage paths and job queues key on the tenant id in every mode.
