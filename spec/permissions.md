@@ -49,7 +49,7 @@ A feature is a named capability or limit that can be switched or valued per tena
 
 Clients, including the frontend `usePermission()` hook, learn what the caller may do from one endpoint, owned by the identity module:
 
-`GET /api/v1/me/access`, `operationId` `identityMeAccessGet`, tag `identity`, `x-eolent-tenancy: tenantScoped`, `security: [{ "bearerAuth": [] }]`. It requires no permission: every authenticated caller may read their own access. `me` is the one singleton resource the API conventions allow, for the current caller.
+`GET /api/v1/me/access`, `operationId` `identityMeAccessGet`, tag `identity`, `x-eolent-tenancy: tenantScoped`, `security: [{ "bearerAuth": [] }]`. It requires no permission: every authenticated caller who has a tenant context may read their own access. A caller with no resolvable tenant, such as a host principal that sends no tenant, gets `400 Eolent.TenantRequired` like any `tenantScoped` operation. `me` is the one singleton resource the API conventions allow, for the current caller.
 
 The response is `200` with:
 
