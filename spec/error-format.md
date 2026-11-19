@@ -63,7 +63,7 @@ Notes:
 
 A code is a dotted name. Each segment is PascalCase ASCII letters and digits, starting with a letter. A code is stable: once released, its meaning and its status never change, and removing a code is a breaking change.
 
-- **Platform codes** have the single namespace `Eolent` and exactly two segments, for example `Eolent.Validation`. They are defined by this profile, and the table in section 2 is their registry. New platform codes are added to this document with a changelog entry.
+- **Platform codes** have the single namespace `Eolent`. Response-level platform codes have exactly two segments (`Eolent.Validation`); validation item codes (section 4) have three (`Eolent.Validation.Required`). They are defined by this profile, and the table in section 2 and the item list in section 4 are their registry. New platform codes are added to this document with a changelog entry.
 - **Module codes** begin with the module's PascalCase name, the same prefix used for permission names, followed by at least one more segment, for example `Identity.Users.EmailTaken`. A module MUST NOT define codes outside its own prefix, and no module may use the prefix `Eolent`.
 - A code identifies one failure condition and maps to one status. A condition that can arise with different statuses uses different codes.
 
