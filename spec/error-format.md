@@ -45,19 +45,23 @@ Example:
 | `403` | The caller is authenticated but lacks the required permission or feature | `Eolent.Forbidden` |
 | `404` | The resource or route does not exist, or is not visible to the caller (section 6) | `Eolent.NotFound` |
 | `405` | The path exists but not for this method. The response carries an `Allow` header | `Eolent.MethodNotAllowed` |
+| `406` | The `Accept` header allows no representation the API can produce | `Eolent.NotAcceptable` |
 | `409` | The request conflicts with the current state of the resource, for example a duplicate | module code |
 | `412` | `If-Match` does not match the current version | `Eolent.PreconditionFailed` |
+| `413` | The request body exceeds the allowed size | `Eolent.PayloadTooLarge` |
+| `415` | The request `Content-Type` is not supported for this operation | `Eolent.UnsupportedMediaType` |
 | `422` | The request is well-formed but reuses an `Idempotency-Key` with a different body | `Eolent.IdempotencyKeyReuse` |
 | `422` | A business rule rejects the request. Modules choose `409` or `422` and use `422` only for rules that are not a state conflict | module code |
 | `428` | `If-Match` is required and missing | `Eolent.PreconditionRequired` |
 | `429` | Rate limit exceeded. The response carries a `Retry-After` header | `Eolent.RateLimited` |
 | `500` | Unhandled failure | `Eolent.Internal` |
+| other `4xx` | Any other framework-emitted client error with no row above | `Eolent.BadRequest` |
 | `503` | The application or a required dependency is temporarily unavailable. The response SHOULD carry `Retry-After` | `Eolent.Unavailable` |
 
 Notes:
 
 - Validation failures use `400` only. `422` is never used for ordinary validation, so a client can treat `400` as "fix the request".
-- A response whose status has no row above (for example `415`) still uses the problem details shape, with a module or platform code that follows section 3.
+- A framework-emitted response with a `4xx` status that has no row above uses `Eolent.BadRequest`, and one with a `5xx` status that has no row above uses `Eolent.Internal`. Both still use the problem details shape and `status` carries the actual status. Module-emitted responses always use a module code.
 
 ## 3. Error codes
 
