@@ -21,7 +21,7 @@ The tenants module owns tenant management. There is also a **host** level above 
 
 ## 2. Tenant resolution
 
-The host permission that allows switching tenants is named by the permission contract, which is planned. Until it exists, the rules in this contract that depend on it cannot be enforced, and implementations MUST NOT invent a permission name.
+The host permission that allows switching tenants is `Tenants.Tenants.Switch`, defined by the [permission contract](permissions.md). It is referred to below as the tenant-switching permission.
 
 The tenant of a request is resolved in this order. Each step that applies yields a tenant; a host name label is first looked up by `slug` to find the tenant `id`. The first step that yields a tenant decides, and later steps are only used to detect conflicts by comparing tenant ids.
 
