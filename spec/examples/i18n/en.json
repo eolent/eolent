@@ -1,0 +1,6 @@
+{
+  "Identity.Menu": "Identity",
+  "Identity.Users": "Users",
+  "Identity.Users.EmailTaken.Title": "Email address already in use",
+  "Identity.Users.EmailTaken.Detail": "A user with the email {email} already exists in this tenant."
+}

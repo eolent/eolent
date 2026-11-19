@@ -1,7 +1,7 @@
 // Validates the Eolent hub repository:
 //   1. every .json file parses
 //   2. every spec/examples/*.json validates against spec/module.schema.json
-//      and passes the cross-reference rules in checkManifest
+//      and passes the cross-reference rules in checkManifest and the localization checks
 //   3. relative links in Markdown files resolve to existing files
 // Usage: npm run validate
 
@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import { checkManifest } from "./manifest-checks.mjs";
+import { checkLocalization } from "./localization-checks.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skipDirs = new Set([".git", "node_modules"]);
@@ -56,7 +57,7 @@ if (!schema) {
   }
   if (validate) {
     const examplesDir = join(root, "spec", "examples") + sep;
-    const examples = [...parsed.keys()].filter((f) => f.startsWith(examplesDir));
+    const examples = [...parsed.keys()].filter((f) => f.startsWith(examplesDir) && f.endsWith(".module.json"));
     if (examples.length === 0) errors.push("spec/examples: no example manifests found");
     for (const file of examples) {
       const manifest = parsed.get(file);
@@ -67,6 +68,15 @@ if (!schema) {
         continue; // the cross-reference checks need a schema-valid manifest
       }
       for (const problem of checkManifest(manifest)) errors.push(`${rel(file)}: ${problem}`);
+      const resourceFiles = new Map();
+      for (const r of manifest.localization?.resources ?? []) {
+        try {
+          resourceFiles.set(r, JSON.parse(readFileSync(resolve(dirname(file), r), "utf8")));
+        } catch {
+          resourceFiles.set(r, undefined);
+        }
+      }
+      for (const problem of checkLocalization(manifest, resourceFiles)) errors.push(`${rel(file)}: ${problem}`);
     }
   }
 }

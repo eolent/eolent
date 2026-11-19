@@ -14,6 +14,7 @@ The specification is the language-neutral contract that every Eolent implementat
 | [tenancy.md](tenancy.md) | Tenants, tenant resolution, data isolation rules, tenancy errors |
 | [permissions.md](permissions.md) | Permissions, inheritance, grants, features, the access endpoint for the frontend |
 | [audit.md](audit.md) | Audit entries: actor, tenant, change set, agent-for-user fields, reading the log |
+| [localization.md](localization.md) | Localization files (ICU MessageFormat in JSON), culture fallback, frontend resources, `llms.txt` |
 | [events.md](events.md) | Event envelope: a CloudEvents 1.0 profile with tenant, trace and actor context and delivery rules |
 | [examples/](examples/) | Example manifests; each must validate against the schema |
 | [conformance/](conformance/README.md) | Layout and categories of the black-box conformance tests |
@@ -49,3 +50,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (events) Added the event envelope profile (draft), a CloudEvents 1.0 profile.
 - **0.1** (manifest) Added the `entity` property of manifest events, which names the entity an event is about; it is required for events with direction `publishes`. This is a breaking change to the draft manifest `0.1`, which allows breaking changes until the first release; no example outside this repository is affected.
 - **0.2** (manifest) Manifest `0.2`, see [ADR 0007](../docs/adr/0007-manifest-0-2.md): added `operations`, `agentTools`, `errors`, `permissions[].scope` and `entities[].sensitiveProperties`; `manifestVersion` is now `0.2`. `0.1` manifests are not valid under `0.2`. Added the example `tenants.module.json`, and cross-reference checks to the validation of manifests.
+- **0.1** (localization) Added the localization contract (draft): message files in ICU MessageFormat, keys, culture fallback, the frontend resources operation `localizationResourcesGet` and the `llms.txt` convention. Resource file names in the manifest must be `<culture>.json`. Added the example resource files and checks in the validation of manifests, and the root `llms.txt`.

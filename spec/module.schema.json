@@ -286,9 +286,9 @@
       "properties": {
         "defaultCulture": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$" },
         "resources": {
-          "description": "Relative paths of localization resource files.",
+          "description": "Relative paths of localization resource files, one per culture. The file name is the culture tag followed by .json (spec/localization.md).",
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string", "pattern": "^([A-Za-z0-9_.-]+/)*[a-z]{2,3}(-[A-Za-z0-9]+)*\\.json$" }
         }
       }
     }
