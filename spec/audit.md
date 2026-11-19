@@ -11,14 +11,14 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 An implementation MUST write an audit entry for each of these:
 
 - a successful create, update, delete or restore of an entity whose manifest `auditing` is `true` (the default)
-- a successful custom action ([API conventions](api-conventions.md)) on such an entity (`kind` `action`); every successful mutating operation on an audited entity is recorded with one of these kinds, using the closest of `create`, `update`, `delete` or `restore`, or `action` when none fits
-- every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
+- any other successful mutating operation on such an entity, including custom actions ([API conventions](api-conventions.md)), recorded with `kind` `action`
+- every request, reads included, in which a host principal acts within a tenant by the tenant-switching permission (`Tenants.Tenants.Switch`), whichever way the tenant was resolved: header, host name or fixed tenant, recorded with `kind` `tenantSwitch`. This is the one exception to the rule that reads are not audited; a mutation made this way also produces its ordinary entry
 
 An implementation SHOULD also write an entry with outcome `denied` when a mutating request is rejected with `Eolent.Forbidden` or `Eolent.FeatureDisabled`. A denied entry is written only when the tenant of the request was resolved, so that `tenantId` is a real tenant. Denied reads, and any rejection before the tenant is resolved (including a refused tenant switch, which happens before resolution), are deliberately not recorded in 0.1, to keep the log free of probing noise; this is a known gap. Reads are not audited in 0.1, apart from the `tenantSwitch` rule above.
 
 A `tenantSwitch` entry has outcome `succeeded`. It is written once the permission check has passed and the tenant is resolved, before the response is sent, independently of any unit of work, so a read produces one too. A request rejected before that point, for example because the named tenant does not exist, produces no entry.
 
-An entry is written in the same unit of work as the change it describes: either both are committed or neither is. A change that is rolled back leaves no entry, and a committed change always has one. An entry with outcome `denied` has no change to commit with, so it is written independently of any unit of work.
+An entry is written in the same unit of work as the change it describes: either both are committed or neither is. A change that is rolled back leaves no entry, and a committed change always has one. An entry with outcome `denied` has no change to commit with, and a `tenantSwitch` entry records the switch and not a change, so both are written independently of any unit of work. A `tenantSwitch` entry therefore remains when the mutation in the same request is rolled back. Apart from these two kinds, the rule above holds.
 
 ## 2. Entry
 
@@ -34,7 +34,7 @@ An audit entry is a JSON object. Property names are `camelCase`.
 | `kind` | string | yes | `create`, `update`, `delete`, `restore`, `action` or `tenantSwitch` |
 | `outcome` | string | yes | `succeeded` or `denied` |
 | `operation` | string | no | The `operationId` of the API operation, when the action came through the API |
-| `action` | string | for `kind` `action` | The custom action name, as in its path |
+| `action` | string | for `kind` `action` | The custom action name as in its path, or for another mutating operation a short name that identifies it |
 | `resource` | object | for all kinds except `tenantSwitch` | `type` (the module's PascalCase name, a dot, then the manifest entity name, for example `Identity.User` for entity `User` in module `identity`) and `id`. `id` is absent for a `denied` create, which has no resource yet, and when the request named an id that is not visible in the current tenant |
 | `changes` | array | no | The change set (section 5) |
 | `changesTruncated` | boolean | no | `true` only when `changes` was capped and omits some items |
@@ -137,6 +137,7 @@ The list operation supports `limit`, `cursor`, `sort` and `includeTotal` as in t
 - Entries are append-only. No API operation, and no application code path outside retention, can change or delete an entry
 - A tenant's entries are tenant-scoped data. They follow the isolation rules of the [tenancy contract](tenancy.md), including that they never appear in another tenant's results
 - Retention is set per deployment. Removing entries because their retention period ended is not an audit event, but the deployment MUST keep an operational record of it (what range was removed and when); this contract defines no format for that record
+- `tenantSwitch` entries for host reads can be numerous. Deployments SHOULD give them their own retention period, and MUST NOT sample or drop them
 - A deployment MAY forward entries to an external store. Entries are exported in the form in section 2
 
 ## 8. Conformance
@@ -145,6 +146,7 @@ The conformance suite checks that:
 
 - creating, updating and deleting an audited entity each produce one entry with the right `kind`, `tenantId`, `actor`, `resource` and `traceId`, and that the `traceId` equals the trace id in the request's `traceparent` header
 - an update records exactly the changed properties in `changes`, with `old` and `new`, and, where the conformance configuration names a secret property, that property is recorded with `redacted` `true` and no values
+- a host mutation that is rolled back leaves its `tenantSwitch` entry and no ordinary entry
 - a failed request that changed nothing leaves no `succeeded` entry, other than a `tenantSwitch` entry, which records the switch and not the outcome of the request
 - a call made with an agent token on behalf of a user produces an entry with `actor.type` `agent` and `onBehalfOf` set to that user, and a call made by the user directly has no `onBehalfOf`
 - a host principal acting within a tenant, for a read and for a mutation, produces a `tenantSwitch` entry with `actor.level` `host`, and a tenant principal's read produces none
