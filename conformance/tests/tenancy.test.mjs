@@ -12,6 +12,7 @@ const { collectionPath, createBody } = cfg.fixtures.resource;
 const tenantA = cfg.fixtures.tenants.a;
 const tenantB = cfg.fixtures.tenants.b;
 const hasHost = cfg.tokens.host !== undefined;
+const hostSkip = hasHost ? false : `no host principal token: the fixtures name ${cfg.fixtures.principals.host?.tokenEnv ?? "no host principal"}, which is not set`;
 
 describe("tenancy isolation", () => {
   let created;
@@ -76,12 +77,12 @@ describe("tenancy isolation", () => {
     );
   });
 
-  test("a host principal without a tenant context gets TenantRequired", { skip: !hasHost && "no host principal in the fixtures" }, async () => {
+  test("a host principal without a tenant context gets TenantRequired", { skip: hostSkip }, async () => {
     const res = await request(cfg, { path: collectionPath, principal: "host" });
     assertProblem(res, { status: 400, code: "Eolent.TenantRequired" });
   });
 
-  test("a host principal without the switching permission cannot send a tenant header", { skip: !hasHost && "no host principal in the fixtures" }, async () => {
+  test("a host principal without the switching permission cannot send a tenant header", { skip: hostSkip }, async () => {
     const res = await request(cfg, { path: collectionPath, principal: "host", headers: { "x-eolent-tenant": tenantA.id } });
     assertProblem(res, { status: 403, code: "Eolent.Forbidden" });
   });
