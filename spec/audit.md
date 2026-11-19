@@ -105,8 +105,8 @@ The `approval` property is reserved. Implementations that have no approval flow 
 | Property | Type | Description |
 |---|---|---|
 | `path` | string | A [JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901) into the resource representation of the API, for example `/displayName` |
-| `old` | any | The value before the change. Absent for `create` |
-| `new` | any | The value after the change. Absent when the value was removed |
+| `old` | any | The value before the change. Absent when the property had no value before, as for `create`; a value that was JSON `null` is recorded as `null` |
+| `new` | any | The value after the change. Absent when the property has no value afterwards, because it was removed; a value set to JSON `null` is recorded as `null`, so a removed value and a null value can be told apart |
 | `redacted` | boolean | `true` when the value is sensitive: `old` and `new` are then both absent and the item records only that the property changed |
 
 Rules:
@@ -137,7 +137,7 @@ The list operation supports `limit`, `cursor`, `sort` and `includeTotal` as in t
 - Entries are append-only. No API operation, and no application code path outside retention, can change or delete an entry
 - A tenant's entries are tenant-scoped data. They follow the isolation rules of the [tenancy contract](tenancy.md), including that they never appear in another tenant's results
 - Retention is set per deployment. Removing entries because their retention period ended is not an audit event, but the deployment MUST keep an operational record of it (what range was removed and when); this contract defines no format for that record
-- `tenantSwitch` entries for host reads can be numerous. Deployments SHOULD give them their own retention period, and MUST NOT sample or drop them
+- `tenantSwitch` entries for host reads can be numerous. Deployments SHOULD give them their own retention period. They MUST NOT be sampled or dropped before that period ends; the retention rule above is the only reason to remove them. The write volume is a known cost of the rule
 - A deployment MAY forward entries to an external store. Entries are exported in the form in section 2
 
 ## 8. Conformance
