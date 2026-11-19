@@ -26,8 +26,8 @@ Manifest `0.2` is a breaking change to the draft `0.1`, which allows breaking ch
 - **Opt-in.** An operation is exposed to agents only when it is listed in `agentTools`. Nothing is exposed by default
 - **Same authorization.** An agent call goes through the same checks as any call: authentication, tenancy, permission and feature, with the agent's permissions limited to those of the user it acts for ([permissions](../../spec/permissions.md)). `agentTools` adds exposure, never access
 - **Risk class.** `low` is for operations that only read. `medium` is for changes that can be undone. `high` is for destructive, irreversible or security-relevant operations. An operation that does not use `GET` cannot be `low`, and a `DELETE` is `high`; the validation of manifests checks both
-- **Approval.** `requiresApproval` says that a person must approve each call before it runs. It is always `true` for `high` risk and may be set for other classes. The approval is recorded in the `approval` object of the audit entry
-- The full contract for agent tools, including the runtime behaviour and prompt-injection posture, is a later specification (H18) and its conformance category
+- **Approval.** `requiresApproval` says that a person must approve each call before it runs. It is always `true` for `medium` and `high` risk ([ADR 0008](0008-agent-posture.md)) and may be set for `low`. The approval is recorded in the `approval` object of the audit entry
+- The posture for agents is fixed in [ADR 0008](0008-agent-posture.md). The full contract for agent tools, including the runtime behaviour, is a later specification (H18) and its conformance category
 
 ### Checks that go beyond the schema
 

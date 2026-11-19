@@ -198,12 +198,12 @@
           "enum": ["low", "medium", "high"]
         },
         "requiresApproval": {
-          "description": "Whether a person must approve each call before it runs. Always true for high risk.",
+          "description": "Whether a person must approve each call before it runs. Always true for medium and high risk (docs/adr/0008-agent-posture.md).",
           "type": "boolean",
           "default": false
         }
       },
-      "if": { "properties": { "risk": { "const": "high" } } },
+      "if": { "properties": { "risk": { "enum": ["medium", "high"] } } },
       "then": { "required": ["requiresApproval"], "properties": { "requiresApproval": { "const": true } } }
     },
     "error": {
