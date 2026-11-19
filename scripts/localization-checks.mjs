@@ -41,7 +41,9 @@ export function checkLocalization(manifest, files) {
   const cultureOf = (path) => path.split("/").pop().replace(/\.json$/, "");
   const byCulture = new Map(resources.map((r) => [cultureOf(r), r]));
   if (byCulture.size !== resources.length) out.push("localization.resources lists two files for one culture");
-  if (loc.defaultCulture !== undefined && !byCulture.has(loc.defaultCulture)) {
+  if (loc.defaultCulture === undefined) {
+    out.push("localization.defaultCulture is missing; every module with localization must name its default culture");
+  } else if (!byCulture.has(loc.defaultCulture)) {
     out.push(`localization.defaultCulture "${loc.defaultCulture}" has no file in resources`);
   }
   for (const path of resources) {
@@ -56,7 +58,7 @@ export function checkLocalization(manifest, files) {
     }
     for (const [key, value] of Object.entries(content)) {
       if (typeof value !== "string") out.push(`${path}: value of "${key}" must be a string`);
-      else if (!bracesBalanced(value)) out.push(`${path}: message "${key}" has unbalanced braces`);
+      else if (!bracesBalanced(value)) out.push(`${path}: message "${key}" has unbalanced braces or an unterminated quote`);
       if (!keyRe.test(key)) out.push(`${path}: key "${key}" is not a dotted PascalCase name`);
       else if (key.startsWith("Eolent.")) out.push(`${path}: key "${key}" uses the reserved prefix "Eolent."`);
       else if (!key.startsWith(prefix)) out.push(`${path}: key "${key}" must start with "${prefix}"`);

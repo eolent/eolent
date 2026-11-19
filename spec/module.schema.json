@@ -282,6 +282,7 @@
     },
     "localization": {
       "type": "object",
+      "required": ["defaultCulture"],
       "additionalProperties": false,
       "properties": {
         "defaultCulture": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]+)*$" },

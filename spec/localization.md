@@ -20,7 +20,7 @@ A culture is a [BCP 47](https://www.rfc-editor.org/rfc/rfc5646) language tag, fo
 
 ## 3. Resource files
 
-A resource file is a UTF-8 JSON object that maps message keys to message strings. The file name is the culture followed by `.json`, for example `en.json` or `pt-BR.json`.
+A resource file is a UTF-8 JSON object that maps message keys to message strings. The file name is the culture followed by `.json`, for example `en.json` or `pt-BR.json`. In the manifest, `defaultCulture` and the file name use the same spelling, and are compared exactly.
 
 - the object is flat: every value is a string, and there are no nested objects. Keys contain dots, so nesting would be ambiguous
 - a key is a dotted name whose segments are PascalCase ASCII letters and digits, starting with a letter. It begins with the module's PascalCase name followed by a dot, the same prefix used for permission names ([ADR 0004](../docs/adr/0004-naming-and-versioning-conventions.md)), so keys of different modules never collide. The prefix `Eolent` is reserved for the platform's own messages
@@ -65,7 +65,7 @@ Values for named arguments in an error's `detail` are the properties that the mo
 
 ## 5. Choosing a culture and falling back
 
-For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which any message exists. A requested culture matches a file with the same tag, or a file for the tag with its last subtags removed (`cs-CZ` matches `cs`).
+For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which any message exists. Matching of a requested culture is case-insensitive. A requested culture matches a file with the same tag, or a file for the tag with its last subtags removed (`cs-CZ` matches `cs`).
 
 For each message key, the text comes from the first of these that has the key:
 
@@ -90,9 +90,9 @@ The frontend loads the messages for the interface from one operation instead of 
 |---|---|---|
 | `GET /api/v1/localization/resources/{culture}` | `localizationResourcesGet` | Tenancy `none`, no permission, public |
 
-It returns `200` with the media type `application/json` and an object `culture` (the culture served) and `messages` (a flat map of every message key of every installed module and the platform to its text, for that culture, with the fallback of section 5 already applied, except step 3, since the operation does not use a tenant). The client does not need to know the fallback chain.
+It returns `200` with the media type `application/json` and an object `culture` (the culture the request resolved to under steps 1 and 2 of section 5, or the deployment's default culture when no file matches; it is also the `Content-Language`) and `messages` (a flat map of every message key of every installed module and the platform to its text, for that culture, with the fallback of section 5 already applied, except step 3, since the operation does not use a tenant). The client does not need to know the fallback chain.
 
-The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture whose file supplied the response, the same value as `Content-Language`. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
+The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture it resolved to, as above. Individual messages can still come from a later fallback step. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
 
 ## 7. llms.txt
 
@@ -102,7 +102,7 @@ A module ships a file `llms.txt` at the root of its documentation, in the format
 - a short summary as a blockquote
 - sections (`##`) of list items, each a Markdown link followed by a colon and a short note
 
-An Eolent module's `llms.txt` MUST have these sections: `Contract`, with links to the module manifest and the OpenAPI description; and `Docs`, with links to the module's documentation pages. It MAY have `Optional`, for links that a tool can skip when short of context. Links are relative to the file or absolute. The `llms.txt` of a release describes that release.
+An Eolent module's `llms.txt` MUST have these sections (the validation of this repository checks the heading, the summary and these two sections for the hub's own file, and a module's own checks are the module's responsibility): `Contract`, with links to the module manifest and the OpenAPI description; and `Docs`, with links to the module's documentation pages. It MAY have `Optional`, for links that a tool can skip when short of context. Links are relative to the file or absolute. The `llms.txt` of a release describes that release.
 
 The hub repository has a root `llms.txt` that indexes the specification. Its links are checked by the validation of this repository, like the links in Markdown files.
 

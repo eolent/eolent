@@ -81,6 +81,19 @@ if (!schema) {
   }
 }
 
+// The hub's llms.txt follows the structure in spec/localization.md section 7.
+const llms = join(root, "llms.txt");
+if (!existsSync(llms)) {
+  errors.push("llms.txt: missing at the repository root");
+} else {
+  const text = readFileSync(llms, "utf8");
+  if (!/^# \S/m.test(text)) errors.push("llms.txt: no first-level heading");
+  if (!/^> \S/m.test(text)) errors.push("llms.txt: no summary blockquote");
+  for (const section of ["Contract", "Docs"]) {
+    if (!new RegExp(`^## ${section}\\s*$`, "m").test(text)) errors.push(`llms.txt: no "## ${section}" section`);
+  }
+}
+
 // 3. Relative Markdown links resolve.
 // Coverage note: only inline links of the form [text](target) are checked.
 // Angle-bracket destinations ([x](<path with spaces.md>)), targets containing
