@@ -117,7 +117,7 @@ Example:
 ## 6. Safety rules
 
 - A `500` response MUST NOT include stack traces, exception messages, SQL, file paths or any other internal detail. The `traceId` is the only handle; operators use it to find the cause in logs.
-- A caller MUST NOT be able to learn that a resource exists in another tenant. A request for a resource that exists only in another tenant returns `404 Eolent.NotFound`, identical to the response for a resource that does not exist anywhere. `403` is used for resources the caller can see but lacks permission to act on, and for the tenancy conditions in the [tenancy contract](tenancy.md) (section 5). `Eolent.TenantMismatch` is returned identically whether or not the other tenant exists, so it reveals nothing.
+- A caller MUST NOT be able to learn that a resource exists in another tenant. A request for a resource that exists only in another tenant returns `404 Eolent.NotFound`, identical to the response for a resource that does not exist anywhere. `403` is used for resources the caller can see but lacks permission to act on, and for the tenancy conditions in the [tenancy contract](tenancy.md) (section 5). `Eolent.TenantMismatch` is returned identically whether or not the other tenant exists, so it reveals nothing. The one deliberate exception to the no-existence-leak rule is that an unauthenticated caller can test whether a tenant slug exists, as stated in the tenancy contract.
 - `401` and `403` responses MUST NOT name the missing permission or say why the credentials were rejected beyond the code and title.
 - Error responses are not cached: they carry `Cache-Control: no-store`.
 - `detail` values MUST NOT echo secrets, such as passwords, tokens or keys, even when the request contained them.
