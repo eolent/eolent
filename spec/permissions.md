@@ -33,7 +33,7 @@ The permission is checked before the feature so that the response to a caller wi
 - **Per tenant.** Roles, role assignments and therefore grants belong to a tenant. A user's permissions in tenant A say nothing about tenant B.
 - **Host permissions.** A permission can be a host permission: one that only a host principal can hold, and that is not granted through tenant roles. Host permissions are declared like any other permission; marking a permission as host-only in the manifest is planned for manifest `0.2`. Until then, the host-only permissions defined by this contract are the ones in section 5.
 - **Evaluated on the server.** Permissions are not carried in the access token. The server evaluates them for each request, so a change takes effect without waiting for a new token. Implementations MAY cache grants, and a change MUST take effect within 60 seconds.
-- **Agents.** An agent acting for a user MUST NOT hold more permissions than that user. Its effective permissions are the intersection of the user's permissions and the permissions granted to the agent. How agents are identified and audited is defined by the audit schema (planned).
+- **Agents.** An agent acting for a user MUST NOT hold more permissions than that user. Its effective permissions are the intersection of the user's permissions and the permissions granted to the agent, each taken as the full set of permissions it passes checks for (inheritance applied, that is, the held permissions plus all their descendants), not as the raw grants. How agents are identified and audited is defined by the audit schema (planned).
 - **System roles.** An implementation MAY provide built-in roles (for example an administrator role). They are ordinary roles, with grants the implementation documents, and they obey the same rules.
 
 ## 3. Features
@@ -64,7 +64,7 @@ The response is `200` with:
 | Property | Description |
 |---|---|
 | `tenantId` | The resolved tenant |
-| `permissions` | Every permission the caller holds in that tenant, with inheritance already expanded, so a client tests membership and needs no hierarchy logic. Sorted, without duplicates |
+| `permissions` | Every permission the caller passes a check for in that tenant, that is, the permissions they hold plus all their descendants, so a client tests membership and needs no hierarchy logic. Sorted, without duplicates |
 | `features` | The effective value of every feature declared by the installed modules, by feature name |
 
 The response carries `Cache-Control: private, no-store`. The endpoint is a convenience for the interface and not a security boundary: the server checks permissions again on every operation, and clients MUST NOT treat a permission in this response as authorisation.
