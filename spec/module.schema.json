@@ -49,7 +49,7 @@
       "items": { "$ref": "#/$defs/event" }
     },
     "operations": {
-      "description": "The API operations of the module, linked to the permission, feature and entity they use.",
+      "description": "The API operations of the module, linked to the permission, feature and entity they use. Generated from the code by the build and checked against the OpenAPI description, not written by hand (docs/adr/0007-manifest-0-2.md).",
       "type": "array",
       "items": { "$ref": "#/$defs/operation" }
     },
