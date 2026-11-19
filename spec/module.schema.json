@@ -92,7 +92,7 @@
         "displayName": { "type": "string" },
         "description": { "type": "string" },
         "parent": {
-          "description": "Name of the parent permission, if this one is nested. The hierarchy groups permissions and grants nothing: a check is an exact match (spec/permissions.md).",
+          "description": "Name of the parent permission, if this one is nested. The hierarchy groups permissions and grants nothing: a check is an exact match.",
           "type": "string"
         },
         "scope": {
