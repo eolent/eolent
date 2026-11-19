@@ -43,4 +43,4 @@ The manifest carries a `manifestVersion`. While the specification is a draft (`0
 - **0.1** (API conventions) Filter and sort property names may be dotted paths to nested properties.
 - **0.1** (audit) Added the audit log contract (draft) and the permission `Audit.AuditLogs.Read`, which the audit module declares in its manifest.
 - **0.1** (events) Added the event envelope profile (draft), a CloudEvents 1.0 profile.
-- **0.1** (manifest) Added the `entity` property of manifest events, which names the entity an event is about; it is required for events with direction `publishes`.
+- **0.1** (manifest) Added the `entity` property of manifest events, which names the entity an event is about; it is required for events with direction `publishes`. This is a breaking change to the draft manifest `0.1`, which allows breaking changes until the first release; no example outside this repository is affected.
