@@ -92,11 +92,11 @@
         "displayName": { "type": "string" },
         "description": { "type": "string" },
         "parent": {
-          "description": "Name of the parent permission, if this one is nested.",
+          "description": "Name of the parent permission, if this one is nested. The hierarchy groups permissions and grants nothing: a check is an exact match.",
           "type": "string"
         },
         "scope": {
-          "description": "Who can hold the permission. A host permission can only be held by host principals and never by a tenant role. The ancestors of a host permission are host permissions too.",
+          "description": "Who can hold the permission. A host permission can only be held by host principals and never by a tenant role.",
           "enum": ["tenant", "host"],
           "default": "tenant"
         }
