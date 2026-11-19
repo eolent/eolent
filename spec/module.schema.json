@@ -198,7 +198,7 @@
           "enum": ["low", "medium", "high"]
         },
         "requiresApproval": {
-          "description": "Whether a person must approve each call before it runs. Always true for medium and high risk in the manifest, which is the baseline a module declares. A tenant administrator may relax the approval of a medium risk tool (docs/adr/0008-agent-posture.md); a high risk tool is never relaxed.",
+          "description": "Whether a person must approve each call before it runs. Always true for medium and high risk in the manifest, which is the baseline a module declares. Relaxing approval for a medium risk tool is not defined yet (docs/adr/0008-agent-posture.md); a high risk tool is never relaxed.",
           "type": "boolean",
           "default": false
         }
