@@ -131,7 +131,7 @@
       "type": "object",
       "required": ["name", "direction"],
       "if": { "properties": { "direction": { "const": "publishes" } } },
-      "then": { "required": ["entity"] },
+      "then": { "required": ["entity"], "properties": { "entity": true } },
       "additionalProperties": false,
       "properties": {
         "name": {
