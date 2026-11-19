@@ -37,3 +37,20 @@ export async function listAll(cfg, path, principal, { maxPages = 100 } = {}) {
   }
   return { res: undefined, items, truncated: true };
 }
+
+// Polls until fn returns a truthy value or the audit wait time (EOLENT_AUDIT_WAIT_MS) has passed.
+export async function waitFor(cfg, fn, { intervalMs = 200 } = {}) {
+  const deadline = Date.now() + cfg.auditWaitMs;
+  for (;;) {
+    const value = await fn();
+    if (value) return value;
+    if (Date.now() >= deadline) return undefined;
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+}
+
+// A W3C traceparent header with a fresh trace id, and that trace id.
+export function newTrace() {
+  const traceId = [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return { traceId, header: `00-${traceId}-00f067aa0ba902b7-01` };
+}
