@@ -20,6 +20,7 @@ Every error response with a status of `400` or higher that the application produ
 | `code` | string | yes | Stable, machine-readable error code (section 3). Clients branch on `code`, never on `title` or `detail` |
 | `traceId` | string | yes | Identifier that correlates the response with server logs and traces. It MUST be the W3C trace id of the request when one exists |
 | `errors` | array | no | Per-field problems, only for validation errors (section 4) |
+| `errorsTruncated` | boolean | no | `true` only when `errors` was capped and omits some violations (section 4) |
 
 Responses MAY carry extension properties beyond these. Clients MUST ignore properties they do not know. A module that defines extension properties for its own codes documents them with the code.
 
@@ -61,7 +62,7 @@ Example:
 Notes:
 
 - Validation failures use `400` only. `422` is never used for ordinary validation, so a client can treat `400` as "fix the request".
-- A framework-emitted response with a `4xx` status that has no row above uses `Eolent.BadRequest`, and one with a `5xx` status that has no row above uses `Eolent.Internal`. Both still use the problem details shape and `status` carries the actual status. Module-emitted responses always use a module code.
+- A framework-emitted response with a `4xx` status that has no row above uses `Eolent.BadRequest`, and one with a `5xx` status that has no row above uses `Eolent.Internal`. Both still use the problem details shape and `status` carries the actual status. Module code is used for module-defined conditions, that is, the `409` and business-rule `422` rows; every other status listed in the table uses its platform code, whichever component emits it.
 
 ## 3. Error codes
 
@@ -75,7 +76,7 @@ Code registration in the module manifest is planned for manifest `0.2`. Until th
 
 ## 4. Validation errors
 
-A response with code `Eolent.Validation` carries an `errors` array with at least one item. Every violation found is reported in one response; implementations MAY cap the list at 100 items.
+A response with code `Eolent.Validation` carries an `errors` array with at least one item. Every violation found is reported in one response, with one exception: implementations MAY cap the list at 100 items. When the list is capped, the response carries the extension property `errorsTruncated` set to `true`; otherwise `errorsTruncated` is absent and the list is complete.
 
 Each item is an object:
 
