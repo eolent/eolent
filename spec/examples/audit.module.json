@@ -14,8 +14,8 @@
     { "name": "HostAuditEntry", "tenancy": "none", "auditing": false }
   ],
   "events": [
-    { "name": "audit.entry.recorded", "direction": "publishes", "entity": "AuditEntry" },
-    { "name": "audit.host-entry.recorded", "direction": "publishes", "entity": "HostAuditEntry" }
+    { "name": "audit.entry.recorded", "direction": "publishes", "entity": "AuditEntry", "dataSchema": "../audit-entry.schema.json" },
+    { "name": "audit.host-entry.recorded", "direction": "publishes", "entity": "HostAuditEntry", "dataSchema": "../audit-entry.schema.json" }
   ],
   "operations": [
     { "operationId": "auditAuditLogsList", "method": "GET", "path": "/api/v1/audit-logs", "permission": "Audit.AuditLogs.Read", "entity": "AuditEntry" },

@@ -11,7 +11,7 @@ The key words MUST, SHOULD and MAY are used as in [RFC 2119](https://www.rfc-edi
 The `type` of an event is the event `name` declared in the publishing module's manifest, for example `identity.user.created`. Rules:
 
 - the name is lowercase, dot-separated, as the manifest schema requires. By convention it is the module's manifest name, then the entity in lowercase, then a past-tense verb: `identity.user.created`, `billing.invoices.invoice.paid`
-- only the module that declares an event as `publishes` may publish it, and the name begins with the module's manifest name followed by a dot (`user-admin.user.created`, `billing.invoices.invoice.paid`)
+- only the module that declares an event as `publishes` may publish it, with one exception: the platform publishes the audit events of the [audit log](audit.md), `audit.entry.recorded` and `audit.host-entry.recorded`, on behalf of whichever module made a change, within that module's unit of work. The audit module owns these types and declares them, so their `source` is `urn:eolent:module:audit`, and the name begins with the module's manifest name followed by a dot (`user-admin.user.created`, `billing.invoices.invoice.paid`)
 - an event type is stable. Adding optional properties to `data` is compatible. Any other change to `data` is breaking and is published as a new type that ends in a version segment, for example `identity.user.created.v2`. Each type, including every `.vN` type, has its own `events` entry in the manifest. Both types are published during a deprecation period set by the module and stated in the module's documentation; 0.1 has no manifest field for it
 
 ## 2. Attributes
@@ -24,7 +24,7 @@ Events use the CloudEvents attributes below. "Required" is stricter than CloudEv
 | `id` | string | yes | A UUID, unique per event. With `source` it identifies the event; a redelivery carries the same `id` |
 | `source` | URI reference | yes | `urn:eolent:module:` followed by the module's manifest name, for example `urn:eolent:module:identity` |
 | `type` | string | yes | The event type (section 1) |
-| `time` | timestamp | yes (CloudEvents: optional) | When the change that caused the event was committed, [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) in UTC |
+| `time` | timestamp | yes (CloudEvents: optional) | When the change that caused the event was committed, or, for an event with no change (a denied attempt, a read or a tenant switch in the audit log), when the action happened, [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339) in UTC |
 | `datacontenttype` | string | yes | `application/json` |
 | `dataschema` | URI | no | The schema of `data`, from the `dataSchema` of the manifest event. It MUST be an absolute URI: a relative manifest path is resolved against a schema base URI that the deployment configures, and a deployment where any module uses a relative `dataSchema` MUST configure one |
 | `subject` | string | no | The identifier of the entity the event is about, when there is one |
