@@ -37,7 +37,7 @@ conformance/
 |---|---|
 | `EOLENT_BASE_URL` | Base URL of the deployment under test, required |
 | `EOLENT_REQUIRE_ALL_PRINCIPALS` | Set to `1` to fail, instead of skipping tests, when an optional principal or its token is missing. CI sets it |
-| `EOLENT_AUDIT_WAIT_MS` | How long the audit tests wait for an entry, default `60000`. Audit is asynchronous ([audit log](audit.md), section 1.1) |
+| `EOLENT_AUDIT_WAIT_MS` | How long the audit tests wait for an entry, default `60000`. Audit is asynchronous ([audit log](../audit.md)) |
 | `EOLENT_REQUEST_TIMEOUT_MS` | Timeout of each request in milliseconds, default `10000` |
 | `EOLENT_FIXTURES` | Path to a fixtures file, default `conformance/fixtures/example.json` |
 | the variables named in `tokenEnv` | Bearer tokens of the principals in the fixtures file |
