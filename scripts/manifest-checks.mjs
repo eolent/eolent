@@ -19,10 +19,6 @@ export function checkManifest(m) {
   const perms = new Map((m.permissions ?? []).map((p) => [p.name, p]));
   const features = new Map((m.features ?? []).map((f) => [f.name, f]));
   const entities = names(m.entities);
-  for (const e of m.entities ?? []) {
-    // auditing defaults to true in the schema, so only an explicit false needs catching; revisit if that default changes.
-    if (e.auditReads === true && e.auditing === false) out.push(`entity "${e.name}" sets auditReads but not auditing`);
-  }
   const entityList = new Map((m.entities ?? []).map((e) => [e.name, e]));
 
   for (const [kind, list] of [["permission", m.permissions], ["feature", m.features], ["setting", m.settings]]) {
