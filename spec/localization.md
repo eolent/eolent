@@ -57,7 +57,7 @@ Example, `i18n/en.json` and `i18n/cs.json` of the identity module:
 | Error `detail` | `<code>.Detail` |
 | Detail of a validation item | `<item code>.Detail`, for example `Eolent.Validation.Required.Detail` |
 
-Every key that the manifest names (`titleKey` values) and every code the manifest declares in `errors` MUST exist in the file of the module's `defaultCulture`: the `Title` key for a code, and the `Detail` key where the code has a detail. The `defaultCulture` file MUST be listed in `resources`. Other cultures are optional and may be incomplete, but a key in another culture file MUST also exist in the `defaultCulture` file, so a `Detail` or `Title` message cannot exist without its default.
+Every key that the manifest names (`titleKey` values) and every code the manifest declares in `errors` MUST exist in the file of the module's `defaultCulture`: the `Title` key for a code. A `Detail` key is optional, because the manifest does not say which codes have a detail; a `Detail` key in another culture must exist in the default culture (below). The `defaultCulture` file MUST be listed in `resources`. Other cultures are optional and may be incomplete, but a key in another culture file MUST also exist in the `defaultCulture` file, so a `Detail` or `Title` message cannot exist without its default.
 
 The platform ships messages for its own codes (`Eolent.*`, see the [error format](error-format.md)) in English. Implementations MAY ship more cultures.
 
@@ -65,7 +65,7 @@ Values for named arguments in an error's `detail` are the properties that the mo
 
 ## 5. Choosing a culture and falling back
 
-For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which any message exists. Matching of a requested culture is case-insensitive. A requested culture matches a file with the same tag, or a file for the tag with its last subtags removed (`cs-CZ` matches `cs`).
+For a request, the culture is chosen from the `Accept-Language` header, respecting quality values, as the first listed culture for which any message exists. Matching of a requested culture is case-insensitive: the implementation compares the requested tag with the file's culture after lowercasing both, and file names themselves keep their spelling. A requested culture matches a file with the same tag, or a file for the tag with its last subtags removed (`cs-CZ` matches `cs`).
 
 For each message key, the text comes from the first of these that has the key:
 
@@ -92,7 +92,7 @@ The frontend loads the messages for the interface from one operation instead of 
 
 It returns `200` with the media type `application/json` and an object `culture` (the culture the request resolved to under steps 1 and 2 of section 5, or the deployment's default culture when no file matches; it is also the `Content-Language`) and `messages` (a flat map of every message key of every installed module and the platform to its text, for that culture, with the fallback of section 5 already applied, except step 3, since the operation does not use a tenant). The client does not need to know the fallback chain.
 
-The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture it resolved to, as above. Individual messages can still come from a later fallback step. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
+The endpoint chooses the culture from the path parameter only and ignores `Accept-Language`. It exposes every message of every installed module, so message files MUST NOT contain internal or confidential wording; the operation is public by design, so a login page can be shown in the user's language. The response carries `Content-Language`, an `ETag`, and `Cache-Control: public, max-age=300`. A culture for which no file exists is served from the fallback chain, with `culture` naming the culture it resolved to, as above. Individual messages can still come from a later fallback step. A `culture` that is not a valid tag returns `400 Eolent.Validation` with an `Eolent.Validation.Invalid` item for the path parameter `culture`.
 
 ## 7. llms.txt
 
