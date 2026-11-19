@@ -1,0 +1,36 @@
+name: Conformance runner
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    name: Runner self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run conformance:selftest
+      - name: Build the runner image
+        run: docker build -f conformance/Dockerfile -t eolent-conformance .
+      # The tokens below are placeholders that only the local stub accepts. Do not copy them into a workflow
+      # that runs against a real deployment.
+      - name: Run the image against the stub
+        run: |
+          node conformance/stub/server.mjs --port 8080 &
+          ready=0
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:8080/ && ready=1 && break; sleep 1; done
+          [ "$ready" = 1 ] || { echo "the stub did not start"; exit 1; }
+          docker run --rm --network host \
+            -e EOLENT_BASE_URL=http://127.0.0.1:8080 \
+            -e EOLENT_REQUIRE_HOST=1 -e EOLENT_TOKEN_TENANT_A=token-a -e EOLENT_TOKEN_TENANT_B=token-b -e EOLENT_TOKEN_HOST=token-host \
+            eolent-conformance
