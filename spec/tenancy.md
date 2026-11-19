@@ -25,7 +25,7 @@ The tenant of a request is resolved in this order. Each step that applies yields
 
 1. **Token claim.** An authenticated tenant principal carries the claim `tenant_id` in its access token, whose value is the tenant `id`. This is authoritative.
 2. **Header.** `X-Eolent-Tenant`, whose value is a tenant `id`. A tenant principal MAY send it, but it MUST equal the token claim. A host principal MAY send it to act within that tenant, if it holds the host permission that allows switching tenants (defined by the permission contract). An unauthenticated request MAY send it for operations that are tenant-scoped and public.
-3. **Host name.** The first label of the request host, when the deployment has a base domain configured and the host is `<label>.<base domain>`. Labels the deployment lists as reserved (for example `api` or `www`) are ignored and do not take part in resolution. Any other label is looked up as a tenant `slug`; one that matches no tenant is `Eolent.TenantNotFound`. This is how unauthenticated tenant-scoped operations (for example a tenant's sign-in) find their tenant.
+3. **Host name.** The first label of the request host, when the deployment has a base domain configured and the host is `<label>.<base domain>`. Labels the deployment lists as reserved (for example `api` or `www`) are ignored and do not take part in resolution. Any other label is looked up as a tenant `slug`; one that matches no tenant is `Eolent.TenantNotFound`, except when the request carries a tenant principal's token: then a label that differs from the token's tenant, including one that matches no tenant, is `Eolent.TenantMismatch`. This is how unauthenticated tenant-scoped operations (for example a tenant's sign-in) find their tenant.
 
 If more than one of these identifies a tenant and they identify different tenants, the request is rejected with `Eolent.TenantMismatch` (section 5). A request is never resolved by guessing, by a default tenant, or from request bodies or query parameters.
 
@@ -59,8 +59,8 @@ Events and audit entries carry the `tenantId` of the tenant they concern, as def
 | Condition | Status | Code |
 |---|---|---|
 | A `tenantScoped` operation, and no tenant can be resolved | `400` | `Eolent.TenantRequired` |
-| A tenant is identified by header or host name but does not exist | `404` | `Eolent.TenantNotFound` |
-| The token claim, header and host name identify different tenants | `403` | `Eolent.TenantMismatch` |
+| A tenant is identified by header or host name but does not exist, for an unauthenticated request or a host principal | `404` | `Eolent.TenantNotFound` |
+| The token claim, header and host name identify different tenants, or a tenant principal's header or host label names any tenant other than their own, existing or not | `403` | `Eolent.TenantMismatch` |
 | The resolved tenant is suspended | `403` | `Eolent.TenantSuspended` |
 | The token claim names a tenant that does not exist | `401` | `Eolent.Unauthenticated` |
 
