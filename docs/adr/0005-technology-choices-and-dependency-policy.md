@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-11-18
+- **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
 
 ## Context
 
@@ -14,7 +15,7 @@
 1. A runtime dependency of Eolent packages must be available under a permissive licence (Apache-2.0, MIT, BSD or similar) that allows redistribution as part of a commercial product.
 2. Libraries under copyleft, source-available or paid terms are not used as dependencies of core packages. They may be supported through optional, separate packages that users opt into knowingly.
 3. Third-party types do not appear in public module contracts where a thin abstraction is practical. Each abstraction records an exit option: what we would switch to if the licence or maintenance of the library changes.
-4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below. The maintainer who prepares a release runs the re-check. The release checklist that will hold this item does not exist yet: it is to be created together with the release process, before the first release.
+4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below. The maintainer who prepares a release runs the re-check. The step is in the [release checklist](../release-checklist.md), which is refined with the release process before the first release. Each code repository MUST run a licence scan in CI from its bootstrap, which checks every pull request against rules 1 and 2. No such scan exists yet, because the code repositories are not bootstrapped.
 
 ### Choices
 

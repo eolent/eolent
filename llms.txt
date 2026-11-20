@@ -24,4 +24,5 @@
 ## Optional
 
 - [Roadmap](docs/roadmap.md): planned phases
+- [Release checklist](docs/release-checklist.md): the gates for a release, including the licence re-check
 - [Contributing](CONTRIBUTING.md): how to contribute and the DCO sign-off
