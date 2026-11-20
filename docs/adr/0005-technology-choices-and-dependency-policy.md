@@ -10,7 +10,8 @@
 - **Amended:** 2026-11-20, licence check table: EF Core (10.0.15) and its in-memory test provider added for the kernel's data project (D5)
 - **Amended:** 2026-11-20, rule 4 and licence check table: the scans exist since the bootstrap of the code repositories; rows added for the architecture test and banned-API analyzer packages of the kernel repository (D3)
 - **Amended:** 2026-11-20, licence check table: MessageFormat (ICU message formatting) added for the kernel's localization (D8a); its package declares no licence, so the row cites the repository's licence file
-- **Amended:** 2026-11-20, licence check table: Microsoft.AspNetCore.TestHost added for the tests of the kernel's problem-details middleware (D8b); the Validation row of the Choices table names the kernel's validation bridge (`Eolent.Kernel.Validation`, FluentValidation 12.2.0 as adopted below), which only application layers reference
+- **Amended:** 2026-11-20, licence check table: Microsoft.AspNetCore.TestHost added for the tests of the kernel's problem-details middleware (D8b)
+- **Amended:** 2026-11-20, decision change in the Choices table, row Validation: the decision is extended from "FluentValidation inside module application layers only" to also cover one kernel project, `Eolent.Kernel.Validation`, which turns a FluentValidation result into the standard error shape (D8b). Rule 1: FluentValidation is Apache-2.0 and already adopted, so a runtime dependency of that kernel package is permitted. Rule 3: the bridge's public methods take FluentValidation's `ValidationResult`, but only application layers reference the bridge (an architecture test refuses Domain and Contracts), so no module contract exposes a FluentValidation type; the exit option is unchanged (replace the validators of a module) plus rewriting that one small bridge
 
 ## Context
 
