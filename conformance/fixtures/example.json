@@ -8,10 +8,20 @@
   "principals": {
     "tenantA": { "tokenEnv": "EOLENT_TOKEN_TENANT_A" },
     "tenantB": { "tokenEnv": "EOLENT_TOKEN_TENANT_B" },
-    "host": { "tokenEnv": "EOLENT_TOKEN_HOST" }
+    "tenantALimited": { "tokenEnv": "EOLENT_TOKEN_TENANT_A_LIMITED" },
+    "host": { "tokenEnv": "EOLENT_TOKEN_HOST" },
+    "hostSwitch": { "tokenEnv": "EOLENT_TOKEN_HOST_SWITCH" }
   },
   "resource": {
     "collectionPath": "/api/v1/widgets",
-    "createBody": { "name": "conformance widget" }
+    "createBody": { "name": "conformance widget" },
+    "updateBody": { "name": "conformance widget, changed" },
+    "permission": "Widgets.Widgets.Create",
+    "sortProperty": "name"
+  },
+  "deployment": {
+    "fixedTenant": false,
+    "capabilities": ["concurrency", "idempotency", "localization", "audit"],
+    "culture": "cs"
   }
 }
