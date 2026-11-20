@@ -20,7 +20,8 @@ export function loadConfig(env = process.env) {
   if (!baseUrl) throw new Error("EOLENT_BASE_URL is not set");
   const path = resolve(env.EOLENT_FIXTURES ?? resolve(here, "../fixtures/example.json"));
   const fixtures = JSON.parse(readFileSync(path, "utf8"));
-  const strict = env.EOLENT_REQUIRE_ALL_PRINCIPALS === "1";
+  if (env.EOLENT_REQUIRE_HOST === "1" && env.EOLENT_REQUIRE_ALL_PRINCIPALS !== "1") console.warn("EOLENT_REQUIRE_HOST is renamed EOLENT_REQUIRE_ALL_PRINCIPALS; treating it as set.");
+  const strict = env.EOLENT_REQUIRE_ALL_PRINCIPALS === "1" || env.EOLENT_REQUIRE_HOST === "1";
   const tokens = {};
   for (const [key, p] of Object.entries(fixtures.principals ?? {})) {
     const token = env[p.tokenEnv];

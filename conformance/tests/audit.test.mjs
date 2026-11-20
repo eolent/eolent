@@ -13,10 +13,10 @@ const { collectionPath, createBody, updateBody } = cfg.fixtures.resource;
 const tenantA = cfg.fixtures.tenants.a;
 const logPath = "/api/v1/audit-logs";
 
-// Finds the entry with this trace id (and optional extra filters) in tenant A's log, as tenant A's administrator.
-const findEntry = (traceId, extra = "") =>
+// Finds the entry with this trace id in tenant A's log, as tenant A's administrator.
+const findEntry = (traceId) =>
   waitFor(cfg, async () => {
-    const res = await request(cfg, { path: `${logPath}?filter[traceId]=${traceId}${extra}`, principal: "tenantA" });
+    const res = await request(cfg, { path: `${logPath}?filter[traceId]=${traceId}`, principal: "tenantA" });
     return res.status === 200 ? res.json.items?.find((e) => e.traceId === traceId) : undefined;
   });
 

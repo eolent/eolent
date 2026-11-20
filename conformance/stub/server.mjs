@@ -84,7 +84,12 @@ export function createStub({ fault, fixedTenant = false, auditDelayMs = 150 } = 
       // The public localization operation: no authentication, no tenant.
       if (resources) {
         if (req.method !== "GET") return problem(405, "Eolent.MethodNotAllowed", "Method not allowed", {}, { allow: "GET" });
-        const tag = decodeURIComponent(resources[1]);
+        let tag;
+        try {
+          tag = decodeURIComponent(resources[1]);
+        } catch {
+          return validation([{ code: "Eolent.Validation.Invalid", parameter: "culture", detail: "Not a culture tag." }]);
+        }
         if (!/^[A-Za-z]{2,3}(-[A-Za-z0-9]+)*$/.test(tag)) {
           return validation([{ code: "Eolent.Validation.Invalid", parameter: "culture", detail: "Not a culture tag." }]);
         }
