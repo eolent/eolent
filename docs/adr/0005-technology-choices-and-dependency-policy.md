@@ -5,6 +5,7 @@
 - **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
 - **Amended:** 2026-11-20, licence check table: rows for the kernel's JSON Schema validator (adopted), its dependency injection packages (adopted) and JsonSchema.Net (rejected)
 - **Amended:** 2026-11-20, licence check table: hosting and logging abstractions added for the kernel (D4)
+- **Amended:** 2026-11-20, licence check table: EF Core (10.0.15) and its in-memory test provider added for the kernel's data project (D5)
 - **Amended:** 2026-11-20, rule 4 and licence check table: the scans exist since the bootstrap of the code repositories; rows added for the architecture test and banned-API analyzer packages of the kernel repository (D3)
 
 ## Context
@@ -32,7 +33,7 @@
 | Logging | Serilog, behind `Microsoft.Extensions.Logging` | Any logging provider for `Microsoft.Extensions.Logging` |
 | Telemetry | OpenTelemetry | Not applicable: it is the vendor-neutral standard |
 | Caching and distributed state | `Microsoft.Extensions.Caching.Abstractions` (`IDistributedCache`), with StackExchange.Redis as the first provider | Another `IDistributedCache` implementation |
-| Data access | EF Core, with Dapper for hot read paths (outside core modules, or behind a dialect-aware abstraction) | Dapper stays behind repository interfaces, so it can be replaced module by module |
+| Data access | EF Core (the 10.x line while the repositories target net10.0), with Dapper for hot read paths (outside core modules, or behind a dialect-aware abstraction) | Dapper stays behind repository interfaces, so it can be replaced module by module |
 | Frontend UI kit | Tailwind CSS with shadcn/ui components, and TanStack Table for data grids | shadcn/ui components are copied as source, so they are ours. Tailwind and TanStack Table are replaceable inside the kit |
 
 [Architecture](../architecture.md) is updated by this ADR where it lists messaging libraries: the kernel contains no message-bus dependency.
@@ -48,7 +49,7 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | FluentValidation | 12.2.0 | Apache-2.0 | Adopted |
 | Serilog | 4.4.0 | Apache-2.0 | Adopted |
 | OpenTelemetry (.NET) | 1.21.0 | Apache-2.0 | Adopted |
-| EF Core | 11.0.0 | MIT | Adopted |
+| EF Core | 11.0.0 (checked 2026-11-18); the code repositories use 10.0.15, see the row below | MIT | Adopted as a library; the version in use is the 10.x line (11.0.0 is not used) |
 | Dapper | 2.1.89 | Apache-2.0 | Adopted |
 | StackExchange.Redis | 3.4.35 | MIT | Adopted (cache provider) |
 | Tailwind CSS | 4.3.5 | MIT | Adopted |
@@ -63,6 +64,8 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | Microsoft.CodeAnalysis.BannedApiAnalyzers (checked 2026-11-20) | 5.6.0 | MIT (package metadata) | Adopted (compile-time layer rules; an analyzer, not shipped in packages). Exit option: the architecture tests alone |
 | Microsoft.Extensions.Hosting.Abstractions (checked 2026-11-20) | 10.0.15 | MIT (NuGet metadata; dotnet/runtime [licence file](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT)) | Adopted (kernel: background service of the outbox dispatcher). Exit option: define Eolent's own small background-service contract (start and stop with a cancellation token) for the outbox dispatcher and adapt it to the host; the dispatcher logic does not depend on the hosting types. Version note: like the DI row, the package is pinned centrally at 10.0.15 above the validator's Microsoft.Extensions 3.1.0 packages |
 | Microsoft.Extensions.Logging.Abstractions (checked 2026-11-20) | 10.0.15 | MIT (same sources) | Adopted (kernel logging; the ADR's logging decision, Serilog behind `Microsoft.Extensions.Logging`, is unchanged) |
+| Microsoft.EntityFrameworkCore (checked 2026-11-20) | 10.0.15 | MIT (NuGet metadata; dotnet/efcore licence file) | Adopted (kernel data project, `Eolent.Kernel.Data`). The first EF Core row above lists 11.0.0, whose NuGet package targets net11.0 only (checked in its nuspec on 2026-11-20), while the code repositories target net10.0 (`global.json` pins SDK 10.0.401 and `Directory.Build.props` sets `net10.0` in eolent-dotnet); the 10.x line is the one in use, under the same licence, and this row governs the version the code repositories take. Exit option: the tenant isolation logic is small and confined to `Eolent.Kernel.Data`; another ORM would need its own equivalent of the query filter |
+| Microsoft.EntityFrameworkCore.InMemory (checked 2026-11-20) | 10.0.15 | MIT (same sources) | Adopted (tests only, for the filter logic; real-database tests come with the data layer, plan items D6 and D7) |
 | JsonSchema.Net (checked 2026-11-20) | 9.7.0 | Source under MIT, but the published binary (NuGet package) is offered under the Open Source Maintenance Fee agreement ([`OSMFEULA.txt`](https://github.com/json-everything/json-everything/blob/master/OSMFEULA.txt)): use of the binary is bound to a maintenance fee | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
