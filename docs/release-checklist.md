@@ -14,7 +14,7 @@ A release is a version tag of a repository (`eolent`, `eolent-dotnet`, `eolent-r
 
 [ADR 0005](adr/0005-technology-choices-and-dependency-policy.md) requires dependency licences to be checked when a dependency is added and re-checked before each release. The maintainer who prepares the release runs the re-check.
 
-- [ ] Run the licence scan of the repository (a CI job, added when the repository is bootstrapped) and read its result. Every runtime dependency is permissive (Apache-2.0, MIT, BSD or similar) and allows redistribution in a commercial product.
+- [ ] Run the licence scan of the repository and read its result. Where the repository has no scan job yet, list its dependencies by hand and check each licence. Every runtime dependency is permissive (Apache-2.0, MIT, BSD or similar) and allows redistribution in a commercial product.
 - [ ] No dependency of a core package is copyleft, source-available or paid. Such a library is allowed only in an optional, separate package that users choose knowingly.
 - [ ] Compare the dependency list with the table in ADR 0005. A new dependency is added to the table with its version, licence and exit option, in a pull request. A dependency whose licence changed since the last release is replaced or reviewed before the release.
 - [ ] Record in the release notes: the date of the re-check, the repository commit, and the result (no change, or the changes made).
