@@ -205,12 +205,12 @@
           "enum": ["low", "medium", "high"]
         },
         "requiresApproval": {
-          "description": "Whether a person must approve each call before it runs. Always true for high risk.",
+          "description": "Whether a person must approve each call before it runs. Always true for medium and high risk in the manifest, which is the baseline a module declares. Relaxing approval for a medium risk tool is not defined yet (docs/adr/0008-agent-posture.md); a high risk tool is never relaxed.",
           "type": "boolean",
           "default": false
         }
       },
-      "if": { "properties": { "risk": { "const": "high" } } },
+      "if": { "properties": { "risk": { "enum": ["medium", "high"] } } },
       "then": { "required": ["requiresApproval"], "properties": { "requiresApproval": { "const": true } } }
     },
     "error": {
