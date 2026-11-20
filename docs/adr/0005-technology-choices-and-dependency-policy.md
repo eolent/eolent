@@ -4,6 +4,7 @@
 - **Date:** 2026-11-18
 - **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
 - **Amended:** 2026-11-20, licence check table: rows for the kernel's JSON Schema validator (adopted), its dependency injection packages (adopted) and JsonSchema.Net (rejected)
+- **Amended:** 2026-11-20, licence check table: hosting and logging abstractions added for the kernel (D4)
 - **Amended:** 2026-11-20, rule 4 and licence check table: the scans exist since the bootstrap of the code repositories; rows added for the architecture test and banned-API analyzer packages of the kernel repository (D3)
 
 ## Context
@@ -60,6 +61,8 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | NetArchTest.Rules (checked 2026-11-20) | 1.3.2 | MIT: the NuGet package names no licence; the repository's [licence file](https://github.com/BenMorris/NetArchTest/blob/master/LICENSE) is MIT, recorded in `license-overrides.json` of eolent-dotnet | Adopted (architecture tests only, not shipped). Exit option: hand-written tests over the project graph, which already carry most rules |
 | Mono.Cecil (checked 2026-11-20) | 0.11.3 | MIT (the package gives the licence as a URL; the licence file of jbevain/cecil is MIT, and the eolent-dotnet licence scan maps the URL to MIT) | Adopted (transitive dependency of NetArchTest.Rules; tests only) |
 | Microsoft.CodeAnalysis.BannedApiAnalyzers (checked 2026-11-20) | 5.6.0 | MIT (package metadata) | Adopted (compile-time layer rules; an analyzer, not shipped in packages). Exit option: the architecture tests alone |
+| Microsoft.Extensions.Hosting.Abstractions (checked 2026-11-20) | 10.0.15 | MIT (NuGet metadata; dotnet/runtime [licence file](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT)) | Adopted (kernel: background service of the outbox dispatcher) |
+| Microsoft.Extensions.Logging.Abstractions (checked 2026-11-20) | 10.0.15 | MIT (same sources) | Adopted (kernel logging; the ADR's logging decision, Serilog behind `Microsoft.Extensions.Logging`, is unchanged) |
 | JsonSchema.Net (checked 2026-11-20) | 9.7.0 | Source under MIT, but the published binary (NuGet package) is offered under the Open Source Maintenance Fee agreement ([`OSMFEULA.txt`](https://github.com/json-everything/json-everything/blob/master/OSMFEULA.txt)): use of the binary is bound to a maintenance fee | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
