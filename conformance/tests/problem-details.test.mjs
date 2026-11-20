@@ -4,7 +4,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { loadConfig } from "../lib/config.mjs";
-import { request } from "../lib/http.mjs";
+import { request, newTrace } from "../lib/http.mjs";
 import { assertProblem, assertValidationItems } from "../lib/problem.mjs";
 
 const cfg = loadConfig();
@@ -46,5 +46,12 @@ describe("problem details", () => {
     const p = assertProblem(res, { status: 400, code: "Eolent.Validation" });
     assertValidationItems(p);
     assert.ok(p.errors.some((e) => e.code === "Eolent.Validation.UnknownValue" && e.parameter));
+  });
+
+  test("an error response carries the trace id of the request's traceparent", async () => {
+    const trace = newTrace();
+    const res = await request(cfg, { path: `/api/v1/${randomUUID()}`, principal: "tenantA", headers: { traceparent: trace.header } });
+    const p = assertProblem(res, { status: 404, code: "Eolent.NotFound" });
+    assert.equal(p.traceId, trace.traceId);
   });
 });

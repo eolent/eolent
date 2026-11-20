@@ -3,7 +3,7 @@
 import { test, describe, before } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { loadConfig } from "../lib/config.mjs";
+import { loadConfig, needs } from "../lib/config.mjs";
 import { request, listAll } from "../lib/http.mjs";
 import { assertProblem } from "../lib/problem.mjs";
 
@@ -11,8 +11,7 @@ const cfg = loadConfig();
 const { collectionPath, createBody } = cfg.fixtures.resource;
 const tenantA = cfg.fixtures.tenants.a;
 const tenantB = cfg.fixtures.tenants.b;
-const hasHost = cfg.tokens.host !== undefined;
-const hostSkip = hasHost ? false : cfg.fixtures.principals.host ? `the host principal token is not set (environment variable ${cfg.fixtures.principals.host.tokenEnv})` : "the fixtures have no host principal";
+const hostSkip = needs(cfg, "host");
 
 describe("tenancy isolation", () => {
   let created;
@@ -77,7 +76,7 @@ describe("tenancy isolation", () => {
     );
   });
 
-  test("a host principal without a tenant context gets TenantRequired", { skip: hostSkip }, async () => {
+  test("a host principal without a tenant context gets TenantRequired", { skip: hostSkip || (cfg.deployment.fixedTenant && "the deployment has a fixed tenant") }, async () => {
     const res = await request(cfg, { path: collectionPath, principal: "host" });
     assertProblem(res, { status: 400, code: "Eolent.TenantRequired" });
   });
@@ -90,5 +89,12 @@ describe("tenancy isolation", () => {
   test("a host principal naming a nonexistent tenant also gets Forbidden", { skip: hostSkip }, async () => {
     const res = await request(cfg, { path: collectionPath, principal: "host", headers: { "x-eolent-tenant": randomUUID() } });
     assertProblem(res, { status: 403, code: "Eolent.Forbidden" });
+  });
+
+  test("a host principal with the switching permission needs a tenant, and acts within the one it names", { skip: needs(cfg, "hostSwitch") || (cfg.deployment.fixedTenant && "the deployment has a fixed tenant") }, async () => {
+    const without = await request(cfg, { path: collectionPath, principal: "hostSwitch" });
+    assertProblem(without, { status: 400, code: "Eolent.TenantRequired" });
+    const within = await request(cfg, { path: collectionPath, principal: "hostSwitch", headers: { "x-eolent-tenant": tenantA.id } });
+    assert.equal(within.status, 200);
   });
 });

@@ -30,6 +30,14 @@
         "host": {
           "description": "Optional host principal that does not hold the tenant-switching permission.",
           "$ref": "#/$defs/principal"
+        },
+        "hostSwitch": {
+          "description": "Optional host principal that holds the tenant-switching permission.",
+          "$ref": "#/$defs/principal"
+        },
+        "tenantALimited": {
+          "description": "Optional user of tenant A who holds none of the permissions of the resource and of the audit log.",
+          "$ref": "#/$defs/principal"
         }
       }
     },
@@ -40,7 +48,24 @@
       "additionalProperties": false,
       "properties": {
         "collectionPath": { "type": "string", "pattern": "^/api/v1/[a-z][a-z0-9-]*$" },
-        "createBody": { "type": "object" }
+        "createBody": { "type": "object" },
+        "updateBody": { "description": "A JSON merge patch that changes the resource; needed by the concurrency and audit change tests.", "type": "object" },
+        "permission": { "description": "The permission that the create operation requires, as it appears in /api/v1/me/access.", "type": "string" },
+        "sortProperty": { "description": "A property that the list can be sorted by.", "type": "string" }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fixedTenant": { "description": "True when the deployment under test has a fixed tenant, which is tenant A.", "type": "boolean", "default": false },
+        "capabilities": {
+          "description": "Optional parts of the contract that the deployment supports, so the tests for them run.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["concurrency", "idempotency", "localization", "audit"] }
+        },
+        "culture": { "description": "A culture, other than en, that the deployment has messages for.", "type": "string" }
       }
     }
   },
