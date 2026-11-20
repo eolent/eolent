@@ -37,7 +37,7 @@
 
 ### Licence check (2026-11-18; rows added 2026-11-20 are marked)
 
-Checked against the licence metadata published on NuGet and npm for the latest stable version, and against the licence files in each project's repository. The version is given because licence terms can differ between versions.
+Checked against the licence metadata published on NuGet and npm for the latest stable version, and against the licence files in each project's repository. The version is given because licence terms can differ between versions. The rows marked 2026-11-20 were checked against the NuGet metadata and the licence files in the repositories on that date (`LICENSE` of Lateapexearlyspeed.JsonSchema, `LICENSE.TXT` of dotnet/runtime, `OSMFEULA.txt` of json-everything); the licence scan in the eolent-dotnet CI (rule 4) also covers them from D1 on.
 
 | Library | Version checked | Licence found | Status |
 |---|---|---|---|
@@ -56,7 +56,7 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | LateApexEarlySpeed.Json.Schema (checked 2026-11-20) | 5.0.0 | BSD-3-Clause | Adopted (manifest validation in the kernel; JSON Schema 2020-12). Accepted risk: it depends on Microsoft.Extensions 3.1.0 packages (Configuration, Http, Logging, Options, Primitives), which are out of support but permissive and have no known vulnerabilities on 2026-11-20; the kernel does not call them. Exit option: another 2020-12 validator behind `ManifestLoader`, whose public API exposes no validator types |
 | Microsoft.Extensions.DependencyInjection.Abstractions (checked 2026-11-20) | 10.0.15 | MIT | Adopted (kernel module system) |
 | Microsoft.Extensions.DependencyInjection (checked 2026-11-20) | 10.0.15 | MIT | Adopted (pinned centrally; the validator depends on an older version) |
-| JsonSchema.Net (checked 2026-11-20) | 9.7.0 | Open Source Maintenance Fee licence (OSMFEULA), a paid term for some users | Rejected |
+| JsonSchema.Net (checked 2026-11-20) | 9.7.0 | Source under MIT, but the published binary (NuGet package) is offered under the Open Source Maintenance Fee agreement (`OSMFEULA.txt`): use of the binary is bound to a maintenance fee | Rejected |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected |
 | MassTransit | 9.3.0 | Proprietary commercial licence | Rejected |
