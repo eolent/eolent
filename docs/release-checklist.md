@@ -1,6 +1,6 @@
 # Release checklist
 
-> **Status:** first version. The release process, publishing workflows, SBOM and signing are built later later, and this checklist is refined then. Until the first release, it is a list of gates that must be checked by hand.
+> **Status:** first version. The release process, publishing workflows, SBOM and signing are built later, and this checklist is refined then. Until the first release, it is a list of gates that must be checked by hand.
 
 A release is a version tag of a repository (`eolent`, `eolent-dotnet`, `eolent-react`) and the packages published from it. The maintainer who prepares the release works through this list and records the result in the release notes. A step that does not apply is marked as such, not skipped silently.
 
@@ -14,7 +14,7 @@ A release is a version tag of a repository (`eolent`, `eolent-dotnet`, `eolent-r
 
 [ADR 0005](adr/0005-technology-choices-and-dependency-policy.md) requires dependency licences to be checked when a dependency is added and re-checked before each release. The maintainer who prepares the release runs the re-check.
 
-- [ ] Run the licence scan of the repository and read its result. Where the repository has no scan job yet, list its dependencies by hand and check each licence. Every runtime dependency is permissive (Apache-2.0, MIT, BSD or similar) and allows redistribution in a commercial product.
+- [ ] Run the licence scan of the repository in CI and read its result. A repository that has run a scan job since its bootstrap must have that job green. Before bootstrap, or where the repository has no runtime dependencies, record that in the release notes and check each dependency's licence by hand. Every runtime dependency is permissive (Apache-2.0, MIT, BSD or similar) and allows redistribution in a commercial product.
 - [ ] No dependency of a core package is copyleft, source-available or paid. Such a library is allowed only in an optional, separate package that users choose knowingly.
 - [ ] Compare the dependency list with the table in ADR 0005. A new dependency is added to the table with its version, licence and exit option, in a pull request. A dependency whose licence changed since the last release is replaced or reviewed before the release.
 - [ ] Record in the release notes: the date of the re-check, the repository commit, and the result (no change, or the changes made).
@@ -22,7 +22,7 @@ A release is a version tag of a repository (`eolent`, `eolent-dotnet`, `eolent-r
 
 ## 3. Specification and conformance
 
-- [ ] The specification versions (manifest, API conventions, error format, tenancy, permissions, audit, events, localization) are the ones the release claims, and the changelog in `spec/README.md` has an entry for each change since the last release.
+- [ ] The specification versions (manifest, API conventions, error format, tenancy, permissions, audit, events, localization) are the ones the release claims, and the changelog in `spec/README.md` has an entry for each change since the last release (for the first release, since the start of the changelog).
 - [ ] The conformance suite passes against the release on every database the release claims to support. The result is attached to the release notes.
 - [ ] The examples in `spec/examples/` validate, and `npm run validate` passes in `eolent`.
 - [ ] No pull request that changes the specification is open and unmerged for this release.

@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-11-18
+- **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
 
 ## Context
 
