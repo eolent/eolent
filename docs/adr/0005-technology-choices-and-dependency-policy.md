@@ -9,6 +9,7 @@
 - **Amended:** 2026-11-20, rule 1 and licence check table: rule 1 keeps its open wording ("or similar") and names the PostgreSQL licence as of the same kind as MIT and BSD; the PostgreSQL licence is permitted; Npgsql, its EF Core provider and Testcontainers added for the kernel's PostgreSQL data layer (D6)
 - **Amended:** 2026-11-20, licence check table: EF Core (10.0.15) and its in-memory test provider added for the kernel's data project (D5)
 - **Amended:** 2026-11-20, rule 4 and licence check table: the scans exist since the bootstrap of the code repositories; rows added for the architecture test and banned-API analyzer packages of the kernel repository (D3)
+- **Amended:** 2026-11-20, licence check table: MessageFormat (ICU message formatting) added for the kernel's localization (D8a); its package declares no licence, so the row cites the repository's licence file
 
 ## Context
 
@@ -42,7 +43,7 @@
 
 ### Licence check (2026-11-18; rows added 2026-11-20 are marked)
 
-Checked against the licence metadata published on NuGet and npm for the latest stable version, and against the licence files in each project's repository. The version is given because licence terms can differ between versions. The rows marked 2026-11-20 were checked against the NuGet metadata and the licence files in the repositories on that date (`LICENSE` of Lateapexearlyspeed.JsonSchema, `LICENSE.TXT` of dotnet/runtime, `OSMFEULA.txt` of json-everything, `LICENSE` of BenMorris/NetArchTest, `LICENSE.txt` of jbevain/cecil, `LICENSE` of dotnet/roslyn, where the banned-API analyzer lives). The licence scan that runs on every pull request in eolent-dotnet (rule 4) is a separate, automatic check of the same packages.
+Checked against the licence metadata published on NuGet and npm for the latest stable version, and against the licence files in each project's repository. The version is given because licence terms can differ between versions. The rows marked 2026-11-20 were checked against the NuGet metadata and the licence files in the repositories on that date (`LICENSE` of Lateapexearlyspeed.JsonSchema, `LICENSE.TXT` of dotnet/runtime, `OSMFEULA.txt` of json-everything, `LICENSE` of BenMorris/NetArchTest, `LICENSE.txt` of jbevain/cecil, `LICENSE` of dotnet/roslyn, where the banned-API analyzer lives, `LICENSE` of jeffijoe/messageformat.net). The licence scan that runs on every pull request in eolent-dotnet (rule 4) is a separate, automatic check of the same packages.
 
 | Library | Version checked | Licence found | Status |
 |---|---|---|---|
