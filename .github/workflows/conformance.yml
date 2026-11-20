@@ -32,5 +32,7 @@ jobs:
           [ "$ready" = 1 ] || { echo "the stub did not start"; exit 1; }
           docker run --rm --network host \
             -e EOLENT_BASE_URL=http://127.0.0.1:8080 \
-            -e EOLENT_REQUIRE_HOST=1 -e EOLENT_TOKEN_TENANT_A=token-a -e EOLENT_TOKEN_TENANT_B=token-b -e EOLENT_TOKEN_HOST=token-host \
+            -e EOLENT_REQUIRE_ALL_PRINCIPALS=1 -e EOLENT_AUDIT_WAIT_MS=5000 \
+            -e EOLENT_TOKEN_TENANT_A=token-a -e EOLENT_TOKEN_TENANT_B=token-b -e EOLENT_TOKEN_TENANT_A_LIMITED=token-a-limited \
+            -e EOLENT_TOKEN_HOST=token-host -e EOLENT_TOKEN_HOST_SWITCH=token-host-switch \
             eolent-conformance

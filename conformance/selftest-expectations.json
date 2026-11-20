@@ -1,0 +1,142 @@
+{
+  "description": "Expectations of conformance/selftest.mjs: for each fault of the stub, the exact tests that must fail. Reviewed by hand; the self-test also checks that every title exists.",
+  "shapeTests": [
+    "a body with missing required fields returns validation items",
+    "a caller without the permission of a change is refused with 403 Forbidden",
+    "a caller without the permission of a read is refused with 403 Forbidden",
+    "a change without If-Match returns 428 and a stale one returns 412",
+    "a declared sort property is accepted and an undeclared one is rejected",
+    "a disallowed method returns 405 with an Allow header",
+    "a host principal naming a nonexistent tenant also gets Forbidden",
+    "a host principal with the switching permission needs a tenant, and acts within the one it names",
+    "a host principal without a tenant context gets TenantRequired",
+    "a host principal without the switching permission cannot send a tenant header",
+    "a limit outside 1 to 200 is a validation error for the parameter",
+    "a malformed body returns a validation error with a Malformed item",
+    "a refused request produces a denied entry, and the response is the same 403",
+    "a refused tenant switch produces a denied tenantSwitch entry in the named tenant's log",
+    "a tenant header naming a nonexistent tenant is also a tenant mismatch",
+    "a tenant header that differs from the token is a tenant mismatch",
+    "a tenant header that is not a UUID is a validation error",
+    "an error is localized by Accept-Language and the code does not change",
+    "an error response carries the trace id of the request's traceparent",
+    "an unauthenticated request is 401 before any permission check",
+    "an unauthenticated request returns 401 with WWW-Authenticate: Bearer",
+    "an unknown path returns 404 problem details",
+    "an unsupported filter property returns an UnknownValue item for the parameter",
+    "an unsupported language falls back and still names the language used",
+    "another tenant cannot see the entry, and its identifier looks like a nonexistent one",
+    "another tenant's entity looks exactly like a nonexistent one",
+    "the resources operation needs no authentication and rejects a malformed culture",
+    "the same key and body return the original result, another body returns 422"
+  ],
+  "faults": {
+    "crossTenantRead": [
+      "another tenant's entity looks exactly like a nonexistent one"
+    ],
+    "crossTenantList": [
+      "another tenant cannot list the entity"
+    ],
+    "ignoreTenantHeader": [
+      "a tenant header naming a nonexistent tenant is also a tenant mismatch",
+      "a tenant header that differs from the token is a tenant mismatch"
+    ],
+    "nonUuidHeaderAccepted": [
+      "a tenant header that is not a UUID is a validation error"
+    ],
+    "unknownTenantNotMismatch": [
+      "a tenant header naming a nonexistent tenant is also a tenant mismatch"
+    ],
+    "hostWithoutTenantAllowed": [
+      "a host principal with the switching permission needs a tenant, and acts within the one it names",
+      "a host principal without a tenant context gets TenantRequired"
+    ],
+    "hostHeaderAllowed": [
+      "a host principal naming a nonexistent tenant also gets Forbidden",
+      "a host principal without the switching permission cannot send a tenant header",
+      "a refused tenant switch produces a denied tenantSwitch entry in the named tenant's log"
+    ],
+    "hostUnknownTenantNotFound": [
+      "a host principal naming a nonexistent tenant also gets Forbidden"
+    ],
+    "wrongProblemType": "$shape",
+    "noCacheControl": "$shape",
+    "noWwwAuthenticate": [
+      "an unauthenticated request returns 401 with WWW-Authenticate: Bearer"
+    ],
+    "no405Allow": [
+      "a disallowed method returns 405 with an Allow header"
+    ],
+    "noMalformedItem": [
+      "a malformed body returns a validation error with a Malformed item"
+    ],
+    "acceptsEmptyBody": [
+      "a body with missing required fields returns validation items"
+    ],
+    "ignoreUnknownFilter": [
+      "a declared sort property is accepted and an undeclared one is rejected",
+      "a limit outside 1 to 200 is a validation error for the parameter",
+      "an unsupported filter property returns an UnknownValue item for the parameter"
+    ],
+    "noPermissionCheck": [
+      "a caller without the permission of a change is refused with 403 Forbidden",
+      "a caller without the permission of a read is refused with 403 Forbidden",
+      "a refused request produces a denied entry, and the response is the same 403"
+    ],
+    "accessCacheable": [
+      "the access endpoint lists the caller's own permissions, sorted, and is not cacheable"
+    ],
+    "ignoreCursor": [
+      "following nextCursor returns every item once"
+    ],
+    "noLimitValidation": [
+      "a limit outside 1 to 200 is a validation error for the parameter"
+    ],
+    "noTotalCount": [
+      "totalCount is present only when includeTotal is true"
+    ],
+    "noEtag": [
+      "a change with the current version succeeds and returns a new version",
+      "a read returns the version as a property and as a strong ETag",
+      "an update records exactly the changed property with its old and new value"
+    ],
+    "noIfMatchRequired": [
+      "a change without If-Match returns 428 and a stale one returns 412"
+    ],
+    "idempotencyIgnored": [
+      "the same key and body return the original result, another body returns 422"
+    ],
+    "noContentLanguage": [
+      "an error is localized by Accept-Language and the code does not change",
+      "an unsupported language falls back and still names the language used"
+    ],
+    "wrongResourcesCulture": [
+      "the resources operation serves the culture, with a region falling back to its language"
+    ],
+    "noAudit": [
+      "a create produces an entry with the actor, tenant, resource and trace id",
+      "a host principal acting within a tenant produces a tenantSwitch entry for that tenant",
+      "a refused request produces a denied entry, and the response is the same 403",
+      "a refused tenant switch produces a denied tenantSwitch entry in the named tenant's log",
+      "an update records exactly the changed property with its old and new value",
+      "another tenant cannot see the entry, and its identifier looks like a nonexistent one"
+    ],
+    "noDeniedAudit": [
+      "a refused request produces a denied entry, and the response is the same 403",
+      "a refused tenant switch produces a denied tenantSwitch entry in the named tenant's log"
+    ],
+    "noSwitchAudit": [
+      "a host principal acting within a tenant produces a tenantSwitch entry for that tenant",
+      "a refused tenant switch produces a denied tenantSwitch entry in the named tenant's log"
+    ],
+    "auditLeakAcrossTenants": [
+      "another tenant cannot see the entry, and its identifier looks like a nonexistent one"
+    ],
+    "auditWritable": [
+      "the log has no operation that creates, changes or deletes an entry"
+    ],
+    "wrongTraceId": [
+      "an error response carries the trace id of the request's traceparent"
+    ]
+  }
+}
