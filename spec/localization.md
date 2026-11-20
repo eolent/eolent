@@ -80,7 +80,7 @@ If no file has the key, the text is the key itself for UI labels. For an error `
 
 Responses that carry one localized message, such as error responses, set `Content-Language` to the culture that supplied the `title`. When parts come from different fallback cultures, `Content-Language` names the culture of the first part.
 
-A user preference for the interface language is a client concern: the frontend sends it as `Accept-Language`. The setting `Localization.DefaultCulture` is declared by the localization module (a platform module, not yet written) with scope `tenant`, so a tenant can override its global value. Where the module is not installed, steps 3 and 4 use no setting and the deployment default is `en`.
+A user preference for the interface language is a client concern: the frontend sends it as `Accept-Language`. The setting `Localization.DefaultCulture` is declared by the platform module `localization` ([example manifest](examples/localization.module.json)) with scope `tenant`, so a tenant can override its global value. The same module owns the operation `localizationResourcesGet` of section 6. Where the module is not installed, steps 3 and 4 use no setting and the deployment default is `en`.
 
 ## 6. Resources for the frontend
 
