@@ -1,14 +1,14 @@
 # Release checklist
 
-> **Status:** first version. The release process, publishing workflows, SBOM and signing are built later (plan item H16), and this checklist is refined then. Until the first release, it is a list of gates that must be checked by hand.
+> **Status:** first version. The release process, publishing workflows, SBOM and signing are built later later, and this checklist is refined then. Until the first release, it is a list of gates that must be checked by hand.
 
 A release is a version tag of a repository (`eolent`, `eolent-dotnet`, `eolent-react`) and the packages published from it. The maintainer who prepares the release works through this list and records the result in the release notes. A step that does not apply is marked as such, not skipped silently.
 
 ## 1. Before anything is published
 
-- [ ] **Trademark gate (first public package only).** The trademark clearance for the name is done, and the package names and organisation names are reserved. Nothing is published to NuGet or npm under the name before then. See the plan, section 6.
+- [ ] **Trademark gate (first public package only).** The trademark clearance for the name is done, and the package names and organisation names are reserved. Nothing is published to NuGet or npm under the name before then.
 - [ ] **Scope.** The release matches the milestone it claims. Anything outside it is marked as not included in the release notes.
-- [ ] **The default branch is green.** All required checks pass on the commit that is tagged (`validate`, `DCO sign-off`, `Runner self-test`, `ReviewBot`, and the code repositories' own checks).
+- [ ] **The default branch is green.** All required checks pass on the commit that is tagged (`validate`, `DCO sign-off`, `Runner self-test`, `ReviewBot` (a GitHub app check, not a workflow in this repository), and the code repositories' own checks).
 
 ## 2. Licence re-check
 
