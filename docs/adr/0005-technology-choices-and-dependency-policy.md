@@ -4,6 +4,7 @@
 - **Date:** 2026-11-18
 - **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
 - **Amended:** 2026-11-20, licence check table: rows for the kernel's JSON Schema validator (adopted), its dependency injection packages (adopted) and JsonSchema.Net (rejected)
+- **Amended:** 2026-11-20, licence check table: hosting and logging abstractions added for the kernel (D4)
 - **Amended:** 2026-11-20, rule 4 and licence check table: the scans exist since the bootstrap of the code repositories; rows added for the architecture test and banned-API analyzer packages of the kernel repository (D3)
 
 ## Context
@@ -60,12 +61,16 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | NetArchTest.Rules (checked 2026-11-20) | 1.3.2 | MIT: the NuGet package names no licence; the repository's [licence file](https://github.com/BenMorris/NetArchTest/blob/master/LICENSE) is MIT, recorded in `license-overrides.json` of eolent-dotnet | Adopted (architecture tests only, not shipped). Exit option: hand-written tests over the project graph, which already carry most rules |
 | Mono.Cecil (checked 2026-11-20) | 0.11.3 | MIT (the package gives the licence as a URL; the licence file of jbevain/cecil is MIT, and the eolent-dotnet licence scan maps the URL to MIT) | Adopted (transitive dependency of NetArchTest.Rules; tests only) |
 | Microsoft.CodeAnalysis.BannedApiAnalyzers (checked 2026-11-20) | 5.6.0 | MIT (package metadata) | Adopted (compile-time layer rules; an analyzer, not shipped in packages). Exit option: the architecture tests alone |
+| Microsoft.Extensions.Hosting.Abstractions (checked 2026-11-20) | 10.0.15 | MIT (NuGet metadata; dotnet/runtime [licence file](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT)) | Adopted (kernel: background service of the outbox dispatcher). Exit option: define Eolent's own small background-service contract (start and stop with a cancellation token) for the outbox dispatcher and adapt it to the host; the dispatcher logic does not depend on the hosting types. Version note: like the DI row, the package is pinned centrally at 10.0.15 above the validator's Microsoft.Extensions 3.1.0 packages |
+| Microsoft.Extensions.Logging.Abstractions (checked 2026-11-20) | 10.0.15 | MIT (same sources) | Adopted (kernel logging; the ADR's logging decision, Serilog behind `Microsoft.Extensions.Logging`, is unchanged) |
 | JsonSchema.Net (checked 2026-11-20) | 9.7.0 | Source under MIT, but the published binary (NuGet package) is offered under the Open Source Maintenance Fee agreement ([`OSMFEULA.txt`](https://github.com/json-everything/json-everything/blob/master/OSMFEULA.txt)): use of the binary is bound to a maintenance fee | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 | MassTransit | 9.3.0 | Proprietary commercial licence | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 
 Infrastructure services are not covered by this table. Eolent does not distribute any server software: the Redis cache provider talks to a Redis-compatible server that the deployer chooses and is responsible for, and Redis is optional. Because recent Redis server releases use source-available or copyleft licence options, deployments should check the terms of the server they run, or use a compatible server under a permissive licence such as Valkey (BSD-3-Clause). The kernel depends only on the `IDistributedCache` abstraction.
+
+The licence scan of rule 4 includes transitive packages, so the packages that the rows above bring in (for example Microsoft.Extensions.Options and Configuration.Abstractions through the hosting abstractions) are checked on every pull request in the code repositories; the table records the direct dependencies, and a transitive one only when it needed a separate licence check (for example Mono.Cecil, whose licence is given as a URL).
 
 Licences can change, so this table is a snapshot and must be refreshed under rule 4.
 
