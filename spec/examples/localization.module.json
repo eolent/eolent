@@ -1,0 +1,27 @@
+{
+  "$schema": "../module.schema.json",
+  "manifestVersion": "0.2",
+  "name": "localization",
+  "version": "0.1.0",
+  "displayName": "Localization",
+  "description": "Serves the interface messages of every installed module and holds the default culture of the deployment and of each tenant.",
+  "settings": [
+    {
+      "name": "Localization.DefaultCulture",
+      "displayName": "Default culture",
+      "description": "The culture used when a request names none that has messages. A BCP 47 tag, for example en or cs. The tenant value overrides the global one.",
+      "valueType": "string",
+      "default": "en",
+      "scope": "tenant"
+    }
+  ],
+  "operations": [
+    {
+      "operationId": "localizationResourcesGet",
+      "method": "GET",
+      "path": "/api/v1/localization/resources/{culture}",
+      "description": "The messages of every installed module for a culture, with the culture fallback already applied. Public.",
+      "tenancy": "none"
+    }
+  ]
+}
