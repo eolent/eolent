@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-11-18
 - **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
+- **Amended:** 2026-11-20, licence check table: JSON Schema validator and Microsoft.Extensions abstractions added for the kernel (D2)
 
 ## Context
 
@@ -52,6 +53,9 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | TanStack Table | 9.3.1 | MIT | Adopted |
 | shadcn/ui | [commit 968d8cb9dc42ae5d52e8fd356cf84596ec832a26](https://github.com/shadcn-ui/ui/tree/968d8cb9dc42ae5d52e8fd356cf84596ec832a26) ([licence file](https://github.com/shadcn-ui/ui/blob/968d8cb9dc42ae5d52e8fd356cf84596ec832a26/LICENSE.md)) | MIT | Adopted (components are copied into the kit from that commit) |
 | Wolverine | 6.64.2 | MIT | Optional module only |
+| LateApexEarlySpeed.Json.Schema | 5.0.0 | BSD-3-Clause | Adopted (manifest validation in the kernel; JSON Schema 2020-12). Exit option: another 2020-12 validator behind `ManifestLoader`, whose public API exposes no validator types |
+| Microsoft.Extensions.DependencyInjection(.Abstractions) | 10.0.15 | MIT | Adopted (kernel module system) |
+| JsonSchema.Net | 9.7.0 | Open Source Maintenance Fee licence (OSMFEULA), a paid term for some users | Rejected |
 | Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected |
 | MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected |
 | MassTransit | 9.3.0 | Proprietary commercial licence | Rejected |
