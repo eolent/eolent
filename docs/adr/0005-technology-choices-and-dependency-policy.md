@@ -53,7 +53,7 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | TanStack Table | 9.3.1 | MIT | Adopted |
 | shadcn/ui | [commit 968d8cb9dc42ae5d52e8fd356cf84596ec832a26](https://github.com/shadcn-ui/ui/tree/968d8cb9dc42ae5d52e8fd356cf84596ec832a26) ([licence file](https://github.com/shadcn-ui/ui/blob/968d8cb9dc42ae5d52e8fd356cf84596ec832a26/LICENSE.md)) | MIT | Adopted (components are copied into the kit from that commit) |
 | Wolverine | 6.64.2 | MIT | Optional module only |
-| LateApexEarlySpeed.Json.Schema (checked 2026-11-20) | 5.0.0 | BSD-3-Clause | Adopted (manifest validation in the kernel; JSON Schema 2020-12). Exit option: another 2020-12 validator behind `ManifestLoader`, whose public API exposes no validator types |
+| LateApexEarlySpeed.Json.Schema (checked 2026-11-20) | 5.0.0 | BSD-3-Clause | Adopted (manifest validation in the kernel; JSON Schema 2020-12). Accepted risk: it depends on Microsoft.Extensions 3.1.0 packages (Configuration, Http, Logging, Options, Primitives), which are out of support but permissive and have no known vulnerabilities on 2026-11-20; the kernel does not call them. Exit option: another 2020-12 validator behind `ManifestLoader`, whose public API exposes no validator types |
 | Microsoft.Extensions.DependencyInjection.Abstractions (checked 2026-11-20) | 10.0.15 | MIT | Adopted (kernel module system) |
 | Microsoft.Extensions.DependencyInjection (checked 2026-11-20) | 10.0.15 | MIT | Adopted (pinned centrally; the validator depends on an older version) |
 | JsonSchema.Net (checked 2026-11-20) | 9.7.0 | Open Source Maintenance Fee licence (OSMFEULA), a paid term for some users | Rejected |
