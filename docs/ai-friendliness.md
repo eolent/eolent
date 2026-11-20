@@ -18,7 +18,7 @@ Every application service is declared with its permission, tenant scope and audi
 - agent identities with scoped tokens, not shared administrator keys
 - per-tenant isolation and usage metering
 - audit entries that record "agent X acting for user Y"
-- an approval hook for destructive actions: a module opts operations in to agent exposure in its manifest (`agentTools`) with a risk class and an approval flag ([ADR 0007](adr/0007-manifest-0-2.md))
+- an approval hook for medium and high risk actions, with the posture fixed in [ADR 0008](adr/0008-agent-posture.md): a module opts operations in to agent exposure in its manifest (`agentTools`) with a risk class and an approval flag ([ADR 0007](adr/0007-manifest-0-2.md))
 - awareness of prompt injection, since tool inputs may contain untrusted text
 
 An AI provider abstraction (Microsoft.Extensions.AI in .NET and equivalents elsewhere) and an optional retrieval-augmented-generation module are planned.

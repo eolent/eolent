@@ -4,7 +4,7 @@
   "description": "Validation tooling for the Eolent specification hub. Not published.",
   "type": "module",
   "scripts": {
-    "validate": "node scripts/validate.mjs && node --test scripts/manifest-checks.test.mjs scripts/localization-checks.test.mjs scripts/schema.test.mjs scripts/events-schema.test.mjs scripts/audit-entry-schema.test.mjs",
+    "validate": "node scripts/validate.mjs && node --test scripts/manifest-checks.test.mjs scripts/localization-checks.test.mjs scripts/schema.test.mjs scripts/events-schema.test.mjs scripts/audit-entry-schema.test.mjs scripts/agent-tools-schema.test.mjs",
     "conformance:selftest": "node conformance/selftest.mjs",
     "conformance:stub": "node conformance/stub/server.mjs"
   },
