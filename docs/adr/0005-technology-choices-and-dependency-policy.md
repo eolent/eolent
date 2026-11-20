@@ -33,7 +33,7 @@
 | Logging | Serilog, behind `Microsoft.Extensions.Logging` | Any logging provider for `Microsoft.Extensions.Logging` |
 | Telemetry | OpenTelemetry | Not applicable: it is the vendor-neutral standard |
 | Caching and distributed state | `Microsoft.Extensions.Caching.Abstractions` (`IDistributedCache`), with StackExchange.Redis as the first provider | Another `IDistributedCache` implementation |
-| Data access | EF Core, with Dapper for hot read paths (outside core modules, or behind a dialect-aware abstraction) | Dapper stays behind repository interfaces, so it can be replaced module by module |
+| Data access | EF Core (the 10.x line while the repositories target net10.0), with Dapper for hot read paths (outside core modules, or behind a dialect-aware abstraction) | Dapper stays behind repository interfaces, so it can be replaced module by module |
 | Frontend UI kit | Tailwind CSS with shadcn/ui components, and TanStack Table for data grids | shadcn/ui components are copied as source, so they are ours. Tailwind and TanStack Table are replaceable inside the kit |
 
 [Architecture](../architecture.md) is updated by this ADR where it lists messaging libraries: the kernel contains no message-bus dependency.
@@ -49,7 +49,7 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | FluentValidation | 12.2.0 | Apache-2.0 | Adopted |
 | Serilog | 4.4.0 | Apache-2.0 | Adopted |
 | OpenTelemetry (.NET) | 1.21.0 | Apache-2.0 | Adopted |
-| EF Core | 11.0.0 (checked 2026-11-18); the code repositories use 10.0.15, see the row below | MIT | Adopted |
+| EF Core | 11.0.0 (checked 2026-11-18); the code repositories use 10.0.15, see the row below | MIT | Adopted as a library; the version in use is the 10.x line (11.0.0 is not used) |
 | Dapper | 2.1.89 | Apache-2.0 | Adopted |
 | StackExchange.Redis | 3.4.35 | MIT | Adopted (cache provider) |
 | Tailwind CSS | 4.3.5 | MIT | Adopted |
