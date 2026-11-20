@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-11-18
 - **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
+- **Amended:** 2026-11-20, licence check table: rows for the kernel's JSON Schema validator (adopted), its dependency injection packages (adopted) and JsonSchema.Net (rejected), checked on 2026-11-20
 
 ## Context
 
@@ -34,9 +35,9 @@
 
 [Architecture](../architecture.md) is updated by this ADR where it lists messaging libraries: the kernel contains no message-bus dependency.
 
-### Licence check (2026-11-18)
+### Licence check (2026-11-18; rows added 2026-11-20 are marked)
 
-Checked against the licence metadata published on NuGet and npm for the latest stable version, and against the licence files in each project's repository. The version is given because licence terms can differ between versions.
+Checked against the licence metadata published on NuGet and npm for the latest stable version, and against the licence files in each project's repository. The version is given because licence terms can differ between versions. The rows marked 2026-11-20 were checked against the NuGet metadata and the licence files in the repositories on that date (`LICENSE` of Lateapexearlyspeed.JsonSchema, `LICENSE.TXT` of dotnet/runtime, `OSMFEULA.txt` of json-everything). The licence scan that runs on every pull request in eolent-dotnet (rule 4) is a separate, automatic check of the same packages.
 
 | Library | Version checked | Licence found | Status |
 |---|---|---|---|
@@ -52,9 +53,13 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 | TanStack Table | 9.3.1 | MIT | Adopted |
 | shadcn/ui | [commit 968d8cb9dc42ae5d52e8fd356cf84596ec832a26](https://github.com/shadcn-ui/ui/tree/968d8cb9dc42ae5d52e8fd356cf84596ec832a26) ([licence file](https://github.com/shadcn-ui/ui/blob/968d8cb9dc42ae5d52e8fd356cf84596ec832a26/LICENSE.md)) | MIT | Adopted (components are copied into the kit from that commit) |
 | Wolverine | 6.64.2 | MIT | Optional module only |
-| Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected |
-| MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected |
-| MassTransit | 9.3.0 | Proprietary commercial licence | Rejected |
+| LateApexEarlySpeed.Json.Schema (checked 2026-11-20) | 5.0.0 | BSD-3-Clause ([licence file](https://github.com/lateapexearlyspeed/Lateapexearlyspeed.JsonSchema/blob/main/LICENSE)) | Adopted (manifest validation in the kernel; JSON Schema 2020-12). Maintained by one individual (lateapexearlyspeed on GitHub), so the replacement path matters: the validator is used in one place only. Accepted risk: it depends on Microsoft.Extensions 3.1.0 packages (Configuration, Http, Logging, Options, Primitives), which are out of support but permissive and have no advisories found in the GitHub advisory database at the time of checking, 2026-11-20 (the command `dotnet list package --vulnerable --include-transitive` run in eolent-dotnet at the D2 pull request reported none; the result goes stale, so repeat it at each rule-4 re-check); the kernel does not call them. Exit option: another 2020-12 validator behind `ManifestLoader`, whose public API exposes no validator types |
+| Microsoft.Extensions.DependencyInjection.Abstractions (checked 2026-11-20) | 10.0.15 | MIT ([licence file](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT)) | Adopted (kernel module system) |
+| Microsoft.Extensions.DependencyInjection (checked 2026-11-20) | 10.0.15 | MIT ([licence file](https://github.com/dotnet/runtime/blob/main/LICENSE.TXT)) | Adopted (pinned centrally; the validator depends on an older version) |
+| JsonSchema.Net (checked 2026-11-20) | 9.7.0 | Source under MIT, but the published binary (NuGet package) is offered under the Open Source Maintenance Fee agreement ([`OSMFEULA.txt`](https://github.com/json-everything/json-everything/blob/master/OSMFEULA.txt)): use of the binary is bound to a maintenance fee | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
+| Hangfire | 1.8.25 | Multi-licensed: LGPL v3 for the open-source edition, plus a paid edition | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
+| MediatR | 15.0.0 | Reciprocal Public License 1.5, or a paid commercial licence | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
+| MassTransit | 9.3.0 | Proprietary commercial licence | Rejected (the rejection applies to the NuGet binary; the MIT source licence does not reverse it, because Eolent would consume the package) |
 
 Infrastructure services are not covered by this table. Eolent does not distribute any server software: the Redis cache provider talks to a Redis-compatible server that the deployer chooses and is responsible for, and Redis is optional. Because recent Redis server releases use source-available or copyleft licence options, deployments should check the terms of the server they run, or use a compatible server under a permissive licence such as Valkey (BSD-3-Clause). The kernel depends only on the `IDistributedCache` abstraction.
 
