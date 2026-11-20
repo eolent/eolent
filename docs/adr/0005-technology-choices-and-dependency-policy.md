@@ -70,7 +70,7 @@ Checked against the licence metadata published on NuGet and npm for the latest s
 
 Infrastructure services are not covered by this table. Eolent does not distribute any server software: the Redis cache provider talks to a Redis-compatible server that the deployer chooses and is responsible for, and Redis is optional. Because recent Redis server releases use source-available or copyleft licence options, deployments should check the terms of the server they run, or use a compatible server under a permissive licence such as Valkey (BSD-3-Clause). The kernel depends only on the `IDistributedCache` abstraction.
 
-The licence scan of rule 4 includes transitive packages, so the packages that the rows above bring in (for example Microsoft.Extensions.Options and Configuration.Abstractions through the hosting abstractions) are checked on every pull request in the code repositories; only direct dependencies get a row here.
+The licence scan of rule 4 includes transitive packages, so the packages that the rows above bring in (for example Microsoft.Extensions.Options and Configuration.Abstractions through the hosting abstractions) are checked on every pull request in the code repositories; the table records the direct dependencies, and a transitive one only when it needed a separate licence check (for example Mono.Cecil, whose licence is given as a URL).
 
 Licences can change, so this table is a snapshot and must be refreshed under rule 4.
 
