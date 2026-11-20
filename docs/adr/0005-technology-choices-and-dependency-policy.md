@@ -3,7 +3,8 @@
 - **Status:** Accepted
 - **Date:** 2026-11-18
 - **Amended:** 2026-11-20, rule 4: the re-check step moved into the release checklist, and each code repository must run a licence scan in CI from its bootstrap
-- **Amended:** 2026-11-20, licence check table: architecture test and banned-API analyzer packages added for the kernel repository (D3); earlier in the day: rows for the kernel's JSON Schema validator (adopted), its dependency injection packages (adopted) and JsonSchema.Net (rejected), checked on 2026-11-20
+- **Amended:** 2026-11-20, licence check table: rows for the kernel's JSON Schema validator (adopted), its dependency injection packages (adopted) and JsonSchema.Net (rejected)
+- **Amended:** 2026-11-20, rule 4 and licence check table: the scans exist since the bootstrap of the code repositories; rows added for the architecture test and banned-API analyzer packages of the kernel repository (D3)
 
 ## Context
 
@@ -16,7 +17,7 @@
 1. A runtime dependency of Eolent packages must be available under a permissive licence (Apache-2.0, MIT, BSD or similar) that allows redistribution as part of a commercial product.
 2. Libraries under copyleft, source-available or paid terms are not used as dependencies of core packages. They may be supported through optional, separate packages that users opt into knowingly.
 3. Third-party types do not appear in public module contracts where a thin abstraction is practical. Each abstraction records an exit option: what we would switch to if the licence or maintenance of the library changes.
-4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below. The maintainer who prepares a release runs the re-check. The step is in the [release checklist](../release-checklist.md), which is refined with the release process before the first release. Each code repository MUST run a licence scan in CI from its bootstrap, which checks every pull request against rules 1 and 2. No such scan exists yet, because the code repositories are not bootstrapped.
+4. Licences are checked when a dependency is added and re-checked before each release. The result is recorded in the table below. The maintainer who prepares a release runs the re-check. The step is in the [release checklist](../release-checklist.md), which is refined with the release process before the first release. Each code repository MUST run a licence scan in CI from its bootstrap, which checks every pull request against rules 1 and 2. Both code repositories have been bootstrapped with such a scan: eolent-dotnet (D1, `licences` job with `allowed-licenses.json`, `license-url-mappings.json` and `license-overrides.json`) and eolent-react (R1, `scan:licences`). A package whose metadata names no licence is recorded in `license-overrides.json` with the evidence, which is its repository's licence file.
 
 ### Choices
 
