@@ -49,7 +49,7 @@ Three isolation modes are planned: shared database with a tenant column, schema 
 - **Core:** React and TypeScript on Vite, with TanStack Router and TanStack Query.
 - **UI:** Tailwind with shadcn/ui, chosen for flexibility and themeability.
 - **Forms:** React Hook Form with Zod.
-- **API client:** generated from the backend's OpenAPI description (for example with Orval or openapi-typescript), so the frontend is typed end to end.
+- **API client:** generated from the backend's OpenAPI description with openapi-typescript (types only, a development tool; the client is a small typed `fetch` wrapper with no runtime dependency, [ADR 0005](adr/0005-technology-choices-and-dependency-policy.md)), so the frontend is typed end to end.
 - **i18n and permissions:** i18next, and a `usePermission()` hook fed by a backend permission endpoint.
 - **Server-side rendering:** only if public pages need it. The admin UI stays a single-page app.
 - **UI modularity:** a monorepo of npm packages in which each module registers its routes, menu items and permissions in a central registry. Runtime module federation is considered only if third-party runtime plugins become a requirement.
