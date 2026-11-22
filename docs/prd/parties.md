@@ -37,7 +37,7 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 - **C1.** A user can create, read, change and deactivate a company. A company has a **name** (required), a **kind** (required, `legalEntity` or `naturalPerson`), a **company registration number**, a **tax (VAT) number**, a **country**, a **general e-mail**, a **phone**, a **preferred language** and a **note**. Only the name and kind are required.
 - **C2.** A company has **any number of addresses**. Each has a type (for example registered office, postal, delivery), the usual postal fields, and a flag for **primary**. **At most one address of a company is primary**; setting a new primary replaces the old one. The first address becomes primary.
 - **C3.** The company registration number is unique per country within a tenant when it is given, and so is the tax (VAT) number, so the same company is not entered twice. A violation is reported as a validation error that names the existing company's id. Both numbers are searchable (K1). Groups of companies that share a tax number are not supported in v1 (there are no groups). How near-duplicates are detected and merged is not part of v1.
-- **C4.** A company of kind `naturalPerson` can be linked to a person. A company of kind `legalEntity` cannot.
+- **C4.** A company of kind `naturalPerson` can be linked to a person, and a person is linked to at most one company record. A company of kind `legalEntity` cannot.
 - **C5.** Every company, person and membership belongs to exactly one tenant, and a tenant never sees another tenant's parties.
 
 ### People

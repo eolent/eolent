@@ -55,7 +55,7 @@ Text columns hold Unicode. **Comparison keys are computed by the application** a
 | `erasedAt` | timestamp | yes | Set by erasure (D3); an erased company is also `deactivated` |
 
 Constraints: `kind` and `status` in their sets; `personId` is null when `kind` is `legalEntity` (C4); `country` is not null when a registration or tax number is given; `erasedAt` not null implies `status` `deactivated`.
-Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId, country, taxNumber)`, each only where the number is not null (C3); unique `(tenantId, legacyId)` where not null; `(tenantId, name)` for search; `(tenantId, personId)`.
+Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId, country, taxNumber)`, each only where the number is not null (C3); unique `(tenantId, legacyId)` where not null; `(tenantId, name)` for search; unique `(tenantId, personId)` where not null (a person is linked to at most one company record, C4).
 
 ### CompanyAddress
 
@@ -115,7 +115,7 @@ Indexes: `(companyId)`; `(personId)`; `(reportsToMembershipId)`; `(tenantId, rel
 
 ### PersonDistinctPair
 
-`tenantId`, `personAId`, `personBId` (foreign keys to Person), `confirmedBy` (uuid of the user, no foreign key: users belong to another module), `confirmedAt` (timestamp). Check `personAId` < `personBId` (the pair is stored ordered); primary key `(personAId, personBId)`. Written only under the permission `Parties.People.ConfirmDistinct` and always together with an audit event (P3).
+`tenantId`, `personAId`, `personBId` (foreign keys to Person), `confirmedBy` (uuid of the user, no foreign key: users belong to another module), `confirmedAt` (timestamp). The application stores the pair ordered: the person id whose canonical lower-case string form is smaller, compared as text by code point, goes in `personAId`. There is no database check for the order, because uuid ordering differs between PostgreSQL and SQL Server; the primary key `(personAId, personBId)` makes a stored pair unique, and the application looks a pair up in the ordered form. Written only under the permission `Parties.People.ConfirmDistinct` and always together with an audit event (P3).
 
 ### LegacyTombstone
 
