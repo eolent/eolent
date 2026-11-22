@@ -98,6 +98,7 @@ Indexes: unique `(tenantId, email)` where not null (P3); `(tenantId, nameKey)` f
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
+| `tenantId` | uuid | no | As in every table |
 | `companyId` | uuid | no | Foreign key to Company |
 | `personId` | uuid | no | Foreign key to Person |
 | `relationshipNameId` | uuid | no | Foreign key to RelationshipName |
@@ -123,7 +124,7 @@ Indexes: `(companyId)`; `(personId)`; `(reportsToMembershipId)`; `(tenantId, rel
 
 ## 4. What is erased, and how
 
-Erasure (D3) updates the row in place. For a Person: `firstName` and `lastName` become a placeholder that is unique to the record, `title`, `email`, `phone`, `note` and `legacyId` become null, `nameKey` takes the placeholder, `status` becomes `deactivated`, `erasedAt` is set, and the person's PersonDistinctPair rows are deleted. If a Company of kind `naturalPerson` is linked to the person (the same human, C4), **that company is erased in the same transaction** as described next, so no personal data of the human remains. For a Company: `name` becomes a placeholder, `registrationNumber`, `taxNumber`, `email`, `phone`, `note`, `legacyId` and `personId` become null, its CompanyAddress rows are deleted (D3 says addresses are removed; the lookup of an erased company then returns none), `status` becomes `deactivated`, `erasedAt` is set. Erasing such a company erases the linked person too, for the same reason; the link is nulled last. In both cases a LegacyTombstone row is written when a `legacyId` existed. Memberships are not changed (D3). Because the erased values are null, the unique indexes above never block a new record.
+Erasure (D3) updates the row in place. For a Person: `firstName` and `lastName` become a placeholder that is unique to the record, `title`, `email`, `phone`, `language`, `note` and `legacyId` become null, `nameKey` takes the placeholder, `status` becomes `deactivated`, `erasedAt` is set, and the person's PersonDistinctPair rows are deleted. If a Company of kind `naturalPerson` is linked to the person (the same human, C4), **that company is erased in the same transaction** as described next, so no personal data of the human remains. For a Company: `name` becomes a placeholder, `registrationNumber`, `taxNumber`, `email`, `phone`, `language`, `note`, `legacyId` and `personId` become null, its CompanyAddress rows are deleted (D3 says addresses are removed; the lookup of an erased company then returns none), `status` becomes `deactivated`, `erasedAt` is set. Erasing such a company erases the linked person too, for the same reason; the link is nulled last. The operation is **idempotent and guarded**: it works on the pair in one transaction, skips a record whose `erasedAt` is already set, and writes at most one tombstone per record, so the two directions never recurse. In both cases a LegacyTombstone row is written when a `legacyId` existed. Memberships are not changed (D3). Because the erased values are null, the unique indexes above never block a new record.
 
 ## 5. Lookups and the contract (ADR 0009)
 
