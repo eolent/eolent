@@ -42,12 +42,14 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 ### People
 
 - **P1.** A user can create, read, change and deactivate a person. A person has a **first name** and a **last name** (both required), a **title**, an **e-mail**, a **phone**, a **preferred language** and a **note**.
+- **P3.** **A person is not entered twice.** A person's **e-mail**, when given, is unique within the tenant, and a second person with the same e-mail is refused. A second person whose **normalised full name** (ignoring case, accents, extra spaces and the order of first and last name) equals an existing one is also refused with an error that names the existing person, **unless the user confirms that it is a different human** (a deliberate, audited choice, because two real people can share a name). The confirmed pair is remembered, so the check does not ask again for the same two people.
 - **P2.** A person can be found by a search over name and e-mail, and the result shows which companies they are linked to.
 
 ### Memberships and the hierarchy
 
 - **M1.** A user can link a person to a company with a **relationship name** from the list, an optional **position text** (free text, for example "Head of finance"), and a **valid-from** date and an optional **valid-to** date. Valid-from is required.
 - **M2.** **One person can have many memberships**, in the same or in different companies, with the same or different relationship names. Two memberships of the same person in the same company with the same relationship name **cannot overlap in time**.
+- **M2a.** **The same name cannot hold the same role twice at the same time.** Within one company, two memberships with the same relationship name whose periods overlap cannot belong to two persons with the same normalised full name (P3), even when they are separate person records. The attempt is refused with an error that names the existing membership. The refusal can be overridden only when the two persons were confirmed as different humans (P3). This stops "two Jan Nowak as director in the same period" without forbidding two genuinely different people who share a name.
 - **M3.** A membership can name **one other membership of the same company as the one it reports to**. This gives a **tree** per company: each membership has at most one manager, and the manager is a membership of the **same company**. A membership with no manager is a root. A company can have several roots.
 - **M4.** A membership cannot report to itself or, through any chain, to one of its own subordinates. An attempt to create such a loop is refused with a validation error.
 - **M5.** The hierarchy can be read as a whole tree for a company (each node: person, relationship, position, period, manager), as the direct reports of one membership, and as the chain of managers above one.
@@ -123,7 +125,8 @@ There is no row-level restriction in v1: a user who may read companies reads all
 1. Should a company's **tax number** be unique too, or only the registration number (C3)? Group companies sometimes share a tax number.
 2. Is a **second language per person** (language of the interface and language of documents) needed, or is one preferred language enough?
 3. Should **position text** be a controlled list like relationship names, or stay free text (M1)?
-4. Does the migration need to keep a **primary contact person per company** as a flag, or is "the first current contact membership" enough?
+4. Should P3 also compare a **date of birth** (optional, only to tell namesakes apart), or is the confirmation enough? A date of birth is personal data and would need an erasure rule.
+5. Does the migration need to keep a **primary contact person per company** as a flag, or is "the first current contact membership" enough?
 
 ## 10. Enforced by
 
@@ -131,7 +134,7 @@ This section lists the checks that keep the code in line with this PRD. Until th
 
 | Requirement | Check |
 |---|---|
-| C2, C3, M2, M3, M4 | Database constraints and unique indexes of the persistence layer, and a contract test run against PostgreSQL and SQL Server |
+| C2, C3, P3, M2, M2a, M3, M4 | Database constraints and unique indexes of the persistence layer, and a contract test run against PostgreSQL and SQL Server |
 | M4, M6 | Domain tests of the hierarchy rules (loop, same company, subordinates) |
 | D1, D3, K1–K4 | The module's Contracts tests, and an architecture test that no other module reaches its tables (ADR 0009) |
 | X1, X2 | The black-box conformance suite for concurrency and idempotency |
