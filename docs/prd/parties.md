@@ -2,6 +2,7 @@
 
 - **Module:** `parties`
 - **Status:** Draft
+- **ERD:** [Parties](../erd/parties.md)
 - **Date:** 2026-11-22
 - **Depends on:** nothing. It is a shared-concept module under [ADR 0009](../adr/0009-cross-module-references.md), rule 3.
 - **Used by:** sales invoicing (first), a later CRM module, and every module that needs "who is the customer, the supplier or the contact".
@@ -36,7 +37,7 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 - **C1.** A user can create, read, change and deactivate a company. A company has a **name** (required), a **kind** (required, `legalEntity` or `naturalPerson`), a **company registration number**, a **tax (VAT) number**, a **country**, a **general e-mail**, a **phone**, a **preferred language** and a **note**. Only the name and kind are required.
 - **C2.** A company has **any number of addresses**. Each has a type (for example registered office, postal, delivery), the usual postal fields, and a flag for **primary**. **At most one address of a company is primary**; setting a new primary replaces the old one. The first address becomes primary.
 - **C3.** The company registration number is unique per country within a tenant when it is given, and so is the tax (VAT) number, so the same company is not entered twice. A violation is reported as a validation error that names the existing company's id. Both numbers are searchable (K1). Groups of companies that share a tax number are not supported in v1 (there are no groups). How near-duplicates are detected and merged is not part of v1.
-- **C4.** A company of kind `naturalPerson` can be linked to a person. A company of kind `legalEntity` cannot.
+- **C4.** A company of kind `naturalPerson` can be linked to a person, and a person is linked to at most one company record. A company of kind `legalEntity` cannot.
 - **C5.** Every company, person and membership belongs to exactly one tenant, and a tenant never sees another tenant's parties.
 
 ### People
@@ -65,7 +66,7 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **D1.** Companies and people that other modules may point at are **never physically deleted**. A user **deactivates** them. A deactivated company or person stays readable and resolvable by id, appears in searches only when asked for, and **cannot be chosen for a new reference**. It can be **reactivated**.
 - **D2.** Deactivating a company does not change its memberships. Deactivating a person does not end their memberships.
-- **D3.** A company or a person can be **erased** (a data-protection request) by a user with a separate permission. Erasure is done in place: the personal facts are replaced by placeholders, the legacy identifier is removed and a tombstone of it is kept (D3 below), the record is deactivated, its id is kept so that references stay valid, and an `erased` event is published. Memberships of an erased person stay, showing the placeholder name; each erased record gets its own placeholder, and **erased people and companies are excluded from the duplicate checks P3 and M2a**, so two erased directors never collide. Erasing a **company** keeps its memberships as they are and does not end them: they show the company's placeholder name, and the people stay untouched. Erasure **clears to null** the e-mail, phone, addresses, notes and registration and tax numbers of the record (these are the values the unique indexes of C3 and P3 ignore when null, so an erased record never blocks a new one), and replaces the names by a placeholder that is unique to that record. The tombstone of the legacy key is a **keyed hash (HMAC) made with an installation secret**, not a plain hash, because legacy keys are often sequential and a plain hash could be reversed by trying them all. Erasure cannot be undone.
+- **D3.** A company or a person can be **erased** (a data-protection request) by a user with a separate permission. Erasure is done in place: the personal facts are replaced by placeholders, the legacy identifier is removed and a tombstone of it is kept (D3 below), the record is deactivated, its id is kept so that references stay valid, and an `erased` event is published. Memberships of an erased person stay, showing the placeholder name; each erased record gets its own placeholder, and **erased people and companies are excluded from the duplicate checks P3 and M2a**, so two erased directors never collide. Erasing a person erases the company of kind `naturalPerson` linked to them, and the other way round, in one operation, because both records hold the same human's data. Erasing a **company** keeps its memberships as they are and does not end them: they show the company's placeholder name, and the people stay untouched. Erasure **clears to null** the e-mail, phone, preferred language, notes and registration and tax numbers of the record and **removes its addresses** (these are the values the unique indexes of C3 and P3 ignore when null, so an erased record never blocks a new one), and replaces the names by a placeholder that is unique to that record. The tombstone of the legacy key is a **keyed hash (HMAC) made with an installation secret**, not a plain hash, because legacy keys are often sequential and a plain hash could be reversed by trying them all. Erasure cannot be undone.
 - **D4.** Documents in other modules that took a snapshot of a party are the documents' own data (ADR 0009, rule 4). Parties does not reach into them.
 
 ### Concurrency and repeats
@@ -140,7 +141,8 @@ This section lists the checks that keep the code in line with this PRD. **The mo
 | Requirement | Check |
 |---|---|
 | C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes in the persistence layer: a partial index on the company id where the address is primary (C2), and indexes on tenant, country and number (C3) and tenant and e-mail (P3) that ignore null values, and a contract test run against PostgreSQL and SQL Server |
-| M2, M2a, P3 (name), M3, M4, M6 | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
+| M3 (manager in the same company) | A composite foreign key on the membership table (see the [ERD](../erd/parties.md)) |
+| M2, M2a, P3 (name), M4, M6 (on PostgreSQL a database exclusion constraint MAY back M2 as well; SQL Server has none) | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
 | C4, M1, R1, R2, M5, M7 | Domain and acceptance tests of the module |
 | C5 | The platform's tenant-isolation checks, and a conformance test that a second tenant sees none of the first tenant's parties |
 | P1, P2, C1 | Acceptance tests of the module (create, read, change, search) |
