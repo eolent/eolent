@@ -2,6 +2,7 @@
 
 - **Module:** `parties`
 - **Status:** Draft
+- **ERD:** [Parties](../erd/parties.md)
 - **Date:** 2026-11-22
 - **Depends on:** nothing. It is a shared-concept module under [ADR 0009](../adr/0009-cross-module-references.md), rule 3.
 - **Used by:** sales invoicing (first), a later CRM module, and every module that needs "who is the customer, the supplier or the contact".
@@ -140,7 +141,8 @@ This section lists the checks that keep the code in line with this PRD. **The mo
 | Requirement | Check |
 |---|---|
 | C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes in the persistence layer: a partial index on the company id where the address is primary (C2), and indexes on tenant, country and number (C3) and tenant and e-mail (P3) that ignore null values, and a contract test run against PostgreSQL and SQL Server |
-| M2, M2a, P3 (name), M3, M4, M6 | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
+| M3 (manager in the same company) | A composite foreign key on the membership table (see the [ERD](../erd/parties.md)) |
+| M2, M2a, P3 (name), M4, M6 | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
 | C4, M1, R1, R2, M5, M7 | Domain and acceptance tests of the module |
 | C5 | The platform's tenant-isolation checks, and a conformance test that a second tenant sees none of the first tenant's parties |
 | P1, P2, C1 | Acceptance tests of the module (create, read, change, search) |
