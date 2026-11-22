@@ -47,6 +47,7 @@ More detail: [docs/vision.md](docs/vision.md).
 - [Roadmap](docs/roadmap.md)
 - [What is free and what is commercial](docs/free-and-commercial.md)
 - [Architecture decision records](docs/adr/)
+- [Product requirements](docs/prd/)
 - [Specification](spec/README.md)
 
 ## Contributing

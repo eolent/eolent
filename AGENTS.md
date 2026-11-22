@@ -14,6 +14,7 @@ The language-neutral hub of Eolent: specification (`spec/`), conformance suite (
 - `docs/`: vision, architecture, AI-friendliness, multi-language approach, roadmap.
 - `.github/`: CI workflows (validation, DCO), issue and PR templates, CODEOWNERS.
 - `docs/adr/`: one file per decision, numbered `NNNN-title.md`.
+- `docs/prd/`: one product requirements document per module (what it must do, who uses it, what is out of scope, which checks enforce it).
 - `scripts/validate.mjs`: the validation run by `npm run validate` and by CI (`.github/workflows/validate.yml`).
 
 ## Rules
