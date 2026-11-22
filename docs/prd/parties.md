@@ -35,7 +35,7 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **C1.** A user can create, read, change and deactivate a company. A company has a **name** (required), a **kind** (required, `legalEntity` or `naturalPerson`), a **company registration number**, a **tax (VAT) number**, a **country**, a **general e-mail**, a **phone**, a **preferred language** and a **note**. Only the name and kind are required.
 - **C2.** A company has **any number of addresses**. Each has a type (for example registered office, postal, delivery), the usual postal fields, and a flag for **primary**. **At most one address of a company is primary**; setting a new primary replaces the old one. The first address becomes primary.
-- **C3.** The company registration number is unique per country within a tenant when it is given, so the same company is not entered twice. A violation is reported as a validation error that names the existing company's id. (How near-duplicates are detected and merged is not part of v1.)
+- **C3.** The company registration number is unique per country within a tenant when it is given, and so is the tax (VAT) number, so the same company is not entered twice. A violation is reported as a validation error that names the existing company's id. Groups of companies that share a tax number are not supported in v1 (there are no groups). How near-duplicates are detected and merged is not part of v1.
 - **C4.** A company of kind `naturalPerson` can be linked to a person. A company of kind `legalEntity` cannot.
 - **C5.** Every company, person and membership belongs to exactly one tenant, and a tenant never sees another tenant's parties.
 
@@ -122,13 +122,15 @@ There is no row-level restriction in v1: a user who may read companies reads all
 - Import from a spreadsheet and any external register lookup.
 - Credentials, user accounts and login. People here are contacts, not users; the identity module owns users.
 
-## 9. Open questions
+## 9. Decisions on the open questions
 
-1. Should a company's **tax number** be unique too, or only the registration number (C3)? Group companies sometimes share a tax number.
-2. Is a **second language per person** (language of the interface and language of documents) needed, or is one preferred language enough?
-3. Should **position text** be a controlled list like relationship names, or stay free text (M1)?
-4. Should P3 also compare a **date of birth** (optional, only to tell namesakes apart), or is the confirmation enough? A date of birth is personal data and would need an erasure rule.
-5. Does the migration need to keep a **primary contact person per company** as a flag, or is "the first current contact membership" enough?
+1. **Tax number:** unique per country within a tenant, like the registration number (C3), because v1 has no company groups.
+2. **Language:** one preferred language per person and per company is enough.
+3. **Position text:** free text (M1), not a controlled list.
+4. **Date of birth:** not stored in v1; the confirmation in P3 is the only way to tell namesakes apart.
+5. **Primary contact:** no flag. "The first current membership with the relationship `contact`" is the primary contact, by the order in which the memberships were created.
+
+No open questions remain for v1.
 
 ## 10. Enforced by
 
