@@ -65,19 +65,19 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **D1.** Companies and people that other modules may point at are **never physically deleted**. A user **deactivates** them. A deactivated company or person stays readable and resolvable by id, appears in searches only when asked for, and **cannot be chosen for a new reference**. It can be **reactivated**.
 - **D2.** Deactivating a company does not change its memberships. Deactivating a person does not end their memberships.
-- **D3.** A company or a person can be **erased** (a data-protection request) by a user with a separate permission. Erasure is done in place: the personal facts are replaced by placeholders, the legacy identifier is removed and a one-way tombstone of it is kept, the record is deactivated, its id is kept so that references stay valid, and an `erased` event is published. Memberships of an erased person stay, showing the placeholder name; each erased record gets its own placeholder, and **erased people and companies are excluded from the duplicate checks P3 and M2a**, so two erased directors never collide. Erasing a **company** keeps its memberships as they are (the people stay linked to a deactivated, anonymised company) and does not touch the people. The tombstone of the legacy key is a **keyed hash (HMAC) made with an installation secret**, not a plain hash, because legacy keys are often sequential and a plain hash could be reversed by trying them all. Erasure cannot be undone.
+- **D3.** A company or a person can be **erased** (a data-protection request) by a user with a separate permission. Erasure is done in place: the personal facts are replaced by placeholders, the legacy identifier is removed and a tombstone of it is kept (D3 below), the record is deactivated, its id is kept so that references stay valid, and an `erased` event is published. Memberships of an erased person stay, showing the placeholder name; each erased record gets its own placeholder, and **erased people and companies are excluded from the duplicate checks P3 and M2a**, so two erased directors never collide. Erasing a **company** keeps its memberships as they are and does not end them: they show the company's placeholder name, and the people stay untouched. Erasure **clears to null** the e-mail, phone, addresses, notes and registration and tax numbers of the record (these are the values the unique indexes of C3 and P3 ignore when null, so an erased record never blocks a new one), and replaces the names by a placeholder that is unique to that record. The tombstone of the legacy key is a **keyed hash (HMAC) made with an installation secret**, not a plain hash, because legacy keys are often sequential and a plain hash could be reversed by trying them all. Erasure cannot be undone.
 - **D4.** Documents in other modules that took a snapshot of a party are the documents' own data (ADR 0009, rule 4). Parties does not reach into them.
 
 ### Concurrency and repeats
 
-- **X1.** Changing a company, a person or a membership requires the version the user last saw; a stale change is refused (`412`/`428` as the API conventions define).
-- **X2.** Creating a company, a person or a membership can be repeated safely with an idempotency key.
+- **X1.** Every operation that changes a company, a person, a membership or a relationship name requires the version the user last saw, including ending a membership, deactivating, reactivating and erasing; a stale change is refused (`412`/`428` as the API conventions define).
+- **X2.** Creating a company, a person, a membership or a relationship name, and erasing, can be repeated safely with an idempotency key.
 
 ### Contract offered to other modules (ADR 0009)
 
 - **K1.** The module's Contracts offer, for companies and for people: **get by id**, **get many by ids**, and **search** by name, registration number, tax number and e-mail. Every result carries the **state** (active or deactivated, erased or not).
 - **K2.** A company lookup returns the facts other modules snapshot into their documents: name, kind, registration number, tax number, country, general e-mail, language, the primary address and the other addresses. Nothing else is promised.
-- **K3.** A lookup by the **legacy identifier** exists for migrations only, guarded by the permission `Parties.Migration.Resolve`, held only by the migration principal, and not reachable over HTTP.
+- **K3.** A lookup by the **legacy identifier** exists for migrations only, guarded by the permission `Parties.Migration.Resolve`. The permission has scope `host` in the manifest, so the permission contract keeps it out of every tenant role and out of the tenant administrator: only a host principal can hold it, through a host-level role (for example `migration`) that the installation grants to the migration run. It is not reachable over HTTP.
 - **K4.** Before it stores a reference to a company or a person, a consuming module checks through the lookup that the party exists and is active.
 
 ### Migration
@@ -106,7 +106,7 @@ All permissions follow the [permission contract](../../spec/permissions.md).
 | `Parties.RelationshipNames.Manage` | relationship names |
 | `Parties.People.ConfirmDistinct` | confirm that two people with the same name are different humans (P3) |
 | `Parties.Erase` | erase a company or a person (separate on purpose) |
-| `Parties.Migration.Resolve` | the migration-only lookup (K3) |
+| `Parties.Migration.Resolve` (scope `host`) | the migration-only lookup (K3) |
 
 There is no row-level restriction in v1: a user who may read companies reads all companies of the tenant.
 
@@ -135,17 +135,17 @@ No open questions remain for v1.
 
 ## 10. Enforced by
 
-This section lists the checks that keep the code in line with this PRD. Until the module exists it records what they will be. A requirement that is not listed has **no check yet**, and the table says so.
+This section lists the checks that keep the code in line with this PRD. **The module does not exist yet, so every check below is planned, not running.** The section is updated when each one is built. A requirement that is not listed has **no check yet**, and the table says so.
 
 | Requirement | Check |
 |---|---|
-| C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes (filtered where a column is null) in the persistence layer, and a contract test run against PostgreSQL and SQL Server |
+| C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes in the persistence layer: a partial index on the company id where the address is primary (C2), and indexes on tenant, country and number (C3) and tenant and e-mail (P3) that ignore null values, and a contract test run against PostgreSQL and SQL Server |
 | M2, M2a, P3 (name), M3, M4, M6 | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
 | C4, M1, R1, R2, M5, M7 | Domain and acceptance tests of the module |
 | C5 | The platform's tenant-isolation checks, and a conformance test that a second tenant sees none of the first tenant's parties |
 | P1, P2, C1 | Acceptance tests of the module (create, read, change, search) |
 | D1, D2, D3, D4 | Domain tests of deactivation and erasure; a test that erasure leaves memberships, excludes the record from P3 and M2a, and stores a keyed tombstone |
 | K1, K2, K4 | The module's Contracts tests (what a lookup returns, state included) |
-| K3, G1–G3 | A test that only the migration principal holds `Parties.Migration.Resolve` and that no HTTP route reaches the lookup, plus migration tests of order, upsert and the erased skip |
+| K3, G1–G3 | A test that the manifest declares `Parties.Migration.Resolve` with scope `host`, that no tenant role or administrator holds it and that no HTTP route reaches the lookup, plus migration tests of order, upsert and the erased skip |
 | X1, X2 | The black-box conformance suite for concurrency and idempotency |
 | Permissions, events | The module manifest, validated by `npm run validate` and by the manifest checks |
