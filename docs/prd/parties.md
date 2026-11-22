@@ -82,7 +82,9 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 ### Migration
 
-- **G1.** Companies, people and memberships carry a nullable **legacy identifier** (ADR 0009, rule 5). The migration loads people and companies first and memberships after them, upserting by legacy identifier, and skips and reports a legacy key that was erased.
+- **G1.** Companies, people, memberships and relationship names each carry a nullable **legacy identifier** (`legacyId`: text, up to 100 characters), the identifier the record had in the system it came from. It is **unique within the tenant** per entity, and when several source systems are loaded the migration **prefixes it with the system** (for example `erp:1234`, `crm:1234`). It is internal: it is not shown or set through the HTTP API and is not part of the lookup results, and its only reader outside the module is the migration-only lookup (K3).
+- **G2.** Migration order is people and companies first, then memberships (which refer to both and to each other for the hierarchy), upserting by legacy identifier, so a run can be repeated. A membership whose person or company is not loaded yet is reported, never guessed.
+- **G3.** A record whose legacy key was erased (D3) is skipped and reported as erased, never inserted again. Erasure removes the legacy identifier from the record and keeps a one-way hash of it for this check.
 
 ## 5. Lifecycles
 
@@ -139,4 +141,4 @@ This section lists the checks that keep the code in line with this PRD. Until th
 | D1, D3, K1–K4 | The module's Contracts tests, and an architecture test that no other module reaches its tables (ADR 0009) |
 | X1, X2 | The black-box conformance suite for concurrency and idempotency |
 | Permissions, events | The module manifest, validated by `npm run validate` and by the manifest checks |
-| C1, P1, R1, R2, M1, M5, M7, G1 | Acceptance tests of the module, written from these requirements |
+| C1, P1, R1, R2, M1, M5, M7, G1–G3 | Acceptance tests of the module, written from these requirements |
