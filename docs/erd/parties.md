@@ -55,7 +55,7 @@ Text columns hold Unicode. **Comparison keys are computed by the application** a
 | `erasedAt` | timestamp | yes | Set by erasure (D3); an erased company is also `deactivated` |
 
 Constraints: `kind` and `status` in their sets; `personId` is null when `kind` is `legalEntity` (C4); `country` is not null when a registration or tax number is given; `erasedAt` not null implies `status` `deactivated`.
-Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId, country, taxNumber)`, each only where the number is not null (C3); unique `(tenantId, legacyId)` where not null; `(tenantId, name)` for search; unique `(tenantId, personId)` where not null (a person is linked to at most one company record, C4).
+Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId, country, taxNumber)`, each only where the number is not null (C3); unique `(tenantId, legacyId)` where not null; `(tenantId, name)` for search; unique `(tenantId, personId)` where not null (a person is linked to at most one company record, C4); `(tenantId, email)` for search by e-mail.
 
 ### CompanyAddress
 
@@ -71,7 +71,7 @@ Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId,
 | `isPrimary` | boolean | no | |
 
 Indexes: unique `(tenantId, companyId)` where `isPrimary` is true (C2, at most one primary); `(tenantId, companyId)`.
-The application makes the first address primary and moves the flag in one transaction when another is chosen. Erasure deletes the address rows of an erased company (D3).
+The application makes the first address primary and moves the flag in one transaction when another is chosen, **clearing the current primary first and then setting the new one** (the partial unique index is checked per statement, so the other order fails). Erasure deletes the address rows of an erased company (D3).
 
 ### Person
 
@@ -115,7 +115,7 @@ Indexes: `(companyId)`; `(personId)`; `(reportsToMembershipId)`; `(tenantId, rel
 
 ### PersonDistinctPair
 
-`tenantId`, `personAId`, `personBId` (foreign keys to Person), `confirmedBy` (uuid of the user, no foreign key: users belong to another module), `confirmedAt` (timestamp). The application stores the pair ordered: the person id whose canonical lower-case string form is smaller, compared as text by code point, goes in `personAId`. There is no database check for the order, because uuid ordering differs between PostgreSQL and SQL Server; the primary key `(tenantId, personAId, personBId)` makes a stored pair unique, and the application looks a pair up in the ordered form. Written only under the permission `Parties.People.ConfirmDistinct` and always together with an audit event (P3).
+`tenantId`, `personAId`, `personBId` (foreign keys to Person), `confirmedBy` (uuid of the user, no foreign key: users belong to another module), `confirmedAt` (timestamp). A confirmed pair is stored **in both directions** (A,B and B,A) in one transaction, and deleted the same way, so no ordering of uuids is needed (it differs between PostgreSQL and SQL Server) and a lookup by either person finds it. Check `personAId` is not equal to `personBId`. The primary key `(tenantId, personAId, personBId)` makes each stored direction unique. Written only under the permission `Parties.People.ConfirmDistinct` and always together with an audit event (P3).
 
 ### LegacyTombstone
 
@@ -123,7 +123,7 @@ Indexes: `(companyId)`; `(personId)`; `(reportsToMembershipId)`; `(tenantId, rel
 
 ## 4. What is erased, and how
 
-Erasure (D3) updates the row in place. For a Person: `firstName` and `lastName` become a placeholder that is unique to the record, `title`, `email`, `phone`, `note` and `legacyId` become null, `nameKey` takes the placeholder, `status` becomes `deactivated`, `erasedAt` is set, and the person's PersonDistinctPair rows are deleted. For a Company: `name` becomes a placeholder, `registrationNumber`, `taxNumber`, `email`, `phone`, `note`, `legacyId` and `personId` become null, its CompanyAddress rows are deleted (D3 says addresses are removed; the lookup of an erased company then returns none), `status` becomes `deactivated`, `erasedAt` is set. In both cases a LegacyTombstone row is written when a `legacyId` existed. Memberships are not changed (D3). Because the erased values are null, the unique indexes above never block a new record.
+Erasure (D3) updates the row in place. For a Person: `firstName` and `lastName` become a placeholder that is unique to the record, `title`, `email`, `phone`, `note` and `legacyId` become null, `nameKey` takes the placeholder, `status` becomes `deactivated`, `erasedAt` is set, and the person's PersonDistinctPair rows are deleted. If a Company of kind `naturalPerson` is linked to the person (the same human, C4), **that company is erased in the same transaction** as described next, so no personal data of the human remains. For a Company: `name` becomes a placeholder, `registrationNumber`, `taxNumber`, `email`, `phone`, `note`, `legacyId` and `personId` become null, its CompanyAddress rows are deleted (D3 says addresses are removed; the lookup of an erased company then returns none), `status` becomes `deactivated`, `erasedAt` is set. Erasing such a company erases the linked person too, for the same reason; the link is nulled last. In both cases a LegacyTombstone row is written when a `legacyId` existed. Memberships are not changed (D3). Because the erased values are null, the unique indexes above never block a new record.
 
 ## 5. Lookups and the contract (ADR 0009)
 
