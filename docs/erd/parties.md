@@ -70,7 +70,7 @@ Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId,
 | `country` | text(2) | no | |
 | `isPrimary` | boolean | no | |
 
-Indexes: unique `(companyId)` where `isPrimary` is true (C2, at most one primary); `(companyId)`.
+Indexes: unique `(tenantId, companyId)` where `isPrimary` is true (C2, at most one primary); `(tenantId, companyId)`.
 The application makes the first address primary and moves the flag in one transaction when another is chosen. Erasure deletes the address rows of an erased company (D3).
 
 ### Person
@@ -92,7 +92,7 @@ Indexes: unique `(tenantId, email)` where not null (P3); `(tenantId, nameKey)` f
 
 `RelationshipName`: `code` (text 50, required), `isActive` (boolean). Unique `(tenantId, code)`; unique `(tenantId, legacyId)` where not null. The starting set (R2) is inserted when the module is installed for a tenant.
 
-`RelationshipNameText`: `tenantId`, `relationshipNameId` (foreign key), `language` (text 10), `text` (text 100). Primary key `(relationshipNameId, language)`.
+`RelationshipNameText`: `tenantId`, `relationshipNameId` (foreign key), `language` (text 10), `text` (text 100). Primary key `(tenantId, relationshipNameId, language)`.
 
 ### Membership
 
@@ -109,13 +109,13 @@ Indexes: unique `(tenantId, email)` where not null (P3); `(tenantId, nameKey)` f
 Constraints:
 - `validTo` is null or not before `validFrom`.
 - `reportsToMembershipId` is not equal to `id`.
-- **Same company and same tenant, enforced by the database:** a unique key `(tenantId, companyId, id)` and a composite foreign key `(tenantId, companyId, reportsToMembershipId)` to it, so a manager can only be a membership of the same company (M3).
+- **Same company and same tenant, enforced by the database:** a unique key `(tenantId, companyId, id)` and a composite foreign key `(tenantId, companyId, reportsToMembershipId)` to it, so a manager can only be a membership of the same company (M3). The key is declared as a simple match: a null `reportsToMembershipId` (a root of the tree) skips the check, which is intended.
 Indexes: `(companyId)`; `(personId)`; `(reportsToMembershipId)`; `(tenantId, relationshipNameId)` for the "name in use" check (R1); unique `(tenantId, legacyId)` where not null.
 **Rules the database cannot express** (the PRD's "Enforced by" says they run in the domain layer, in a serialisable transaction): no loop in the tree (M4); no overlap for the same person, company and relationship name (M2); no overlap for two persons with the same `nameKey` in the same company and relationship name unless a PersonDistinctPair exists (M2a); a membership with current subordinates cannot end (M6).
 
 ### PersonDistinctPair
 
-`tenantId`, `personAId`, `personBId` (foreign keys to Person), `confirmedBy` (uuid of the user, no foreign key: users belong to another module), `confirmedAt` (timestamp). The application stores the pair ordered: the person id whose canonical lower-case string form is smaller, compared as text by code point, goes in `personAId`. There is no database check for the order, because uuid ordering differs between PostgreSQL and SQL Server; the primary key `(personAId, personBId)` makes a stored pair unique, and the application looks a pair up in the ordered form. Written only under the permission `Parties.People.ConfirmDistinct` and always together with an audit event (P3).
+`tenantId`, `personAId`, `personBId` (foreign keys to Person), `confirmedBy` (uuid of the user, no foreign key: users belong to another module), `confirmedAt` (timestamp). The application stores the pair ordered: the person id whose canonical lower-case string form is smaller, compared as text by code point, goes in `personAId`. There is no database check for the order, because uuid ordering differs between PostgreSQL and SQL Server; the primary key `(tenantId, personAId, personBId)` makes a stored pair unique, and the application looks a pair up in the ordered form. Written only under the permission `Parties.People.ConfirmDistinct` and always together with an audit event (P3).
 
 ### LegacyTombstone
 
@@ -139,6 +139,6 @@ Every result carries the state (`status`, and whether `erasedAt` is set), never 
 
 ## 6. Notes for the implementations
 
-- **PostgreSQL and SQL Server.** The partial (filtered) unique indexes above exist in both. The unique indexes treat several nulls as allowed because they filter on "not null", which avoids the difference in how the two products treat nulls in a unique index. The domain-layer rules take a serialisable transaction so that the same code serves both products: SQL Server has no exclusion constraint for period overlap. PostgreSQL has one (an exclusion constraint over a date range, with the equality columns), which an implementation MAY add as a second line of defence for M2 (the same person); M2a compares different person rows by `nameKey` with an exception table, which no constraint expresses, so the domain check stays the rule on both.
+- **PostgreSQL and SQL Server.** The partial (filtered) unique indexes above exist in both. The unique indexes treat several nulls as allowed because they filter on "not null", which avoids the difference in how the two products treat nulls in a unique index. The domain-layer rules take a serialisable transaction so that the same code serves both products: SQL Server has no exclusion constraint for period overlap. PostgreSQL has one (an exclusion constraint over a date range, which needs the `btree_gist` extension for the equality columns), which an implementation MAY add as a second line of defence for M2 (the same person); M2a compares different person rows by `nameKey` with an exception table, which no constraint expresses, so the domain check stays the rule on both.
 - **No deletes.** The application never physically deletes a Company, Person, Membership or RelationshipName (D1, M6, R1). Address rows and distinct pairs can be deleted.
 - **Events and audit** are written through the platform's outbox in the same transaction as the change; this module has no event table of its own.
