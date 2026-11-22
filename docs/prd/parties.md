@@ -35,21 +35,21 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **C1.** A user can create, read, change and deactivate a company. A company has a **name** (required), a **kind** (required, `legalEntity` or `naturalPerson`), a **company registration number**, a **tax (VAT) number**, a **country**, a **general e-mail**, a **phone**, a **preferred language** and a **note**. Only the name and kind are required.
 - **C2.** A company has **any number of addresses**. Each has a type (for example registered office, postal, delivery), the usual postal fields, and a flag for **primary**. **At most one address of a company is primary**; setting a new primary replaces the old one. The first address becomes primary.
-- **C3.** The company registration number is unique per country within a tenant when it is given, and so is the tax (VAT) number, so the same company is not entered twice. A violation is reported as a validation error that names the existing company's id. Groups of companies that share a tax number are not supported in v1 (there are no groups). How near-duplicates are detected and merged is not part of v1.
+- **C3.** The company registration number is unique per country within a tenant when it is given, and so is the tax (VAT) number, so the same company is not entered twice. A violation is reported as a validation error that names the existing company's id. Both numbers are searchable (K1). Groups of companies that share a tax number are not supported in v1 (there are no groups). How near-duplicates are detected and merged is not part of v1.
 - **C4.** A company of kind `naturalPerson` can be linked to a person. A company of kind `legalEntity` cannot.
 - **C5.** Every company, person and membership belongs to exactly one tenant, and a tenant never sees another tenant's parties.
 
 ### People
 
 - **P1.** A user can create, read, change and deactivate a person. A person has a **first name** and a **last name** (both required), a **title**, an **e-mail**, a **phone**, a **preferred language** and a **note**.
-- **P3.** **A person is not entered twice.** A person's **e-mail**, when given, is unique within the tenant, and a second person with the same e-mail is refused. A second person whose **normalised full name** (ignoring case, accents, extra spaces and the order of first and last name) equals an existing one is also refused with an error that names the existing person, **unless the user confirms that it is a different human** (a deliberate, audited choice, because two real people can share a name). The confirmed pair is remembered, so the check does not ask again for the same two people.
 - **P2.** A person can be found by a search over name and e-mail, and the result shows which companies they are linked to.
+- **P3.** **A person is not entered twice.** A person's **e-mail**, when given, is unique within the tenant, and a second person with the same e-mail is refused. A second person whose **normalised full name** (ignoring case, accents, extra spaces and the order of first and last name) equals an existing one is also refused with an error that names the existing person, **unless the user confirms that it is a different human** (a deliberate, audited choice, because two real people can share a name). The confirmation needs its own permission (`Parties.People.ConfirmDistinct`), is stored as a **pair of person ids marked distinct** (so the check does not ask again for the same two people), and is written to the audit log with who confirmed it and when. Erased people (D3) are left out of both name checks.
 
 ### Memberships and the hierarchy
 
 - **M1.** A user can link a person to a company with a **relationship name** from the list, an optional **position text** (free text, for example "Head of finance"), and a **valid-from** date and an optional **valid-to** date. Valid-from is required.
 - **M2.** **One person can have many memberships**, in the same or in different companies, with the same or different relationship names. Two memberships of the same person in the same company with the same relationship name **cannot overlap in time**.
-- **M2a.** **The same name cannot hold the same role twice at the same time.** Within one company, two memberships with the same relationship name whose periods overlap cannot belong to two persons with the same normalised full name (P3), even when they are separate person records. The attempt is refused with an error that names the existing membership. The refusal can be overridden only when the two persons were confirmed as different humans (P3). This stops "two Jan Nowak as director in the same period" without forbidding two genuinely different people who share a name.
+- **M2a.** **The same name cannot hold the same role twice at the same time.** Within one company, two memberships with the same relationship name whose periods overlap cannot belong to two persons with the same normalised full name (P3), even when they are separate person records. The attempt is refused with an error that names the existing membership. Erased people are not compared (D3). The refusal can be overridden only when the two persons were confirmed as different humans (P3). This stops "two Jan Nowak as director in the same period" without forbidding two genuinely different people who share a name.
 - **M3.** A membership can name **one other membership of the same company as the one it reports to**. This gives a **tree** per company: each membership has at most one manager, and the manager is a membership of the **same company**. A membership with no manager is a root. A company can have several roots.
 - **M4.** A membership cannot report to itself or, through any chain, to one of its own subordinates. An attempt to create such a loop is refused with a validation error.
 - **M5.** The hierarchy can be read as a whole tree for a company (each node: person, relationship, position, period, manager), as the direct reports of one membership, and as the chain of managers above one.
@@ -65,7 +65,7 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **D1.** Companies and people that other modules may point at are **never physically deleted**. A user **deactivates** them. A deactivated company or person stays readable and resolvable by id, appears in searches only when asked for, and **cannot be chosen for a new reference**. It can be **reactivated**.
 - **D2.** Deactivating a company does not change its memberships. Deactivating a person does not end their memberships.
-- **D3.** A company or a person can be **erased** (a data-protection request) by a user with a separate permission. Erasure is done in place: the personal facts are replaced by placeholders, the legacy identifier is removed and a one-way tombstone of it is kept, the record is deactivated, its id is kept so that references stay valid, and an `erased` event is published. Memberships of an erased person stay, showing the placeholder name. Erasure cannot be undone.
+- **D3.** A company or a person can be **erased** (a data-protection request) by a user with a separate permission. Erasure is done in place: the personal facts are replaced by placeholders, the legacy identifier is removed and a one-way tombstone of it is kept, the record is deactivated, its id is kept so that references stay valid, and an `erased` event is published. Memberships of an erased person stay, showing the placeholder name; each erased record gets its own placeholder, and **erased people and companies are excluded from the duplicate checks P3 and M2a**, so two erased directors never collide. Erasing a **company** keeps its memberships as they are (the people stay linked to a deactivated, anonymised company) and does not touch the people. The tombstone of the legacy key is a **keyed hash (HMAC) made with an installation secret**, not a plain hash, because legacy keys are often sequential and a plain hash could be reversed by trying them all. Erasure cannot be undone.
 - **D4.** Documents in other modules that took a snapshot of a party are the documents' own data (ADR 0009, rule 4). Parties does not reach into them.
 
 ### Concurrency and repeats
@@ -84,7 +84,7 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **G1.** Companies, people, memberships and relationship names each carry a nullable **legacy identifier** (`legacyId`: text, up to 100 characters), the identifier the record had in the system it came from. It is **unique within the tenant** per entity, and when several source systems are loaded the migration **prefixes it with the system** (for example `erp:1234`, `crm:1234`). It is internal: it is not shown or set through the HTTP API and is not part of the lookup results, and its only reader outside the module is the migration-only lookup (K3).
 - **G2.** Migration order is people and companies first, then memberships (which refer to both and to each other for the hierarchy), upserting by legacy identifier, so a run can be repeated. A membership whose person or company is not loaded yet is reported, never guessed.
-- **G3.** A record whose legacy key was erased (D3) is skipped and reported as erased, never inserted again. Erasure removes the legacy identifier from the record and keeps a one-way hash of it for this check.
+- **G3.** A record whose legacy key was erased (D3) is skipped and reported as erased, never inserted again. Erasure removes the legacy identifier from the record and keeps a keyed hash (HMAC with an installation secret) of it for this check.
 
 ## 5. Lifecycles
 
@@ -104,6 +104,7 @@ All permissions follow the [permission contract](../../spec/permissions.md).
 | `Parties.People.Read` / `Create` / `Update` / `Deactivate` | person operations |
 | `Parties.Memberships.Read` / `Create` / `Update` / `End` | membership and hierarchy operations |
 | `Parties.RelationshipNames.Manage` | relationship names |
+| `Parties.People.ConfirmDistinct` | confirm that two people with the same name are different humans (P3) |
 | `Parties.Erase` | erase a company or a person (separate on purpose) |
 | `Parties.Migration.Resolve` | the migration-only lookup (K3) |
 
@@ -134,13 +135,17 @@ No open questions remain for v1.
 
 ## 10. Enforced by
 
-This section lists the checks that keep the code in line with this PRD. Until the module exists it records what they will be.
+This section lists the checks that keep the code in line with this PRD. Until the module exists it records what they will be. A requirement that is not listed has **no check yet**, and the table says so.
 
 | Requirement | Check |
 |---|---|
-| C2, C3, P3, M2, M2a, M3, M4 | Database constraints and unique indexes of the persistence layer, and a contract test run against PostgreSQL and SQL Server |
-| M4, M6 | Domain tests of the hierarchy rules (loop, same company, subordinates) |
-| D1, D3, K1–K4 | The module's Contracts tests, and an architecture test that no other module reaches its tables (ADR 0009) |
+| C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes (filtered where a column is null) in the persistence layer, and a contract test run against PostgreSQL and SQL Server |
+| M2, M2a, P3 (name), M3, M4, M6 | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
+| C4, M1, R1, R2, M5, M7 | Domain and acceptance tests of the module |
+| C5 | The platform's tenant-isolation checks, and a conformance test that a second tenant sees none of the first tenant's parties |
+| P1, P2, C1 | Acceptance tests of the module (create, read, change, search) |
+| D1, D2, D3, D4 | Domain tests of deactivation and erasure; a test that erasure leaves memberships, excludes the record from P3 and M2a, and stores a keyed tombstone |
+| K1, K2, K4 | The module's Contracts tests (what a lookup returns, state included) |
+| K3, G1–G3 | A test that only the migration principal holds `Parties.Migration.Resolve` and that no HTTP route reaches the lookup, plus migration tests of order, upsert and the erased skip |
 | X1, X2 | The black-box conformance suite for concurrency and idempotency |
 | Permissions, events | The module manifest, validated by `npm run validate` and by the manifest checks |
-| C1, P1, R1, R2, M1, M5, M7, G1–G3 | Acceptance tests of the module, written from these requirements |
