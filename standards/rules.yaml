@@ -2,7 +2,7 @@
 # each rule's `source`. Do not edit by hand: edit the document and run `node scripts/generate-standards.mjs`.
 # ReviewBot reads this file; CI fails when it is out of date.
 version: 1
-generatedFrom: sha256:815a29f4c0f4
+generatedFrom: sha256:e6c72be105fc
 rules:
   - id: ADR-0004-R1
     severity: warning
@@ -36,7 +36,7 @@ rules:
   - id: ADR-0004-R5
     severity: warning
     appliesTo:
-      - '**/*.csproj'
+      - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/*.csproj
     text: The .NET projects of a module are named Eolent.<Module>.Domain, .Application, .Contracts, .Infrastructure and .Api.
     source: docs/adr/0004-naming-and-versioning-conventions.md
   - id: ADR-0006-R1
@@ -66,8 +66,8 @@ rules:
   - id: ADR-0009-R3
     severity: error
     appliesTo:
-      - src/**/*.cs
-      - src/**/*.csproj
+      - src/*/Eolent.*.{Domain,Application,Infrastructure}/**/*.cs
+      - src/*/Eolent.*.{Domain,Application,Infrastructure}/*.csproj
     text: The Domain, Application and Infrastructure projects of a module may reference another module only through its Contracts project, and only for a module named in its manifest dependencies.
     source: docs/adr/0009-cross-module-references.md
   - id: ADR-0009-R4

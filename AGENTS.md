@@ -43,6 +43,7 @@ rules:
 ---
 ```
 
+- The `appliesTo` globs are relative to the root of the implementation repository being reviewed, not to this one, and match the files that repository holds (for example `src/**/*.cs` in `eolent-dotnet`). Scope a rule to the files it is about: a module's layer projects, not every project. The module layer projects live at `src/<Module>/<Project>/`, one folder deeper than the kernel packages, which a rule about modules must not match.
 - A rule must be checkable from a diff. "Keep things simple" is not a rule. Write one sentence of at least eight words, and one or more `appliesTo` globs for the files in the implementing repositories it applies to.
 - `severity: error` means the most serious label a finding may carry. It does not block a merge: standards findings are advice from ReviewBot, not a gate.
 - The document needs an `id`, and each rule id is `<document id>-R<number>`, for example `ADR-0009-R1`. The generator checks this.

@@ -19,7 +19,7 @@ rules:
     text: npm packages are named @eolent/<name>, lowercase and hyphen-separated.
   - id: ADR-0004-R5
     severity: warning
-    appliesTo: ['**/*.csproj']
+    appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/*.csproj']
     text: The .NET projects of a module are named Eolent.<Module>.Domain, .Application, .Contracts, .Infrastructure and .Api.
 ---
 # ADR 0004: Naming and versioning conventions

@@ -11,7 +11,9 @@ rules:
     text: A reference to another module's entity is stored as an <entity>Id column and has no database foreign key to the other module.
   - id: ADR-0009-R3
     severity: error
-    appliesTo: ['src/**/*.cs', 'src/**/*.csproj']
+    appliesTo:
+      - 'src/*/Eolent.*.{Domain,Application,Infrastructure}/**/*.cs'
+      - 'src/*/Eolent.*.{Domain,Application,Infrastructure}/*.csproj'
     text: The Domain, Application and Infrastructure projects of a module may reference another module only through its Contracts project, and only for a module named in its manifest dependencies.
   - id: ADR-0009-R4
     severity: error
