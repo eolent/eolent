@@ -39,6 +39,21 @@ export function parseFrontmatter(text) {
   return data && typeof data === "object" && !Array.isArray(data) ? data : null;
 }
 
+/**
+ * Whether a document no longer applies. The status is the status key of the frontmatter when there is one,
+ * otherwise the ADR's own body line ("- **Status:** Superseded by ADR 0012"), where this repository keeps it. Only
+ * the first word counts, so "Superseded by ..." and "Deprecated" both switch the rules off.
+ */
+export function isInactive(front, text) {
+  let status = front?.status;
+  if (status === undefined) {
+    const body = /^- \*\*Status:\*\*\s*(.+)$/im.exec(text);
+    status = body ? body[1] : "";
+  }
+  const first = String(status).trim().toLowerCase().split(/[\s,;:.]+/)[0];
+  return INACTIVE_STATUSES.has(first);
+}
+
 /** Natural order for rule ids, so ADR-0009-R2 sorts before ADR-0009-R10. */
 export function compareRuleIds(a, b) {
   const pa = a.split(/(\d+)/);
@@ -79,8 +94,10 @@ export function collectRules(root = defaultRoot) {
   for (const file of markdownFiles(root)) {
     const path = relative(root, file).split(sep).join("/");
     let front;
+    let text;
     try {
-      front = parseFrontmatter(readFileSync(file, "utf8"));
+      text = readFileSync(file, "utf8");
+      front = parseFrontmatter(text);
     } catch (error) {
       problems.push(`${path}: the frontmatter is not valid YAML (${error.message})`);
       continue;
@@ -91,7 +108,7 @@ export function collectRules(root = defaultRoot) {
       problems.push(`${path}: a document with rules needs an \`id\` in its frontmatter, for example ADR-0009`);
       continue;
     }
-    if (INACTIVE_STATUSES.has(String(front.status ?? "").toLowerCase())) continue;
+    if (isInactive(front, text)) continue;
     if (!Array.isArray(front.rules)) {
       problems.push(`${path}: rules must be a list`);
       continue;

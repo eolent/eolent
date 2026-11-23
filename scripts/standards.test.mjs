@@ -13,7 +13,7 @@ import {
   checkRulesFile,
   tokenize,
 } from "./standards/rules-schema.mjs";
-import { collectRules, compareRuleIds, parseFrontmatter, renderRulesFile, run } from "./generate-standards.mjs";
+import { collectRules, compareRuleIds, isInactive, parseFrontmatter, renderRulesFile, run } from "./generate-standards.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const TEXT = "Every HTTP endpoint in a controller must declare an explicit authorization policy.";
@@ -104,6 +104,28 @@ test("collectRules skips superseded and deprecated documents", () => {
   });
   try {
     assert.deepEqual(collectRules(root).rules.map((r) => r.id), ["ADR-0003-R1"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("isInactive reads the status from the frontmatter, else from the ADR's body line", () => {
+  assert.equal(isInactive({ status: "Superseded" }, ""), true);
+  assert.equal(isInactive({ status: "accepted" }, "- **Status:** Superseded by ADR 0012"), false);
+  assert.equal(isInactive({}, "# ADR\n\n- **Status:** Superseded by [ADR 0012](0012.md)\n"), true);
+  assert.equal(isInactive({}, "- **Status:** Deprecated"), true);
+  assert.equal(isInactive({}, "- **Status:** Accepted"), false);
+  assert.equal(isInactive({}, "no status line at all"), false);
+  assert.equal(isInactive(null, "- **Status:** Accepted (amended 2026-11-22)"), false);
+});
+
+test("collectRules skips a document whose body status line says superseded", () => {
+  const root = workspace({
+    "docs/adr/0001-a.md": doc("ADR-0001", rule("ADR-0001-R1")) + "\n- **Status:** Superseded by ADR 0002\n",
+    "docs/adr/0002-b.md": doc("ADR-0002", rule("ADR-0002-R1")) + "\n- **Status:** Accepted\n",
+  });
+  try {
+    assert.deepEqual(collectRules(root).rules.map((r) => r.id), ["ADR-0002-R1"]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

@@ -4,7 +4,7 @@ rules:
   - id: ADR-0006-R1
     severity: error
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
-    text: Raw SQL in a module must include the tenant condition itself, because the framework cannot filter it for the module.
+    text: In shared mode, raw SQL in a module must include the tenant condition itself, because the framework cannot filter it for the module.
   - id: ADR-0006-R2
     severity: warning
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']

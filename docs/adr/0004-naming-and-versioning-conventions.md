@@ -8,7 +8,7 @@ rules:
   - id: ADR-0004-R2
     severity: warning
     appliesTo: ['src/**/*.cs', 'packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}']
-    text: Event names are lowercase segments separated by dots in the form module.entity.action.
+    text: Event names are lowercase segments separated by dots, by convention module.entity.action, and the schema also permits hyphens inside a segment.
   - id: ADR-0004-R3
     severity: warning
     appliesTo: ['src/**/*.cs']

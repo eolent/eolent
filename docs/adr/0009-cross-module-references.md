@@ -4,7 +4,7 @@ rules:
   - id: ADR-0009-R1
     severity: error
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
-    text: A module must not read, join, write or reference another module's tables, and reads another module's data only through that module's Contracts project.
+    text: A module must not read, join, write or reference another module's tables, and reads another module's data only through that module's Contracts project, its lookup interfaces and its events.
   - id: ADR-0009-R2
     severity: error
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
@@ -18,7 +18,7 @@ rules:
   - id: ADR-0009-R4
     severity: error
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
-    text: An entity that other modules may reference is never physically deleted, it is deactivated, and the owning module publishes deactivated and reactivated events.
+    text: An entity that other modules may reference is never physically deleted except by in-place erasure of personal data, it is deactivated, and the owning module publishes deactivated and reactivated events.
   - id: ADR-0009-R5
     severity: warning
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
@@ -26,7 +26,7 @@ rules:
   - id: ADR-0009-R6
     severity: warning
     appliesTo: ['src/**/*.cs', 'packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}']
-    text: The legacyId of an entity is internal data of its module and must not be part of the module's HTTP API or used by client code.
+    text: The legacyId of an entity is internal data of its module and is not part of the module's HTTP API, and its only cross-module use is the migrations-only resolve operation.
 ---
 # ADR 0009: Cross-module references and shared concepts
 
