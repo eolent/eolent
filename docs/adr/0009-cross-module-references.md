@@ -1,3 +1,31 @@
+---
+id: ADR-0009
+rules:
+  - id: ADR-0009-R1
+    severity: error
+    appliesTo: ['src/**/*.cs']
+    text: A module must not read, join, write or reference another module's tables, and reads another module's data only through that module's Contracts project.
+  - id: ADR-0009-R2
+    severity: error
+    appliesTo: ['src/**/*.cs']
+    text: A reference to another module's entity is stored as an <entity>Id column and has no database foreign key to the other module.
+  - id: ADR-0009-R3
+    severity: error
+    appliesTo: ['src/**/*.cs', 'src/**/*.csproj']
+    text: The Domain, Application and Infrastructure projects of a module may reference another module only through its Contracts project, and only for a module named in its manifest dependencies.
+  - id: ADR-0009-R4
+    severity: error
+    appliesTo: ['src/**/*.cs']
+    text: An entity that other modules may reference is never physically deleted, it is deactivated, and the owning module publishes deactivated and reactivated events.
+  - id: ADR-0009-R5
+    severity: warning
+    appliesTo: ['src/**/*.cs']
+    text: A record that becomes legally or commercially fixed when it is issued copies the facts it needs from referenced entities into itself at that moment.
+  - id: ADR-0009-R6
+    severity: warning
+    appliesTo: ['src/**/*.cs', 'packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}']
+    text: The legacyId of an entity is internal data of its module and must not be part of the module's HTTP API or used by client code.
+---
 # ADR 0009: Cross-module references and shared concepts
 
 - **Status:** Accepted

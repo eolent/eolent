@@ -1,3 +1,15 @@
+---
+id: ADR-0006
+rules:
+  - id: ADR-0006-R1
+    severity: error
+    appliesTo: ['src/**/*.cs']
+    text: Raw SQL in a module must include the tenant condition itself, because the framework cannot filter it for the module.
+  - id: ADR-0006-R2
+    severity: warning
+    appliesTo: ['src/**/*.cs']
+    text: Tenant-aware caches, search indexes, file storage paths and job queues must key on the tenant id.
+---
 # ADR 0006: Tenant isolation modes
 
 - **Status:** Accepted
