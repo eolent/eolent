@@ -20,7 +20,7 @@ export function parseRequirements(markdown) {
   if (start < 0) throw new Error("the PRD has no \"Requirements\" section");
   const ids = [];
   for (let i = start + 1; i < lines.length && !/^##\s/.test(lines[i]); i++) {
-    const m = /^\s*[-*]\s+\*\*([A-Z]+\d+[a-z]?)\.\*\*/.exec(lines[i]);
+    const m = /^[-*]\s+\*\*([A-Z]+\d+[a-z]?)\.\*\*/.exec(lines[i]); // a top-level item only: a nested bullet is not a requirement
     if (m) ids.push({ id: m[1], line: i + 1 });
   }
   return ids;
@@ -94,10 +94,17 @@ export function check({ requirements, tagsByFile, module, allowMissing = [] }) {
 function main(argv) {
   const positional = [];
   const options = {};
+  const flags = ["fail-on-missing", "json"];
+  const valued = ["module", "allow-missing"];
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith("--")) {
       const name = argv[i].slice(2);
-      options[name] = ["fail-on-missing", "json"].includes(name) ? true : argv[++i];
+      if (flags.includes(name)) options[name] = true;
+      else if (valued.includes(name) && i + 1 < argv.length && !argv[i + 1].startsWith("--")) options[name] = argv[++i];
+      else {
+        console.error(valued.includes(name) ? `--${name} needs a value` : `unknown option --${name}`);
+        return 2;
+      }
     } else positional.push(argv[i]);
   }
   if (positional.length < 2) {

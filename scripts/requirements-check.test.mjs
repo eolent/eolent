@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { check, findTags, parseRequirements } from "./requirements-check.mjs";
 
 const prd = `# X
@@ -10,13 +11,13 @@ const prd = `# X
 ### Companies
 - **C1.** Create.
 - **M2a.** Namesakes.
-  - **C9.** nested text is not a requirement id line start? (indented list items count)
+  - **C9.** a nested item is not a requirement
 ## 5. Lifecycles
 - **L1.** after the section
 `;
 
 test("the requirement ids are the bold ids of the Requirements section", () => {
-  assert.deepEqual(parseRequirements(prd).map((r) => r.id), ["C1", "M2a", "C9"]);
+  assert.deepEqual(parseRequirements(prd).map((r) => r.id), ["C1", "M2a"]);
 });
 
 test("the real Parties PRD has its requirements", () => {
@@ -47,4 +48,11 @@ test("missing, allowed and unknown requirements, and another module's tags are i
   assert.deepEqual(result.missing, []);
   assert.deepEqual(result.allowedMissing, ["C5"]);
   assert.deepEqual(result.unknown, [{ file: "a.cs", id: "X1" }]);
+});
+
+test("the command line refuses an option without its value and an unknown option", () => {
+  const script = new URL("./requirements-check.mjs", import.meta.url).pathname;
+  assert.equal(spawnSync("node", [script, "a.md", ".", "--module"]).status, 2);
+  assert.equal(spawnSync("node", [script, "a.md", ".", "--module", "--json"]).status, 2);
+  assert.equal(spawnSync("node", [script, "a.md", ".", "--bogus"]).status, 2);
 });
