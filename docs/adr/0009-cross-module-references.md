@@ -9,6 +9,8 @@ rules:
     severity: error
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
     text: A reference to another module's entity is stored as an <entity>Id column and has no database foreign key to the other module.
+  # Scope follows the Consequences section of this ADR, which names the Domain, Application and Infrastructure
+  # projects. Extending the rule to Api would change the decision, so it needs an ADR amendment first.
   - id: ADR-0009-R3
     severity: error
     appliesTo:
