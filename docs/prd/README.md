@@ -7,6 +7,7 @@ Each PRD has the same parts: purpose and users, the concepts it uses, numbered r
 | PRD | Module | Status |
 |---|---|---|
 | [Parties](parties.md) | `parties`: companies, people and who works where | Draft |
+| [Invoicing](invoicing.md) | `invoicing`: sales invoices, VAT, numbering, price lists | Draft |
 
 ## Tests name the requirement they prove
 
