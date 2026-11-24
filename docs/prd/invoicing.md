@@ -142,7 +142,7 @@ This section lists the checks that keep the code in line with this PRD. The modu
 |---|---|
 | N1, N3, T1 (rate), P2, P3, S2 (one default account) | Constraints and unique indexes in the persistence layer, and a contract test on PostgreSQL and SQL Server |
 | N2, N4 | The platform's sequence service (gap-free inside the unit of work); a concurrency contract test on both databases |
-| I3, I7, R1 of the design (rounding) | Domain tests with the worked examples of the old data dictionary, including the cases where the old rounding differed |
+| I3, I7 and the rounding rule (design decision 1) | Domain tests with the worked examples of the old data dictionary, including the cases where the old rounding differed |
 | I5, I2 (line changes), I6 | Domain and acceptance tests; a conformance test for the conflict on a confirmed invoice |
 | P4, P5 | Domain tests of the price resolution with every tie-break |
 | I4, K1, K2 | Acceptance tests: the snapshot does not change when the Parties company changes; the lookup returns only confirmed invoices |
