@@ -2,7 +2,7 @@
 # each rule's `source`. Do not edit by hand: edit the document and run `node scripts/generate-standards.mjs`.
 # ReviewBot reads this file; CI fails when it is out of date.
 version: 1
-generatedFrom: sha256:7ebffd85ad99
+generatedFrom: sha256:e6b08e9d32a7
 rules:
   - id: ADR-0004-R1
     severity: warning
@@ -74,7 +74,7 @@ rules:
     severity: error
     appliesTo:
       - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs
-    text: An entity that other modules may reference is never physically deleted except by in-place erasure of personal data, it is deactivated, and the owning module publishes deactivated and reactivated events.
+    text: An entity that other modules may reference is never physically deleted; it is deactivated, and the owning module publishes deactivated and reactivated events. Erasure of personal data is the one exception, done in place by anonymising the entity, deactivating it, and the owner then publishes an erased event.
     source: docs/adr/0009-cross-module-references.md
   - id: ADR-0009-R6
     severity: warning

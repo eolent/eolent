@@ -20,7 +20,7 @@ rules:
   - id: ADR-0009-R4
     severity: error
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
-    text: An entity that other modules may reference is never physically deleted except by in-place erasure of personal data, it is deactivated, and the owning module publishes deactivated and reactivated events.
+    text: An entity that other modules may reference is never physically deleted; it is deactivated, and the owning module publishes deactivated and reactivated events. Erasure of personal data is the one exception, done in place by anonymising the entity, deactivating it, and the owner then publishes an erased event.
   - id: ADR-0009-R6
     severity: warning
     appliesTo:
