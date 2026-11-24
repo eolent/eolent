@@ -30,8 +30,9 @@ test("a pair that is not the argument of a call is not a tag", () => {
 
 test("a misspelled prefix of the module is reported, a real other module is listed", () => {
   const result = check({ requirements: [{ id: "C1" }], tagsByFile: new Map([["a.cs", ["parites/C1", "Parties/C1", "invoicing/I3"]]]), module: "parties" });
-  assert.equal(result.unknown.length, 2);
-  assert.deepEqual(result.otherModules, ["invoicing"]);
+  assert.equal(result.unknown.length, 1); // the case variant is an error
+  assert.equal(result.warnings.length, 1); // the near miss is a warning: it may be a sibling module
+  assert.deepEqual(result.otherModules, ["invoicing", "parites"]);
 });
 
 test("tags are read from traits and from other languages, several ids in one", () => {

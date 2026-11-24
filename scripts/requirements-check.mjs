@@ -66,15 +66,19 @@ export function check({ requirements, tagsByFile, module, allowMissing = [] }) {
   const covered = new Map();
   const unknown = [];
   const otherModules = new Set();
+  const warnings = [];
   for (const [file, tags] of tagsByFile) {
     for (const tag of tags) {
       const slash = tag.indexOf("/");
       const tagModule = slash >= 0 ? tag.slice(0, slash) : module;
       const id = slash >= 0 ? tag.slice(slash + 1) : tag;
       if (tagModule !== module) {
-        // Another module's requirement, unless the prefix is a near miss of this module's name: that is a typo and is reported.
-        if (distance(tagModule.toLowerCase(), module.toLowerCase()) <= 2) unknown.push({ file, id: tag, reason: `the prefix "${tagModule}" looks like a typo of "${module}"` });
-        else otherModules.add(tagModule);
+        // Another module's requirement. A case variant of this module's name is a typo (an error); a near miss may be a typo or a sibling module (a warning).
+        if (tagModule.toLowerCase() === module.toLowerCase()) unknown.push({ file, id: tag, reason: `the prefix "${tagModule}" is not "${module}"` });
+        else {
+          if (distance(tagModule, module) <= 2) warnings.push(`${file}: the prefix "${tagModule}" is close to "${module}": a typo?`);
+          otherModules.add(tagModule);
+        }
         continue;
       }
       if (!known.has(id)) unknown.push({ file, id });
@@ -84,7 +88,7 @@ export function check({ requirements, tagsByFile, module, allowMissing = [] }) {
   const allowed = new Set(allowMissing);
   const missing = requirements.filter((r) => !covered.has(r.id) && !allowed.has(r.id)).map((r) => r.id);
   const allowedMissing = requirements.filter((r) => !covered.has(r.id) && allowed.has(r.id)).map((r) => r.id);
-  return { total: requirements.length, covered: [...covered.keys()], missing, allowedMissing, unknown, otherModules: [...otherModules].sort() };
+  return { total: requirements.length, covered: [...covered.keys()], missing, allowedMissing, unknown, warnings, otherModules: [...otherModules].sort() };
 }
 
 function main(argv) {
@@ -115,6 +119,7 @@ function main(argv) {
     if (result.missing.length) console.log(`No test: ${result.missing.join(", ")}`);
     if (result.allowedMissing.length) console.log(`No test, allowed: ${result.allowedMissing.join(", ")}`);
     for (const u of result.unknown) console.log(`Unknown requirement ${u.id} in ${u.file}` + (u.reason ? `: ${u.reason}` : ""));
+    for (const w of result.warnings) console.log(`Warning: ${w}`);
     if (result.otherModules.length) console.log(`Tags of other modules (not checked here): ${result.otherModules.join(", ")}`);
   }
   return result.unknown.length || (options["fail-on-missing"] && result.missing.length) ? 1 : 0;
