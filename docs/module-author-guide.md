@@ -1,13 +1,13 @@
 # Module author guide
 
-How to write a module for Eolent, in the order you do it, with the lessons of the first two modules (Parties and Invoicing, in `eolent-dotnet`). The reference module is **Parties**: every pattern below appears in it once, and every requirement of its PRD has a test that names it. Read its [PRD](prd/parties.md), its [ERD](erd/parties.md) and its `AGENTS.md` first.
+How to write a module for Eolent, in the order you do it, with the lessons of the first two modules (Parties and Invoicing, in `eolent-dotnet`). The reference module is **Parties**: every pattern below appears in it once, and every requirement of its PRD except D4 (it says the module reaches into no document, so there is nothing of its own to test) has a test that names it. Read its [PRD](prd/parties.md), its [ERD](erd/parties.md) and its `AGENTS.md` first.
 
 ## 1. The order of work
 
 1. **PRD** (`docs/prd/<module>.md`): purpose, users, concepts, numbered requirements (each testable, written as `- **C1.** ...`), lifecycles, permissions, events, what is out of scope, an *Enforced by* table. A requirement that nothing checks says so.
 2. **ERD** (`docs/erd/<module>.md`): tables, types, keys, the rules the database enforces and the rules it cannot. Every foreign key inside the module includes `tenantId`. No foreign key to another module (ADR 0009).
 3. **Code** from the template: `eolent module add <Name> --entity <Entity>` (or `dotnet new eolent-module`), then replace the placeholder entity. The five layers and their rules are in ADR 0004 and are checked by the architecture tests.
-4. **Tests that name their requirement**: `[Trait("requirement", "C1")]`. `node scripts/requirements-check.mjs docs/prd/<module>.md <test folders> --module <name> --fail-on-missing` lists the requirements without a test; run it in the module repository's CI.
+4. **Tests that name their requirement**: `[Trait("requirement", "C1")]`. `node scripts/requirements-check.mjs docs/prd/<module>.md <test folders> --module <name> --fail-on-missing [--allow-missing D4]` lists the requirements without a test and fails on one; `--allow-missing` names the ids that have no test of their own by design, each with its reason in the CI step (Parties: `--allow-missing D4`). Run it in the module repository's CI.
 5. **Open the PR in slices** (one topic each: companies, then people, then memberships ...). Each slice ends with tests that run on PostgreSQL and SQL Server.
 
 ## 2. Recipes
@@ -48,4 +48,4 @@ How to write a module for Eolent, in the order you do it, with the lessons of th
 
 ## 5. Checklist before a PR
 
-`dotnet build` with warnings as errors; `dotnet test` of the module; the data contracts on both databases; `EOLENT_UPDATE_MANIFESTS=1` run and the manifest committed (in the C# implementation); `packages.lock.json` of every new project committed (restore is locked in CI); the requirements check without a missing requirement; the PRD's *Enforced by* section says what really runs.
+`dotnet build` with warnings as errors; `dotnet test` of the module; the data contracts on both databases; `EOLENT_UPDATE_MANIFESTS=1` run and the manifest committed (in the C# implementation); `packages.lock.json` of every new project committed (restore is locked in CI); the requirements check without a missing requirement (and every `--allow-missing` id explained); the PRD's *Enforced by* section says what really runs.
