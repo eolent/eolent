@@ -52,7 +52,7 @@ The customer and the seller's company are **not** tables here: they are ids of P
 
 ### SellerBankAccount
 
-`sellerId` (foreign key), `name` (text 100), `iban` (text 34, null), `swift` (text 11, null), `accountNumber` (text 50, null), `isDefault` (boolean), `defaultMarker` (boolean, null: true for the default, null otherwise). At least one of `iban` and `accountNumber` is not null. Unique `(tenantId, sellerId, defaultMarker)`: at most one default account per seller, portable on both databases (as the primary address in the Parties ERD).
+`sellerId` (foreign key), `name` (text 100), `iban` (text 34, null), `swift` (text 11, null), `accountNumber` (text 50, null), `isDefault` (boolean), `defaultMarker` (boolean, null: true for the default, null otherwise). At least one of `iban` and `accountNumber` is not null. Unique `(tenantId, sellerId, defaultMarker)`: at most one default account per seller. PostgreSQL treats nulls in a unique index as different, and the SQL Server provider of EF Core makes a unique index over a nullable column a filtered one (`WHERE defaultMarker IS NOT NULL`) by convention, so any number of non-default accounts is allowed on both (the same device as the primary address of the Parties ERD; the contract tests prove it).
 
 ### NumberSeries
 
@@ -63,9 +63,9 @@ The customer and the seller's company are **not** tables here: they are ids of P
 | `format` | text(100) | no | Must contain `{counter:N}`; may contain `{yyyy}` |
 | `firstCounter` | bigint | no | At least 1 |
 | `status` | text | no | `active` or `retired` |
-| `activeMarker` | boolean | yes | `true` while active, null once retired: unique `(tenantId, sellerId, documentType, activeMarker)` gives one active series per seller and type (N1) |
+| `activeMarker` | boolean | yes | `true` while active, null once retired: unique `(tenantId, sellerId, documentType, activeMarker)` gives one active series per seller and type (N1) and any number of retired ones (nulls are distinct on PostgreSQL; the SQL Server provider makes the index a filtered one over the non-null marker) |
 
-The counters are kept by the platform's sequence service, one sequence per key `invoicing.invoice:<sellerId>:<year>` (the year only when the format has `{yyyy}`, else `:0`), created when the series is created or when a new year is first used. The table holds the rule; the sequence holds the counter.
+The counters are kept by the platform's sequence service: a row per key that the service updates inside the transaction of the save (not a database sequence object, so a rollback gives the number back). The key is `invoicing.invoice:<sellerId>:<seriesId>:<year>` (the year `0000` when the format has no `{yyyy}`); the series id is in it, so a series that replaces another with the same format starts its own counter and never meets the retired one's numbers. The row is created when first needed, idempotently. The table holds the rule; the sequence holds the counter. Legacy numbers (N4) are not in the sequence: the migration starts the new series above the highest of them.
 
 ### TaxRate
 
@@ -137,7 +137,7 @@ The snapshot, not the live Parties company, is what a lookup returns for the par
 
 ## 6. Notes for the implementations
 
-- **PostgreSQL and SQL Server.** The nullable-marker unique indexes (`defaultMarker`, `activeMarker`) and the unique index on `currencyKey` need no filtered-index syntax. The partial indexes marked "where confirmed" are filtered indexes on both products and are written once per provider by the application's migration, not by the module.
+- **PostgreSQL and SQL Server.** The nullable-marker unique indexes (`defaultMarker`, `activeMarker`) and the unique index on `currencyKey` need no filtered-index syntax of their own: PostgreSQL ignores nulls in a unique index, and the SQL Server provider of EF Core adds the `IS NOT NULL` filter to a unique index over a nullable column. The partial indexes marked "where confirmed" are filtered indexes on both products and are written once per provider by the application's migration, not by the module.
 - **Concurrency.** The sequence service takes the counter inside the transaction of the confirmation. Two confirmations of the same invoice: the second finds the status changed (version check, X1) and is refused.
 - **No deletes** of master data and confirmed invoices; a draft can be deleted together with its lines.
 - **Events and audit** are written through the platform's outbox in the same transaction as the change.
