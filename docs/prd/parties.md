@@ -35,7 +35,7 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 ### Companies
 
 - **C1.** A user can create, read, change and deactivate a company. A company has a **name** (required), a **kind** (required, `legalEntity` or `naturalPerson`), a **company registration number**, a **tax (VAT) number**, a **country**, a **general e-mail**, a **phone**, a **preferred language** and a **note**. Only the name and kind are required.
-- **C2.** A company has **any number of addresses**. Each has a type (for example registered office, postal, delivery), the usual postal fields, and a flag for **primary**. **At most one address of a company is primary**; setting a new primary replaces the old one. The first address becomes primary.
+- **C2.** A company has **any number of addresses**. Each has a type (for example registered office, postal, delivery), the usual postal fields, and a flag for **primary**. **At most one address of a company is primary**; setting a new primary replaces the old one. The first address becomes primary. When the primary address is removed, the oldest remaining address (by the time it was added, then by its identifier) becomes primary.
 - **C3.** The company registration number is unique per country within a tenant when it is given, and so is the tax (VAT) number, so the same company is not entered twice. A violation is reported as a validation error that names the existing company's id. Both numbers are searchable (K1). Groups of companies that share a tax number are not supported in v1 (there are no groups). How near-duplicates are detected and merged is not part of v1.
 - **C4.** A company of kind `naturalPerson` can be linked to a person, and a person is linked to at most one company record. A company of kind `legalEntity` cannot.
 - **C5.** Every company, person and membership belongs to exactly one tenant, and a tenant never sees another tenant's parties.
@@ -113,7 +113,7 @@ There is no row-level restriction in v1: a user who may read companies reads all
 
 ## 7. Events
 
-`parties.company.created`, `.updated`, `.deactivated`, `.reactivated`, `.erased`; the same five for `parties.person`; `parties.membership.created`, `.updated`, `.ended`. An event carries the id, the tenant and what changed, and only what a consumer needs to keep a cache or a block in step. Company events carry the name and the kind. Person events carry the identifier only: the names of a person are sensitive properties, which the platform keeps out of events, so a consumer asks the lookup. Membership events carry the identifiers of the membership, the company and the person. The exact data of each is fixed in the module's manifest.
+`parties.company.created`, `.updated`, `.deactivated`, `.reactivated`, `.erased`; the same five for `parties.person`; `parties.membership.created`, `.updated`, `.ended`. An event carries the id, the tenant and what changed, and only what a consumer needs to keep a cache or a block in step. Company events carry the identifier and the kind (the name of a company of kind `naturalPerson` is the name of a human, so no company name is in an event). Person events carry the identifier only: the names of a person are sensitive properties, which the platform keeps out of events, so a consumer asks the lookup. Membership events carry the identifiers of the membership, the company and the person. The exact data of each is fixed in the module's manifest.
 
 ## 8. Out of scope for v1
 
