@@ -14,7 +14,7 @@ How to write a module for Eolent, in the order you do it, with the lessons of th
 
 **An entity.** Domain class with `ITenantScoped` and `IVersioned` (`Version` is set by the data layer, never by you); the EF configuration in `<Module>Model : IModuleModel` (table `module_entity`, keys, lengths, indexes); a store interface in Application and its EF store in Infrastructure; a service that validates, changes the entity and commits through `IUnitOfWork`; endpoints in Api; the entity in `module.json` (`entities`, with `sensitiveProperties` for personal data).
 
-**An operation.** Declare it once with `EolentOperation` in the endpoint class, give it `RequirePermission`, then run the module's tests with `EOLENT_UPDATE_MANIFESTS=1`, build, and run again: `module.json` `operations` is generated, never written by hand. A change needs `RequiresIfMatch` and `CheckIfMatch` **before** the body is read; a create needs `Idempotent`; a read that returns a version needs `EmitsETag`. Handler parameters must be named like the route parameters, or carry `[FromRoute(Name = "...")]`: a mismatch becomes a bare 400.
+**An operation.** Declare it once with `EolentOperation` in the endpoint class, give it `RequirePermission`, then run the module's tests with `EOLENT_UPDATE_MANIFESTS=1`, build, and run again: in the C# reference implementation (`eolent-dotnet`) `module.json` `operations` is generated from the code and checked by a test, never written by hand (ADR 0007 states the rule; an implementation that has no generator yet checks the entries by hand). A change needs `RequiresIfMatch` and `CheckIfMatch` **before** the body is read; a create needs `Idempotent`; a read that returns a version needs `EmitsETag`. Handler parameters must be named like the route parameters, or carry `[FromRoute(Name = "...")]`: a mismatch becomes a bare 400.
 
 **A change with a JSON Merge Patch.** An absent property is left alone, `null` clears it. Apply the checks on a **copy** of the entity and write the real one only when they pass, so a refused change leaves the loaded entity as it was. Read numbers through a helper that refuses a fraction and a value that does not fit (`Patch.WholeNumber`): a bare `(int)` cast throws an overflow (a 500).
 
@@ -28,7 +28,7 @@ How to write a module for Eolent, in the order you do it, with the lessons of th
 
 **Messages.** Every error code a use case throws needs `<Code>.Detail` in `i18n/<culture>.json` (and a `localization` block in the manifest) or the response names no existing record and no argument. A validation item's `arguments` only reach the user through that message (`{existingId}`).
 
-**Erasure and migration.** Personal data is erased in place and the record keeps its id; a legacy identifier is replaced by a keyed hash (HMAC with an installation secret). The migration side is a Contracts interface guarded by a **host-scoped** permission and is not reachable over HTTP. Loading old data keeps the stored figures; a check lists where they differ from the new rules.
+**Erasure and migration.** Personal data is erased in place (ADR 0009, rule 2): the record keeps its id and is **deactivated**, the personal values become placeholders unique to the record, `legacyId` is set to **null**, and the module keeps a separate **tombstone** with the HMAC of the legacy key (an installation secret), so a migration can see that the key was erased; the module publishes `<module>.<entity>.erased`. The hash never goes into the `legacyId` column. The migration side is a Contracts interface guarded by a **host-scoped** permission and is not reachable over HTTP. Loading old data keeps the stored figures; a check lists where they differ from the new rules.
 
 ## 3. Tests: three kinds, each with a job
 
@@ -48,4 +48,4 @@ How to write a module for Eolent, in the order you do it, with the lessons of th
 
 ## 5. Checklist before a PR
 
-`dotnet build` with warnings as errors; `dotnet test` of the module; the data contracts on both databases; `EOLENT_UPDATE_MANIFESTS=1` run and the manifest committed; `packages.lock.json` of every new project committed (restore is locked in CI); the requirements check without a missing requirement; the PRD's *Enforced by* section says what really runs.
+`dotnet build` with warnings as errors; `dotnet test` of the module; the data contracts on both databases; `EOLENT_UPDATE_MANIFESTS=1` run and the manifest committed (in the C# implementation); `packages.lock.json` of every new project committed (restore is locked in CI); the requirements check without a missing requirement; the PRD's *Enforced by* section says what really runs.
