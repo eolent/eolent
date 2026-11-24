@@ -71,15 +71,20 @@ export function compareRuleIds(a, b) {
 }
 
 function markdownFiles(root) {
-  const files = [];
+  const files = new Set();
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".md")) files.add(full);
+    }
+  };
+  // Subfolders are scanned too (docs/prd, docs/erd, spec/conformance); a file reachable from two roots counts once.
   for (const dir of SOURCE_DIRS) {
     const full = join(root, dir);
-    if (!existsSync(full)) continue;
-    for (const name of readdirSync(full).sort()) {
-      if (name.endsWith(".md")) files.push(join(full, name));
-    }
+    if (existsSync(full)) walk(full);
   }
-  return files;
+  return [...files].sort();
 }
 
 /**

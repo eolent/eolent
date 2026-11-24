@@ -3,14 +3,14 @@ id: ADR-0004
 rules:
   - id: ADR-0004-R1
     severity: warning
-    appliesTo: 
+    appliesTo:
       - 'src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs'
       - 'packages/**/*.{ts,tsx}'
       - 'apps/**/*.{ts,tsx}'
     text: Permission, feature and setting names start with the module name converted to PascalCase and never contain hyphens.
   - id: ADR-0004-R2
     severity: warning
-    appliesTo: 
+    appliesTo:
       - 'src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs'
       - 'packages/**/*.{ts,tsx}'
       - 'apps/**/*.{ts,tsx}'
