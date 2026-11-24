@@ -18,6 +18,8 @@
 
 - [Vision](docs/vision.md): what Eolent is and why
 - [Architecture](docs/architecture.md): layers, modules and technology choices
+- [Module author guide](docs/module-author-guide.md): how to write a module, the recipes and the mistakes of the first two
+- [PRDs](docs/prd/README.md) and [ERDs](docs/erd/README.md): what a module is for and which data it keeps (Parties is the reference module)
 - [AI friendliness](docs/ai-friendliness.md): how agents build with and use Eolent
 - [Architecture decision records](docs/adr/0001-repository-structure.md): decisions and their reasons
 

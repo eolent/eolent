@@ -43,6 +43,7 @@ More detail: [docs/vision.md](docs/vision.md).
 - [Vision and principles](docs/vision.md)
 - [Architecture](docs/architecture.md)
 - [AI-friendliness](docs/ai-friendliness.md)
+- [Module author guide](docs/module-author-guide.md)
 - [Multi-language approach](docs/multi-language.md)
 - [Roadmap](docs/roadmap.md)
 - [What is free and what is commercial](docs/free-and-commercial.md)
