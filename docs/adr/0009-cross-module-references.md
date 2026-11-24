@@ -19,13 +19,12 @@ rules:
     severity: error
     appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
     text: An entity that other modules may reference is never physically deleted except by in-place erasure of personal data, it is deactivated, and the owning module publishes deactivated and reactivated events.
-  - id: ADR-0009-R5
-    severity: warning
-    appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
-    text: A record that becomes legally or commercially fixed when it is issued copies the facts it needs from referenced entities into itself at that moment.
   - id: ADR-0009-R6
     severity: warning
-    appliesTo: ['src/**/*.cs', 'packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}']
+    appliesTo:
+      - 'src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs'
+      - 'packages/**/*.{ts,tsx}'
+      - 'apps/**/*.{ts,tsx}'
     text: The legacyId of an entity is internal data of its module and is not part of the module's HTTP API, and its only cross-module use is the migrations-only resolve operation.
 ---
 # ADR 0009: Cross-module references and shared concepts

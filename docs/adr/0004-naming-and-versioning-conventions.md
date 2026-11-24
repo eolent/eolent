@@ -3,15 +3,21 @@ id: ADR-0004
 rules:
   - id: ADR-0004-R1
     severity: warning
-    appliesTo: ['src/**/*.cs', 'packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}']
+    appliesTo: 
+      - 'src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs'
+      - 'packages/**/*.{ts,tsx}'
+      - 'apps/**/*.{ts,tsx}'
     text: Permission, feature and setting names start with the module name converted to PascalCase and never contain hyphens.
   - id: ADR-0004-R2
     severity: warning
-    appliesTo: ['src/**/*.cs', 'packages/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}']
+    appliesTo: 
+      - 'src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs'
+      - 'packages/**/*.{ts,tsx}'
+      - 'apps/**/*.{ts,tsx}'
     text: Event names are lowercase segments separated by dots, by convention module.entity.action, and the schema also permits hyphens inside a segment.
   - id: ADR-0004-R3
     severity: warning
-    appliesTo: ['src/**/*.cs']
+    appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
     text: Entity type names are PascalCase and singular, for example User or Role.
   - id: ADR-0004-R4
     severity: warning

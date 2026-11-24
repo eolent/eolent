@@ -49,6 +49,8 @@ rules:
 - The document needs an `id`, and each rule id is `<document id>-R<number>`, for example `ADR-0009-R1`. The generator checks this.
 - A superseded or deprecated document contributes no rules. The generator reads the status from the `status` key of the frontmatter when there is one, and otherwise from the ADR's own `- **Status:**` line, so marking an ADR superseded in its body is enough.
 - Keep each rule's text as strong as the sentence it comes from, qualifiers and exceptions included. A rule that is stricter than its ADR makes ReviewBot report compliant code.
+- Rule ids are never reused. When a rule is removed (for example because it is a judgement a reviewer cannot check from a diff, which stays in the ADR as prose), its number is left unused.
+- The generator reads the frontmatter of every Markdown file in `docs/adr`, `docs` and `spec`, rules or not, so invalid YAML in the header of any of them fails `npm run validate`.
 - After changing a rule, run `node scripts/generate-standards.mjs` and commit `standards/rules.yaml`. `npm run validate` fails when it is out of date.
 - The rules file format is the one ReviewBot enforces. Its schema is vendored in `scripts/standards/` and must not be edited here: a change to the format is made in the ReviewBot repository first.
 - Implementation repositories pin a **tag** of this repository in their `.reviewbot.yaml` (`standards-v1`, `standards-v2`, ...), so a new tag is a deliberate upgrade for them. Tag a release when the rules change in a way they should adopt.

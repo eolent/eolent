@@ -2,12 +2,12 @@
 # each rule's `source`. Do not edit by hand: edit the document and run `node scripts/generate-standards.mjs`.
 # ReviewBot reads this file; CI fails when it is out of date.
 version: 1
-generatedFrom: sha256:f221aec651b5
+generatedFrom: sha256:7ebffd85ad99
 rules:
   - id: ADR-0004-R1
     severity: warning
     appliesTo:
-      - src/**/*.cs
+      - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs
       - packages/**/*.{ts,tsx}
       - apps/**/*.{ts,tsx}
     text: Permission, feature and setting names start with the module name converted to PascalCase and never contain hyphens.
@@ -15,7 +15,7 @@ rules:
   - id: ADR-0004-R2
     severity: warning
     appliesTo:
-      - src/**/*.cs
+      - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs
       - packages/**/*.{ts,tsx}
       - apps/**/*.{ts,tsx}
     text: Event names are lowercase segments separated by dots, by convention module.entity.action, and the schema also permits hyphens inside a segment.
@@ -23,7 +23,7 @@ rules:
   - id: ADR-0004-R3
     severity: warning
     appliesTo:
-      - src/**/*.cs
+      - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs
     text: Entity type names are PascalCase and singular, for example User or Role.
     source: docs/adr/0004-naming-and-versioning-conventions.md
   - id: ADR-0004-R4
@@ -76,16 +76,10 @@ rules:
       - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs
     text: An entity that other modules may reference is never physically deleted except by in-place erasure of personal data, it is deactivated, and the owning module publishes deactivated and reactivated events.
     source: docs/adr/0009-cross-module-references.md
-  - id: ADR-0009-R5
-    severity: warning
-    appliesTo:
-      - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs
-    text: A record that becomes legally or commercially fixed when it is issued copies the facts it needs from referenced entities into itself at that moment.
-    source: docs/adr/0009-cross-module-references.md
   - id: ADR-0009-R6
     severity: warning
     appliesTo:
-      - src/**/*.cs
+      - src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs
       - packages/**/*.{ts,tsx}
       - apps/**/*.{ts,tsx}
     text: The legacyId of an entity is internal data of its module and is not part of the module's HTTP API, and its only cross-module use is the migrations-only resolve operation.
