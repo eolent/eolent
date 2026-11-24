@@ -1,3 +1,34 @@
+---
+id: ADR-0009
+rules:
+  - id: ADR-0009-R1
+    severity: error
+    appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
+    text: A module must not read, join, write or reference another module's tables, and reads another module's data only through that module's Contracts project, its lookup interfaces and its events.
+  - id: ADR-0009-R2
+    severity: error
+    appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
+    text: A reference to another module's entity is stored as an <entity>Id column and has no database foreign key to the other module.
+  # Scope follows the Consequences section of this ADR, which names the Domain, Application and Infrastructure
+  # projects. Extending the rule to Api would change the decision, so it needs an ADR amendment first.
+  - id: ADR-0009-R3
+    severity: error
+    appliesTo:
+      - 'src/*/Eolent.*.{Domain,Application,Infrastructure}/**/*.cs'
+      - 'src/*/Eolent.*.{Domain,Application,Infrastructure}/*.csproj'
+    text: The Domain, Application and Infrastructure projects of a module may reference another module only through its Contracts project, and only for a module named in its manifest dependencies.
+  - id: ADR-0009-R4
+    severity: error
+    appliesTo: ['src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs']
+    text: An entity that other modules may reference is never physically deleted except by in-place erasure of personal data, it is deactivated, and the owning module publishes deactivated and reactivated events.
+  - id: ADR-0009-R6
+    severity: warning
+    appliesTo:
+      - 'src/*/Eolent.*.{Domain,Application,Contracts,Infrastructure,Api}/**/*.cs'
+      - 'packages/**/*.{ts,tsx}'
+      - 'apps/**/*.{ts,tsx}'
+    text: The legacyId of an entity is internal data of its module and is not part of the module's HTTP API, and its only cross-module use is the migrations-only resolve operation.
+---
 # ADR 0009: Cross-module references and shared concepts
 
 - **Status:** Accepted
@@ -23,6 +54,8 @@ The first real module, sales invoicing, needs customers. A later CRM module will
 4. **A document that must not change takes a snapshot.** A record that becomes legally or commercially fixed when it is issued (an invoice, an order confirmation, a contract) copies the facts it needs from the referenced entities (names, addresses, identifiers, tax numbers, bank details) into itself at that moment. The reference stays for navigation and reporting; later edits of the referenced entity never change the issued document. The snapshot is part of the owning module's data and is described in its documentation.
 5. **Data from a legacy system keeps its old identifier.** An entity that is migrated from another system carries a nullable `legacyId` (text, up to 100 characters, indexed) next to its new identifier. It is unique within the entity, and within the tenant for a tenant-scoped entity (a host-level entity, `tenancy: none`, has no tenant, so only the entity). The migration chooses the value: when more than one source system is migrated into the same entities, it qualifies the value with the system (`erp:1234`, `crm:1234`) so the identifier spaces cannot collide. **Migrations load modules in dependency order:** a module's migration resolves every reference through the `legacyId` of the referenced entity, so the modules it references must already be loaded; the new identifiers of other modules need not be known in advance, and a module that is loaded can be checked and re-run on its own (the migration upserts by `legacyId`). A reference whose target is not loaded is reported, never guessed. **A legacy record whose key has a tombstone (it was erased) is skipped and reported as erased, never inserted again**, because the legacy source still holds the data; so a re-run cannot bring an erased entity back. Dependency cycles are forbidden for migrations as for everything else (rule 2). `legacyId` is internal data of the module: it is not part of its HTTP API, and its only cross-module use is the migrations-only resolve operation of rule 2.
 6. **Composition across modules is done at the edges.** A screen or a report that shows data of several modules gets it by calling each module's operations (the frontend composes, or an application service composes through Contracts), or from a read model that is built from events. It does not run a query over the modules' tables.
+
+**Rules in this ADR's frontmatter.** `ADR-0009-R5` is left unused on purpose: it said that a record that becomes fixed when it is issued copies the facts it needs into itself, which cannot be told from a pull request's diff (rule 4 above says it in prose), so it stays prose.
 
 ## Not decided here
 
