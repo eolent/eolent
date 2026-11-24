@@ -113,7 +113,7 @@ There is no row-level restriction in v1: a user who may read companies reads all
 
 ## 7. Events
 
-`parties.company.created`, `.updated`, `.deactivated`, `.reactivated`, `.erased`; the same five for `parties.person`; `parties.membership.created`, `.updated`, `.ended`; and `.erased` for a company and for a person. An event carries the id, the tenant and what changed, and only what a consumer needs to keep a cache or a block in step. Company events carry the name and the kind. Person events carry the identifier only: the names of a person are sensitive properties, which the platform keeps out of events, so a consumer asks the lookup. Membership events carry the identifiers of the membership, the company and the person. The exact data of each is fixed in the module's manifest.
+`parties.company.created`, `.updated`, `.deactivated`, `.reactivated`, `.erased`; the same five for `parties.person`; `parties.membership.created`, `.updated`, `.ended`. An event carries the id, the tenant and what changed, and only what a consumer needs to keep a cache or a block in step. Company events carry the name and the kind. Person events carry the identifier only: the names of a person are sensitive properties, which the platform keeps out of events, so a consumer asks the lookup. Membership events carry the identifiers of the membership, the company and the person. The exact data of each is fixed in the module's manifest.
 
 ## 8. Out of scope for v1
 
