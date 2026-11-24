@@ -113,7 +113,7 @@ There is no row-level restriction in v1: a user who may read companies reads all
 
 ## 7. Events
 
-`parties.company.created`, `.updated`, `.deactivated`, `.reactivated`, `.erased`; the same five for `parties.person`; `parties.membership.created`, `.updated`, `.ended`. An event carries the id, the tenant and what changed, and only what a consumer needs to keep a cache or a block in step (names and identifiers, not contact details of a person). The exact data of each is fixed in the module's manifest.
+`parties.company.created`, `.updated`, `.deactivated`, `.reactivated`, `.erased`; the same five for `parties.person`; `parties.membership.created`, `.updated`, `.ended`; and `.erased` for a company and for a person. An event carries the id, the tenant and what changed, and only what a consumer needs to keep a cache or a block in step. Company events carry the name and the kind. Person events carry the identifier only: the names of a person are sensitive properties, which the platform keeps out of events, so a consumer asks the lookup. Membership events carry the identifiers of the membership, the company and the person. The exact data of each is fixed in the module's manifest.
 
 ## 8. Out of scope for v1
 
@@ -136,7 +136,7 @@ No open questions remain for v1.
 
 ## 10. Enforced by
 
-This section lists the checks that keep the code in line with this PRD. **The module does not exist yet, so every check below is planned, not running.** The section is updated when each one is built. A requirement that is not listed has **no check yet**, and the table says so.
+This section lists the checks that keep the code in line with this PRD. The module exists (eolent-dotnet, `src/Eolent.Parties`). Every test is tagged with the requirement it proves, and `scripts/requirements-check.mjs` runs in the module repository's CI and fails when a requirement has no test, except D4 (nothing of the module's own to test: it reaches into no document). The rules that span rows (M2, M2a, M4, M6) run in the application layer, **without** the serialisable transaction the table below asks for: the platform's unit of work has no isolation option yet. Two requests that race can both pass the check; a database constraint backs M3 and C2, C3 and P3 only.
 
 | Requirement | Check |
 |---|---|

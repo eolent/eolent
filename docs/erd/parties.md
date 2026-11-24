@@ -69,9 +69,11 @@ Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId,
 | `region` | text(100) | yes | |
 | `country` | text(2) | no | |
 | `isPrimary` | boolean | no | |
+| `primaryMarker` | boolean | yes | `true` for the primary address and null for every other one: what the unique index below is built on |
+| `createdAt` | timestamp (UTC) | no | When the address was added; decides which remaining address becomes primary when the primary is removed |
 
-Indexes: unique `(tenantId, companyId)` where `isPrimary` is true (C2, at most one primary); `(tenantId, companyId)`.
-The application makes the first address primary and moves the flag in one transaction when another is chosen, **clearing the current primary first and then setting the new one** (the partial unique index is checked per statement, so the other order fails). Erasure deletes the address rows of an erased company (D3).
+Indexes: unique `(tenantId, companyId, primaryMarker)` (C2, at most one primary): a null never equals another null in a unique index of PostgreSQL, and the SQL Server provider filters the nulls out, so the one index serves both products without a filtered-index syntax of its own; `(tenantId, companyId)`.
+The application makes the first address primary and moves the flag in two saves, **clearing the current primary first and then setting the new one** (the unique index is checked per statement, so the other order fails); an interrupted move leaves no primary address, never two. Removing the primary address promotes the oldest remaining address. Erasure deletes the address rows of an erased company (D3).
 
 ### Person
 
