@@ -24,6 +24,16 @@ test("the real Parties PRD has its requirements", () => {
   for (const id of ["C1", "C5", "M2a", "D4", "P3"]) assert.ok(ids.includes(id), id);
 });
 
+test("a pair that is not the argument of a call is not a tag", () => {
+  assert.deepEqual(findTags('{ "requirement", "created" } ["requirement", "x"]'), []);
+});
+
+test("a misspelled prefix of the module is reported, a real other module is listed", () => {
+  const result = check({ requirements: [{ id: "C1" }], tagsByFile: new Map([["a.cs", ["parites/C1", "Parties/C1", "invoicing/I3"]]]), module: "parties" });
+  assert.equal(result.unknown.length, 2);
+  assert.deepEqual(result.otherModules, ["invoicing"]);
+});
+
 test("tags are read from traits and from other languages, several ids in one", () => {
   assert.deepEqual(findTags('[Trait("requirement", "C1,M2a")] x; test("a", { requirement: 1 }); tag("requirement", \'P3\')'), ["C1", "M2a", "P3"]);
 });

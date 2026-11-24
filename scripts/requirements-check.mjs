@@ -29,7 +29,8 @@ export function parseRequirements(markdown) {
 /** The ids a source text is tagged with: a map from "module/id" or "id" to the number of tags. */
 export function findTags(source) {
   const tags = [];
-  const pattern = /["']requirement["']\s*,\s*["']([^"']+)["']/g;
+  // A tag is the two literals as the arguments of a call or attribute: the closing parenthesis must follow, so a pair in an object or an array is not a tag.
+  const pattern = /["']requirement["']\s*,\s*["']([^"']+)["']\s*\)/g;
   for (const m of source.matchAll(pattern)) {
     for (const id of m[1].split(",").map((s) => s.trim()).filter(Boolean)) tags.push(id);
   }
@@ -45,17 +46,37 @@ function* sourceFiles(folder) {
   }
 }
 
+function distance(a, b) {
+  const row = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    let previous = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const current = row[j];
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, previous + (a[i - 1] === b[j - 1] ? 0 : 1));
+      previous = current;
+    }
+  }
+  return row[b.length];
+}
+
 /** Compares the PRD with the tags of the test folders. */
 export function check({ requirements, tagsByFile, module, allowMissing = [] }) {
   const known = new Set(requirements.map((r) => r.id));
   const covered = new Map();
   const unknown = [];
+  const otherModules = new Set();
   for (const [file, tags] of tagsByFile) {
     for (const tag of tags) {
       const slash = tag.indexOf("/");
       const tagModule = slash >= 0 ? tag.slice(0, slash) : module;
       const id = slash >= 0 ? tag.slice(slash + 1) : tag;
-      if (tagModule !== module) continue; // another module's requirement
+      if (tagModule !== module) {
+        // Another module's requirement, unless the prefix is a near miss of this module's name: that is a typo and is reported.
+        if (distance(tagModule.toLowerCase(), module.toLowerCase()) <= 2) unknown.push({ file, id: tag, reason: `the prefix "${tagModule}" looks like a typo of "${module}"` });
+        else otherModules.add(tagModule);
+        continue;
+      }
       if (!known.has(id)) unknown.push({ file, id });
       else covered.set(id, [...(covered.get(id) ?? []), file]);
     }
@@ -63,7 +84,7 @@ export function check({ requirements, tagsByFile, module, allowMissing = [] }) {
   const allowed = new Set(allowMissing);
   const missing = requirements.filter((r) => !covered.has(r.id) && !allowed.has(r.id)).map((r) => r.id);
   const allowedMissing = requirements.filter((r) => !covered.has(r.id) && allowed.has(r.id)).map((r) => r.id);
-  return { total: requirements.length, covered: [...covered.keys()], missing, allowedMissing, unknown };
+  return { total: requirements.length, covered: [...covered.keys()], missing, allowedMissing, unknown, otherModules: [...otherModules].sort() };
 }
 
 function main(argv) {
@@ -93,7 +114,8 @@ function main(argv) {
     console.log(`${module}: ${result.covered.length} of ${result.total} requirements have a test.`);
     if (result.missing.length) console.log(`No test: ${result.missing.join(", ")}`);
     if (result.allowedMissing.length) console.log(`No test, allowed: ${result.allowedMissing.join(", ")}`);
-    for (const u of result.unknown) console.log(`Unknown requirement ${u.id} in ${u.file}`);
+    for (const u of result.unknown) console.log(`Unknown requirement ${u.id} in ${u.file}` + (u.reason ? `: ${u.reason}` : ""));
+    if (result.otherModules.length) console.log(`Tags of other modules (not checked here): ${result.otherModules.join(", ")}`);
   }
   return result.unknown.length || (options["fail-on-missing"] && result.missing.length) ? 1 : 0;
 }
