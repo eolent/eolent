@@ -72,7 +72,7 @@ Indexes: unique `(tenantId, country, registrationNumber)` and unique `(tenantId,
 | `primaryMarker` | boolean | yes | `true` for the primary address and null for every other one: what the unique index below is built on |
 | `createdAt` | timestamp (UTC) | no | When the address was added; decides which remaining address becomes primary when the primary is removed |
 
-Indexes: unique `(tenantId, companyId, primaryMarker)` (C2, at most one primary): a null never equals another null in a unique index of PostgreSQL, and the SQL Server provider filters the nulls out, so the one index serves both products without a filtered-index syntax of its own; `(tenantId, companyId)`.
+Indexes: unique `(tenantId, companyId, primaryMarker)` (C2, at most one primary): PostgreSQL treats nulls in a unique index as different from each other, and the SQL Server provider of EF Core creates a unique index over a nullable column as a **filtered** index (`WHERE the column IS NOT NULL`) by convention, so the one declaration `unique (tenantId, companyId, primaryMarker)` means the same on both products and no provider-specific filter is written by hand (the contract tests prove it on both); `(tenantId, companyId)`.
 The application makes the first address primary and moves the flag in two saves, **clearing the current primary first and then setting the new one** (the unique index is checked per statement, so the other order fails); an interrupted move leaves no primary address, never two. Removing the primary address promotes the oldest remaining address. Erasure deletes the address rows of an erased company (D3).
 
 ### Person

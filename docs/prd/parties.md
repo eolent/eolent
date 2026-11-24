@@ -140,7 +140,7 @@ This section lists the checks that keep the code in line with this PRD. The modu
 
 | Requirement | Check |
 |---|---|
-| C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes in the persistence layer: a partial index on the company id where the address is primary (C2), and indexes on tenant, country and number (C3) and tenant and e-mail (P3) that ignore null values, and a contract test run against PostgreSQL and SQL Server |
+| C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes in the persistence layer: a unique index on the company id and the nullable marker that is `true` only for the primary address (C2), and indexes on tenant, country and number (C3) and tenant and e-mail (P3) that ignore null values, and a contract test run against PostgreSQL and SQL Server |
 | M3 (manager in the same company) | A composite foreign key on the membership table (see the [ERD](../erd/parties.md)) |
 | M2, M2a, P3 (name), M4, M6 (on PostgreSQL a database exclusion constraint MAY back M2 as well; SQL Server has none) | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
 | C4, M1, R1, R2, M5, M7 | Domain and acceptance tests of the module |
