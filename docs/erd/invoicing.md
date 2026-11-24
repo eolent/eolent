@@ -109,7 +109,7 @@ The counters are kept by the platform's sequence service, one sequence per key `
 | `snapshotSource` | text | yes | `confirmation` or `migration` (G4) |
 | `legacyNumber` | boolean | no | True for an invoice loaded with its old number (N4): the number came from outside the series |
 
-Checks: `status` in `draft`, `confirmed`; a confirmed invoice has `documentNumber`, `confirmedAt`, all four totals and a snapshot; a draft has none of them; `dueDate` is not before `issueDate` is **not** a rule (a due date in the past is the user's business). Indexes: `(tenantId, sellerId, issueDate)`, `(tenantId, customerCompanyId)`, `(tenantId, taxPointDate)` where confirmed (tax reads), `(tenantId, documentNumber)`, unique `(tenantId, legacyId)` where not null.
+Checks: `status` in `draft`, `confirmed`; a confirmed invoice has `documentNumber`, `confirmedAt`, all four totals and a snapshot; a draft has none of them. There is no check between the three dates: a due date before the issue date is the user's business. Indexes: `(tenantId, sellerId, issueDate)`, `(tenantId, customerCompanyId)`, `(tenantId, taxPointDate)` where confirmed (tax reads), `(tenantId, documentNumber)`, unique `(tenantId, legacyId)` where not null.
 
 ### InvoiceLine
 

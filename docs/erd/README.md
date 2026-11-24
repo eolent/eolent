@@ -5,3 +5,4 @@ An ERD states **which data a module keeps and which rules the database itself en
 | ERD | Module | PRD |
 |---|---|---|
 | [Parties](parties.md) | `parties` | [Parties](../prd/parties.md) |
+| [Invoicing](invoicing.md) | `invoicing` | [Invoicing](../prd/invoicing.md) |
