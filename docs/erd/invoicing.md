@@ -52,7 +52,7 @@ The customer and the seller's company are **not** tables here: they are ids of P
 
 ### SellerBankAccount
 
-`sellerId` (foreign key), `name` (text 100), `iban` (text 34, null), `swift` (text 11, null), `accountNumber` (text 50, null), `isDefault` (boolean), `defaultMarker` (boolean, null: true for the default, null otherwise). At least one of `iban` and `accountNumber` is not null. Unique `(tenantId, sellerId, defaultMarker)`: at most one default account per seller. PostgreSQL treats nulls in a unique index as different, and the SQL Server provider of EF Core makes a unique index over a nullable column a filtered one (`WHERE defaultMarker IS NOT NULL`) by convention, so any number of non-default accounts is allowed on both (the same device as the primary address of the Parties ERD; the contract tests prove it).
+`sellerId` (foreign key), `name` (text 100), `iban` (text 34, null), `swift` (text 11, null), `accountNumber` (text 50, null), `isDefault` (boolean), `defaultMarker` (boolean, null: true for the default, null otherwise). At least one of `iban` and `accountNumber` is not null. The table has the key `(tenantId, sellerId, id)`, which the composite foreign key of an invoice's `bankAccountId` references, so an invoice can only point at an account of its own seller. Unique `(tenantId, sellerId, defaultMarker)`: at most one default account per seller. PostgreSQL treats nulls in a unique index as different, and the SQL Server provider of EF Core makes a unique index over a nullable column a filtered one (`WHERE defaultMarker IS NOT NULL`) by convention, so any number of non-default accounts is allowed on both (the same device as the primary address of the Parties ERD; the contract tests prove it).
 
 ### NumberSeries
 
