@@ -65,7 +65,7 @@ The customer and the seller's company are **not** tables here: they are ids of P
 | `status` | text | no | `active` or `retired` |
 | `activeMarker` | boolean | yes | `true` while active, null once retired: unique `(tenantId, sellerId, documentType, activeMarker)` gives one active series per seller and type (N1) and any number of retired ones (nulls are distinct on PostgreSQL; the SQL Server provider makes the index a filtered one over the non-null marker) |
 
-The counters are kept by the platform's sequence service: a row per key that the service updates inside the transaction of the save (not a database sequence object, so a rollback gives the number back). The key is `invoicing.invoice:<sellerId>:<seriesId>:<year>` (the year `0000` when the format has no `{yyyy}`); the series id is in it, so a series that replaces another with the same format starts its own counter and never meets the retired one's numbers. The row is created when first needed, idempotently. The table holds the rule; the sequence holds the counter. Legacy numbers (N4) are not in the sequence: the migration starts the new series above the highest of them.
+The counters are kept by the platform's sequence service: a row per key that the service updates inside the transaction of the save (not a database sequence object, so a rollback gives the number back). The key is `invoicing.invoice:<sellerId>:<seriesId>:<year>` (the year `0000` when the format has no `{yyyy}`). A seller never has two series with the same **format**, active or retired (the application refuses it): the numbers of a format belong to one series for ever, so two counters can never reissue the same number, and the unique number (N3) stays a guard, not a mechanism. The row is created when first needed, idempotently. The table holds the rule; the sequence holds the counter. Legacy numbers (N4) are not in the sequence: the migration starts the new series above the highest of them.
 
 ### TaxRate
 
@@ -82,7 +82,7 @@ The counters are kept by the platform's sequence service: a row per key that the
 ### PriceList and ProductPrice
 
 `PriceList`: `name` (text 255), `customerGroupId` (foreign key), `validFrom`, `validTo` (date, null), `status`. Check: `validTo` is null or not before `validFrom`.
-`ProductPrice`: `priceListId`, `productId` (foreign keys), `currency` (char 3, null: any currency), `unitPrice` (numeric 14,2, not negative). Unique `(tenantId, priceListId, productId, currency)` over the three columns, with a null currency counted as one more value, so there is one price per product, list and currency: the application writes the any-currency price with `currencyKey` = `*` (a text column, `*` for any, else the code) and the unique index is on `currencyKey`, which is the same on both databases.
+`ProductPrice`: `priceListId`, `productId` (foreign keys), `currency` (char 3, null: any currency), `currencyKey` (char 3, not null: the code, or `*` for any currency; the application writes it from `currency`), `unitPrice` (numeric 14,2, not negative). Unique `(tenantId, priceListId, productId, currencyKey)`: one price per product, list and currency, and one any-currency price; the key column makes the index the same on both databases (a null would not).
 
 ### Invoice
 
