@@ -114,7 +114,7 @@ Constraints:
 - `reportsToMembershipId` is not equal to `id`.
 - **Same company and same tenant, enforced by the database:** a unique key `(tenantId, companyId, id)` and a composite foreign key `(tenantId, companyId, reportsToMembershipId)` to it, so a manager can only be a membership of the same company (M3). The key is declared as a simple match: a null `reportsToMembershipId` (a root of the tree) skips the check, which is intended.
 Indexes: `(companyId)`; `(personId)`; `(reportsToMembershipId)`; `(tenantId, relationshipNameId)` for the "name in use" check (R1); unique `(tenantId, legacyId)` where not null.
-**Rules the database cannot express** (the PRD's "Enforced by" says they run in the domain layer, in a serialisable transaction): no loop in the tree (M4); no overlap for the same person, company and relationship name (M2); no overlap for two persons with the same `nameKey` in the same company and relationship name unless a PersonDistinctPair exists (M2a); a membership with current subordinates cannot end (M6).
+**Rules the database cannot express** (the PRD's "Enforced by" says they run in the domain layer, in a serialisable transaction, requirement X3): no loop in the tree (M4); no overlap for the same person, company and relationship name (M2); no overlap for two persons with the same `nameKey` in the same company and relationship name unless a PersonDistinctPair exists (M2a); a membership with current subordinates cannot end (M6).
 
 ### PersonDistinctPair
 

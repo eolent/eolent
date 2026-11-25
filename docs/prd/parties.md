@@ -138,7 +138,7 @@ No open questions remain for v1.
 
 ## 10. Enforced by
 
-This section lists the checks that keep the code in line with this PRD. The module exists (eolent-dotnet, `src/Eolent.Parties`). Every test is tagged with the requirement it proves, and `scripts/requirements-check.mjs` runs in the module repository's CI and fails when a requirement has no test, except D4 (nothing of the module's own to test: it reaches into no document). The rules that span rows (M2, M2a, M4, M6) run in the application layer, **without** the serialisable transaction the table below asks for: the platform's unit of work has no isolation option yet. Two requests that race can both pass the check; a database constraint backs M3 and C2, C3 and P3 only.
+This section lists the checks that keep the code in line with this PRD. The module exists (eolent-dotnet, `src/Eolent.Parties`). Every test is tagged with the requirement it proves, and `scripts/requirements-check.mjs` runs in the module repository's CI and fails when a requirement has no test, except D4 (nothing of the module's own to test: it reaches into no document). The rules that span rows (M2, M2a, M4, M6) run in the application layer. Requirement X3 asks for a serialisable transaction around them; the platform feature (`ExecuteSerializableAsync`, planned in eolent-dotnet `docs/plans/kernel-isolation-unique-events.md`) is not shipped yet, so until the Parties change that uses it merges, two requests that race can both pass the check, and a database constraint backs M3 and C2, C3 and P3 only.
 
 | Requirement | Check |
 |---|---|
