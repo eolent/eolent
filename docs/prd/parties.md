@@ -73,6 +73,8 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **X1.** Every operation that changes a company, a person, a membership or a relationship name requires the version the user last saw, including ending a membership, deactivating, reactivating and erasing; a stale change is refused (`412`/`428` as the API conventions define).
 - **X2.** Creating a company, a person, a membership or a relationship name, and erasing, can be repeated safely with an idempotency key.
+- **X3.** The rules that span rows (M2, M2a, P3 name, M4, M6) hold when two requests race: the use case runs in a **serialisable transaction** (the unit of work's `ExecuteSerializableAsync`), and a request that loses a serialisation conflict is repeated, not answered with an error.
+- **X4.** A uniqueness rule that two requests race past (a registration number, a tax number, a primary address) is answered with the **same validation error** as the check that runs first (it names the existing record where the check does), never a `500`. The data layer turns the unique-index violation into a typed error and the application maps it.
 
 ### Contract offered to other modules (ADR 0009)
 
@@ -142,7 +144,9 @@ This section lists the checks that keep the code in line with this PRD. The modu
 |---|---|
 | C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes in the persistence layer: a unique index on the company id and the nullable marker that is `true` only for the primary address (C2), and indexes on tenant, country and number (C3) and tenant and e-mail (P3) that ignore null values, and a contract test run against PostgreSQL and SQL Server |
 | M3 (manager in the same company) | A composite foreign key on the membership table (see the [ERD](../erd/parties.md)) |
-| M2, M2a, P3 (name), M4, M6 (on PostgreSQL a database exclusion constraint MAY back M2 as well; SQL Server has none) | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
+| M2, M2a, P3 (name), M4, M6 (on PostgreSQL a database exclusion constraint MAY back M2 as well; SQL Server has none) | Checks in the domain layer, run in a serialisable transaction (X3) because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
+| X3 | The unit of work's serialisable execution (platform, tested on both databases) and a contract test with two writers that must not both pass |
+| X4 | The typed unique-violation error of the data layer (platform) and a contract test where two creates race for one number |
 | C4, M1, R1, R2, M5, M7 | Domain and acceptance tests of the module |
 | C5 | The platform's tenant-isolation checks, and a conformance test that a second tenant sees none of the first tenant's parties |
 | P1, P2, C1 | Acceptance tests of the module (create, read, change, search) |

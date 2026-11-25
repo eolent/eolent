@@ -78,7 +78,7 @@ Issue sales invoices on behalf of one or several selling organisations of a tena
 ### Contract offered to other modules (ADR 0009)
 
 - **K1.** The module's Contracts offer, for confirmed invoices: **get by id**, **get many by ids**, **search** by document number, and **list by tax point date range** (what tax reporting needs). A result carries the document number, the seller and customer ids, the snapshot, the currency, the dates, the conversion rate, the total of lines, the VAT rows (rate, base, VAT, and the accounting amounts) and the grand total, in both currencies. Drafts are never returned.
-- **K2.** The event `invoicing.invoice.confirmed` carries the id, the seller, the customer, the document number and the grand total with its currency; a consumer that needs more asks the lookup.
+- **K2.** The event `invoicing.invoice.confirmed` carries the id, the seller, the customer, the document number and the grand total with its currency; a consumer that needs more asks the lookup. The event is recorded **in the same transaction that confirms the invoice and takes its number** (N2): there is no moment in which the invoice is confirmed and the event is lost. The platform builds the event data after the number is taken and before the transaction commits.
 
 ### Migration
 
@@ -146,6 +146,7 @@ This section lists the checks that keep the code in line with this PRD. The modu
 | I3, I7 and the rounding rule (design decision 1) | Domain tests with the worked examples of the old data dictionary, including the cases where the old rounding differed |
 | I5, I2 (line changes), I6 | Domain and acceptance tests; a conformance test for the conflict on a confirmed invoice |
 | P4, P5 | Domain tests of the price resolution with every tie-break |
+| K2 (atomic with N2) | The platform's outbox with data built after numbering; a data contract test that a confirmed invoice and its event exist together, and that a failed confirmation leaves neither |
 | I4, K1, K2 | Acceptance tests: the snapshot does not change when the Parties company changes; the lookup returns only confirmed invoices |
 | X1, X2, X3 | The platform's conformance suite and the module's HTTP tests |
 | G1 to G4 | The migration tests of the module and the migration check |
