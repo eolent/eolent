@@ -68,6 +68,7 @@ Issue sales invoices on behalf of one or several selling organisations of a tena
 - **I9.** A deactivated tax rate, product or unit cannot be chosen for a new line. An invoice draft whose customer is deactivated cannot be confirmed (K4 of the Parties PRD).
 - **I10.** A user can read an invoice, with lines, VAT rows and, when confirmed, the snapshot; and list invoices filtered by seller, customer, status, issue date, tax point date and number, and found by document number.
 - **I11.** The invoice is shown as a printable page (HTML that prints to PDF from the browser). The print uses the invoice's currency, its bank account, the snapshot of the parties and the print language; the document number is also the variable symbol.
+- **I12.** A browser tab cannot send a bearer header, so a user who may read the invoice can ask for a **print link**: a URL on the API's own origin that opens the printable page (I11) of a confirmed invoice once and only within one minute of being issued, for that invoice only, without any other credential. The link is single-use and bound to the tenant and the invoice, and it is never logged in full. The page it opens is served with a strict Content-Security-Policy that allows no script, no frames and no outside resources (`default-src 'none'; style-src 'unsafe-inline'; img-src data:`), so nothing in it can run code or reach the application's storage. Asking for a link needs the permission to read invoices, and a draft has no print link.
 
 ### Concurrency, repeats and permissions
 
@@ -147,6 +148,7 @@ This section lists the checks that keep the code in line with this PRD. The modu
 | I5, I2 (line changes), I6 | Domain and acceptance tests; a conformance test for the conflict on a confirmed invoice |
 | P4, P5 | Domain tests of the price resolution with every tie-break |
 | K2 (atomic with N2) | The platform's outbox with data built after numbering; a data contract test that a confirmed invoice and its event exist together, and that a failed confirmation leaves neither |
+| I12 | HTTP tests: a link opens the page once, expires after a minute, belongs to one invoice and one tenant, a draft has none, the response carries the Content-Security-Policy; the print link operation in the manifest (generated) |
 | I4, K1, K2 | Acceptance tests: the snapshot does not change when the Parties company changes; the lookup returns only confirmed invoices |
 | X1, X2, X3 | The platform's conformance suite and the module's HTTP tests |
 | G1 to G4 | The migration tests of the module and the migration check |
