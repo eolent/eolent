@@ -119,6 +119,10 @@ Checks: `status` in `draft`, `confirmed`; a confirmed invoice has `documentNumbe
 
 `invoiceId` (foreign key), `ratePercent` (numeric 5,2), `base`, `vat`, `total` (numeric 14,2) and `baseAccounting`, `vatAccounting`, `totalAccounting`. Unique `(tenantId, invoiceId, ratePercent)` (one row per rate, I3). `taxRateId` (foreign key, null) points at one of the tax rates of that percent when there is exactly one, for the reader's convenience; the percent is the truth.
 
+### PrintLink
+
+The print link of a confirmed invoice (I12): `id`, `tenantId`, `invoiceId` (foreign key with the tenant), `tokenHash` (the hash of the secret part of the URL, 32 bytes; the secret itself is never stored), `createdAt`, `expiresAt` (`createdAt` plus one minute) and `usedAt` (null until the link is consumed). Unique `tokenHash`. Consuming is one statement that sets `usedAt` where it is null and `expiresAt` has not passed and reads the number of rows it changed: one row means the caller got the page, none means `410` (I12c). The row is a credential's trace, not business data: it is not audited and not versioned. A retention step deletes rows a day after they expire (the application runs it when a new link is created; no read path deletes). Because a deleted row is indistinguishable from a link that never existed, **an unknown link is `410` too** (I12c): the response never depends on whether the row is still there. The index on `expiresAt` serves that deletion.
+
 ## 4. What the database enforces and what it cannot
 
 - **In the database:** the unique keys and checks above, the foreign keys with the tenant in them, one default account, one active series, one price per product, list and currency, a unique number per seller, the shape of a draft and of a confirmed invoice (the check on the columns that are set together).
@@ -132,6 +136,7 @@ Checks: `status` in `draft`, `confirmed`; a confirmed invoice has `documentNumbe
 | Search by document number | `(tenantId, documentNumber)` |
 | List by tax point date range (K1) | `(tenantId, taxPointDate)` filtered to confirmed |
 | Resolve by legacy id (migration only) | the `(tenantId, legacyId)` indexes |
+| Open a print link (I12) | the unique `tokenHash`, found without a tenant filter on purpose: the secret is the credential, the request has no tenant of its own, and the page is then loaded in the link's tenant (a tenant filter here would break the link; the tenant must also be active) |
 
 The snapshot, not the live Parties company, is what a lookup returns for the parties of an issued invoice.
 
