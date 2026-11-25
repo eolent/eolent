@@ -73,6 +73,8 @@ A company of kind `naturalPerson` may point at a person record (the same human),
 
 - **X1.** Every operation that changes a company, a person, a membership or a relationship name requires the version the user last saw, including ending a membership, deactivating, reactivating and erasing; a stale change is refused (`412`/`428` as the API conventions define).
 - **X2.** Creating a company, a person, a membership or a relationship name, and erasing, can be repeated safely with an idempotency key.
+- **X3.** The rules that span rows (M2, M2a, P3 name, M4, M6) hold when two requests race: the use case runs in a **serialisable transaction** (the unit of work's `ExecuteSerializableAsync`). A request that loses a serialisation conflict is repeated from the start, at most the provider's retry count (three repeats, four attempts in all, the same bound as for other transient failures); when the attempts run out the caller gets the retryable `503 Eolent.Unavailable` with `Retry-After`, never a `500` and never a silent success. The use case must be safe to run more than once: it reads and writes only through the unit of work, makes no call to anything outside the database, and takes its ids inside the work.
+- **X4.** A uniqueness rule that two requests race past and that this PRD names (a registration number, a tax number, a primary address, a name key) is answered with the **same validation error** as the check that runs first (it names the existing record where the check does), never a `500`. The data layer turns the unique-index violation into a typed error and the module maps it; every unique index the module declares has such a mapping and a test. A unique index the module does not map is a defect, not a supported outcome: the platform answers it as an unexpected error with the cause in the log.
 
 ### Contract offered to other modules (ADR 0009)
 
@@ -136,13 +138,15 @@ No open questions remain for v1.
 
 ## 10. Enforced by
 
-This section lists the checks that keep the code in line with this PRD. The module exists (eolent-dotnet, `src/Eolent.Parties`). Every test is tagged with the requirement it proves, and `scripts/requirements-check.mjs` runs in the module repository's CI and fails when a requirement has no test, except D4 (nothing of the module's own to test: it reaches into no document). The rules that span rows (M2, M2a, M4, M6) run in the application layer, **without** the serialisable transaction the table below asks for: the platform's unit of work has no isolation option yet. Two requests that race can both pass the check; a database constraint backs M3 and C2, C3 and P3 only.
+This section lists the checks that keep the code in line with this PRD. The module exists (eolent-dotnet, `src/Eolent.Parties`). Every test is tagged with the requirement it proves, and `scripts/requirements-check.mjs` runs in the module repository's CI and fails when a requirement has no test, except D4 (nothing of the module's own to test: it reaches into no document). The rules that span rows (M2, M2a, M4, M6) run in the application layer. Requirement X3 asks for a serialisable transaction around them; the platform feature (`ExecuteSerializableAsync`, planned in eolent-dotnet `docs/plans/kernel-isolation-unique-events.md`) is not shipped yet, so until the Parties change that uses it merges, two requests that race can both pass the check, and a database constraint backs M3 and C2, C3 and P3 only.
 
 | Requirement | Check |
 |---|---|
 | C2 (one primary address), C3 (registration and tax number), P3 (e-mail) | Unique indexes in the persistence layer: a unique index on the company id and the nullable marker that is `true` only for the primary address (C2), and indexes on tenant, country and number (C3) and tenant and e-mail (P3) that ignore null values, and a contract test run against PostgreSQL and SQL Server |
 | M3 (manager in the same company) | A composite foreign key on the membership table (see the [ERD](../erd/parties.md)) |
-| M2, M2a, P3 (name), M4, M6 (on PostgreSQL a database exclusion constraint MAY back M2 as well; SQL Server has none) | Checks in the domain layer, run in a serialisable transaction because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
+| M2, M2a, P3 (name), M4, M6 (on PostgreSQL a database exclusion constraint MAY back M2 as well; SQL Server has none) | Checks in the domain layer, run in a serialisable transaction (X3) because SQL Server has no exclusion constraint and these rules span rows (overlap, namesakes, recursion), plus domain tests and a concurrent-writers contract test on both databases |
+| X3 | The unit of work's serialisable execution (platform, tested on both databases) and a contract test with two writers that must not both pass |
+| X4 | The typed unique-violation error of the data layer (platform) and a contract test where two creates race for one number |
 | C4, M1, R1, R2, M5, M7 | Domain and acceptance tests of the module |
 | C5 | The platform's tenant-isolation checks, and a conformance test that a second tenant sees none of the first tenant's parties |
 | P1, P2, C1 | Acceptance tests of the module (create, read, change, search) |

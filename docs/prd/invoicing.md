@@ -38,7 +38,7 @@ Issue sales invoices on behalf of one or several selling organisations of a tena
 - **S1.** The tenant administrator registers a seller by choosing a Parties company. A seller has a default currency, an accounting currency, a default payment term in days and a default print language, and can be deactivated. A seller that is deactivated or has no active number series cannot be chosen for a new invoice.
 - **S2.** A seller has any number of **bank accounts** (name, IBAN, SWIFT, account number); at most one is the default. An invoice names one of its seller's bank accounts or none.
 - **N1.** A seller has at most one active invoice series, and never two series with the same format (the numbers of a format belong to one series). A series has a **format** and a **first counter**. The format must contain exactly one `{counter:0000}` (the zeros give the padding: four zeros pad to four digits) and may contain `{yyyy}` (the year of the issue date) and fixed text. With `{yyyy}` the counter restarts at the first counter every year.
-- **N2.** The document number is taken when an invoice is confirmed, **inside the transaction that confirms it**: either the invoice is confirmed and the number is used, or neither happens. A failed confirmation leaves no gap. Two confirmations at once get different numbers. The counter is a row that the platform's sequence service updates inside that transaction (not a database sequence object, which would not roll back), so a rollback gives the number back.
+- **N2.** The document number is taken when an invoice is confirmed, **inside the transaction that confirms it**: either the invoice is confirmed and the number is used, or neither happens. A failed confirmation leaves no gap. Two confirmations at once get different numbers. The counter is a row that the platform's sequence service updates inside that transaction (not a database sequence object, which would not roll back), so a rollback gives the number back. The order inside the transaction is fixed: the reads and checks, the number from the series, the invoice and its event data written, then the commit; the event of K2 is built after the number is taken (the platform guarantees that order).
 - **N3.** A document number is unique per seller. Two invoices of one seller never share one, whatever created them.
 - **N4.** An invoice that carries a document number from before the migration keeps it as text, exactly. It does not use the series and does not move its counter. Because the number is unique per seller (N3), the migration also **sets the first counter of the new series above the highest legacy number of the same format and year** (G2), and a migration check lists every legacy number that the series could produce again.
 
@@ -78,7 +78,7 @@ Issue sales invoices on behalf of one or several selling organisations of a tena
 ### Contract offered to other modules (ADR 0009)
 
 - **K1.** The module's Contracts offer, for confirmed invoices: **get by id**, **get many by ids**, **search** by document number, and **list by tax point date range** (what tax reporting needs). A result carries the document number, the seller and customer ids, the snapshot, the currency, the dates, the conversion rate, the total of lines, the VAT rows (rate, base, VAT, and the accounting amounts) and the grand total, in both currencies. Drafts are never returned.
-- **K2.** The event `invoicing.invoice.confirmed` carries the id, the seller, the customer, the document number and the grand total with its currency; a consumer that needs more asks the lookup.
+- **K2.** The event `invoicing.invoice.confirmed` carries the id, the seller, the customer, the document number and the grand total with its currency; a consumer that needs more asks the lookup. The event is recorded **in the same transaction that confirms the invoice and takes its number** (N2): there is no moment in which the invoice is confirmed and the event is lost. The platform builds the event data after the number is taken and before the transaction commits.
 
 ### Migration
 
@@ -146,6 +146,7 @@ This section lists the checks that keep the code in line with this PRD. The modu
 | I3, I7 and the rounding rule (design decision 1) | Domain tests with the worked examples of the old data dictionary, including the cases where the old rounding differed |
 | I5, I2 (line changes), I6 | Domain and acceptance tests; a conformance test for the conflict on a confirmed invoice |
 | P4, P5 | Domain tests of the price resolution with every tie-break |
+| K2 (atomic with N2) | The platform's outbox with data built after numbering; a data contract test that a confirmed invoice and its event exist together, and that a failed confirmation leaves neither |
 | I4, K1, K2 | Acceptance tests: the snapshot does not change when the Parties company changes; the lookup returns only confirmed invoices |
 | X1, X2, X3 | The platform's conformance suite and the module's HTTP tests |
 | G1 to G4 | The migration tests of the module and the migration check |

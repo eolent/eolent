@@ -85,7 +85,7 @@ Example:
 
 ## 5. Delivery
 
-- **Atomic with the change.** An event caused by a change is recorded in the same unit of work as the change (a transactional outbox or an equivalent): either both are committed or neither is. A change that is rolled back publishes nothing, and a committed change that declares the event always publishes it
+- **Atomic with the change.** An event caused by a change is recorded in the same unit of work as the change (a transactional outbox or an equivalent): either both are committed or neither is. An event whose data depends on a value the save computes (a document number from a gap-free series) is built after that value exists and before the commit, still in the same transaction. A change that is rolled back publishes nothing, and a committed change that declares the event always publishes it
 - **At least once.** An event can be delivered more than once. Consumers MUST be idempotent and can detect a repeat by `source` and `id`
 - **No ordering guarantee.** 0.1 gives no ordering across events. Consumers that need an order use `time` and `subject` and tolerate gaps
 - **Tenant context.** A consumer that handles an event with `tenantid` MUST set the tenant context to that tenant before touching tenant-scoped data, and, as the [tenancy contract](tenancy.md) requires, has no ambient tenant otherwise. An event handler that needs a tenant and receives an event without `tenantid` fails and does not guess one
