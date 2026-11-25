@@ -4,9 +4,11 @@
 
 A release is a version tag of a repository (`eolent`, `eolent-dotnet`, `eolent-react`) and the packages published from it. The maintainer who prepares the release works through this list and records the result in the release notes. A step that does not apply is marked as such, not skipped silently.
 
-## 1. Before anything is published
+## 1. Before a release is published
 
-- [ ] **Trademark gate (first public package only).** The trademark clearance for the name is done, and the package names and organisation names are reserved. Nothing is published to NuGet or npm under the name before then.
+- [ ] **Trademark gate.**
+  - **Alpha versions (`-alpha.N` only):** the package names and organisation names are reserved on NuGet, npm and GitHub. Trademark clearance is **not** required. The maintainer decided this on 2026-11-25 (decision Q2 in the maintainer's private go-live planning notes): the company name is considered strong enough, and the attorney track continues in parallel. The risk is accepted: a rename later costs more with each published alpha. Alpha packages are tagged as prereleases (NuGet prerelease version, npm tag `next`, never `latest`). The `latest` tag is first set by the first stable release.
+  - **Every other version (`-beta.N`, `-rc.N`, and stable `0.1.0` and later):** the trademark clearance for the name is done. Nothing else is published to NuGet or npm under the name before then. Allowing beta or rc before clearance needs a new decision recorded here.
 - [ ] **Scope.** The release matches the milestone it claims. Anything outside it is marked as not included in the release notes.
 - [ ] **The default branch is green.** All required checks pass on the commit that is tagged (`validate`, `DCO sign-off`, `Runner self-test`, `ReviewBot` (a GitHub app check, not a workflow in this repository), and the code repositories' own checks).
 
