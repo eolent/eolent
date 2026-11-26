@@ -2,7 +2,7 @@
 # each rule's `source`. Do not edit by hand: edit the document and run `node scripts/generate-standards.mjs`.
 # ReviewBot reads this file; CI fails when it is out of date.
 version: 1
-generatedFrom: sha256:c6007a99eac4
+generatedFrom: sha256:dc0a00d42baf
 rules:
   - id: ADR-0004-R1
     severity: warning
@@ -110,7 +110,7 @@ rules:
     appliesTo:
       - packages/**/*.{ts,tsx}
       - apps/**/*.{ts,tsx}
-    text: Each page renders exactly one h1, the title of its main content, and sets the document title for the page.
+    text: Each page component registered as a route renders exactly one h1, the title of its main content, and sets the document title for the page. A shared component that is not a page renders no h1 of its own.
     source: docs/adr/0010-frontend-interface-conventions.md
   - id: ADR-0010-R5
     severity: warning
