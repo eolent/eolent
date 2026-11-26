@@ -2,7 +2,7 @@
 # each rule's `source`. Do not edit by hand: edit the document and run `node scripts/generate-standards.mjs`.
 # ReviewBot reads this file; CI fails when it is out of date.
 version: 1
-generatedFrom: sha256:e6b08e9d32a7
+generatedFrom: sha256:c6007a99eac4
 rules:
   - id: ADR-0004-R1
     severity: warning
@@ -84,3 +84,52 @@ rules:
       - apps/**/*.{ts,tsx}
     text: The legacyId of an entity is internal data of its module and is not part of the module's HTTP API, and its only cross-module use is the migrations-only resolve operation.
     source: docs/adr/0009-cross-module-references.md
+  - id: ADR-0010-R1
+    severity: warning
+    appliesTo:
+      - packages/**/*.{ts,tsx}
+      - apps/**/*.{ts,tsx}
+    text: A page that lists records and opens one registers both /things and /things/:id for the same component, and the name in a row is a real link, not a button. A list whose rows are edited in a dialog and have no detail page is the exception.
+    source: docs/adr/0010-frontend-interface-conventions.md
+  - id: ADR-0010-R2
+    severity: warning
+    appliesTo:
+      - packages/**/*.{ts,tsx}
+      - apps/**/*.{ts,tsx}
+    text: An action that deletes, erases, deactivates or removes a record asks the user to confirm before it sends the request, and erasing personal data asks for the record's name to be typed.
+    source: docs/adr/0010-frontend-interface-conventions.md
+  - id: ADR-0010-R3
+    severity: warning
+    appliesTo:
+      - packages/**/*.{ts,tsx}
+      - apps/**/*.{ts,tsx}
+    text: A form marks the fields that the API requires, and after a refused submit it moves focus to the first field with an error, where each such field has aria-invalid and aria-describedby pointing to its message.
+    source: docs/adr/0010-frontend-interface-conventions.md
+  - id: ADR-0010-R4
+    severity: warning
+    appliesTo:
+      - packages/**/*.{ts,tsx}
+      - apps/**/*.{ts,tsx}
+    text: Each page renders exactly one h1, the title of its main content, and sets the document title for the page.
+    source: docs/adr/0010-frontend-interface-conventions.md
+  - id: ADR-0010-R5
+    severity: warning
+    appliesTo:
+      - packages/**/*.{ts,tsx}
+      - apps/**/*.{ts,tsx}
+    text: The filters of a list are kept in the query string of the address, so that a reload, a shared link and the Back button keep them.
+    source: docs/adr/0010-frontend-interface-conventions.md
+  - id: ADR-0010-R6
+    severity: warning
+    appliesTo:
+      - packages/**/*.{ts,tsx}
+      - apps/**/*.{ts,tsx}
+    text: Dates, numbers and amounts shown to the user are formatted with Intl for the user's culture, never by hand with string concatenation or fixed patterns.
+    source: docs/adr/0010-frontend-interface-conventions.md
+  - id: ADR-0010-R7
+    severity: error
+    appliesTo:
+      - packages/**/*.{ts,tsx}
+      - apps/**/*.{ts,tsx}
+    text: Development aids such as the test-token picker and the API address box are rendered only behind a development-build check, so that a production build cannot show them.
+    source: docs/adr/0010-frontend-interface-conventions.md
