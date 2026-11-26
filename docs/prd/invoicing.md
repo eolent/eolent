@@ -115,7 +115,13 @@ All permissions follow the [permission contract](../../spec/permissions.md).
 
 ## 7. Events
 
-`invoicing.invoice.created`, `.updated`, `.confirmed`, `.deleted` (a draft); `invoicing.seller.created`, `.updated`. An event carries identifiers and what a consumer needs to keep a cache in step; `confirmed` carries the facts of K2. The exact data of each is fixed in the module's manifest.
+| Event | Status |
+|---|---|
+| `invoicing.invoice.created`, `.updated`, `.confirmed`, `.deleted` (a draft) | published |
+| `invoicing.seller.deactivated`, `.reactivated` | published since eolent-dotnet#71; ADR 0009 requires them, because a seller's id is handed out in the result of an issued invoice |
+| `invoicing.seller.created`, `.updated` | **planned, not yet published** |
+
+An event carries identifiers and what a consumer needs to keep a cache in step; `confirmed` carries the facts of K2. The exact data of each is fixed in the module's manifest.
 
 ## 8. Out of scope for v1
 
