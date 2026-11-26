@@ -12,13 +12,13 @@ rules:
     appliesTo:
       - 'packages/**/*.tsx'
       - 'apps/**/*.tsx'
-    text: An action that deletes, erases, deactivates or removes a record asks the user to confirm before it sends the request, and erasing personal data asks for the record's name to be typed.
+    text: An action that deletes, erases, deactivates or removes a record asks the user to confirm before it sends the request, the question says what will happen, and erasing personal data asks for the record's name to be typed.
   - id: ADR-0010-R3
     severity: warning
     appliesTo:
       - 'packages/**/*.tsx'
       - 'apps/**/*.tsx'
-    text: A form marks the fields that the API requires, and after a refused submit it moves focus to the first field with an error, where each such field has aria-invalid and aria-describedby pointing to its message.
+    text: A form marks the fields that the API requires, and after a refused submit it moves focus to the first field with an error, where each such field has aria-invalid and aria-describedby pointing to its message, and the form-level error is shown at the top of the form.
   - id: ADR-0010-R4
     severity: warning
     appliesTo:
@@ -30,7 +30,7 @@ rules:
     appliesTo:
       - 'packages/**/*.tsx'
       - 'apps/**/*.tsx'
-    text: The filters of a list are kept in the query string of the address, so that a reload, a shared link and the Back button keep them.
+    text: The filters of a list are kept in the query string of the address, so that a reload, a shared link and the Back button keep them, and a record opened from a list keeps the filters of that list.
   - id: ADR-0010-R6
     severity: warning
     appliesTo:

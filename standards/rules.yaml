@@ -2,7 +2,7 @@
 # each rule's `source`. Do not edit by hand: edit the document and run `node scripts/generate-standards.mjs`.
 # ReviewBot reads this file; CI fails when it is out of date.
 version: 1
-generatedFrom: sha256:c4eb12deed6c
+generatedFrom: sha256:c45a3a63fb34
 rules:
   - id: ADR-0004-R1
     severity: warning
@@ -96,14 +96,14 @@ rules:
     appliesTo:
       - packages/**/*.tsx
       - apps/**/*.tsx
-    text: An action that deletes, erases, deactivates or removes a record asks the user to confirm before it sends the request, and erasing personal data asks for the record's name to be typed.
+    text: An action that deletes, erases, deactivates or removes a record asks the user to confirm before it sends the request, the question says what will happen, and erasing personal data asks for the record's name to be typed.
     source: docs/adr/0010-frontend-interface-conventions.md
   - id: ADR-0010-R3
     severity: warning
     appliesTo:
       - packages/**/*.tsx
       - apps/**/*.tsx
-    text: A form marks the fields that the API requires, and after a refused submit it moves focus to the first field with an error, where each such field has aria-invalid and aria-describedby pointing to its message.
+    text: A form marks the fields that the API requires, and after a refused submit it moves focus to the first field with an error, where each such field has aria-invalid and aria-describedby pointing to its message, and the form-level error is shown at the top of the form.
     source: docs/adr/0010-frontend-interface-conventions.md
   - id: ADR-0010-R4
     severity: warning
@@ -117,7 +117,7 @@ rules:
     appliesTo:
       - packages/**/*.tsx
       - apps/**/*.tsx
-    text: The filters of a list are kept in the query string of the address, so that a reload, a shared link and the Back button keep them.
+    text: The filters of a list are kept in the query string of the address, so that a reload, a shared link and the Back button keep them, and a record opened from a list keeps the filters of that list.
     source: docs/adr/0010-frontend-interface-conventions.md
   - id: ADR-0010-R6
     severity: warning
