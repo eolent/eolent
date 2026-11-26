@@ -4,44 +4,44 @@ rules:
   - id: ADR-0010-R1
     severity: warning
     appliesTo:
-      - 'packages/**/*.{ts,tsx}'
-      - 'apps/**/*.{ts,tsx}'
+      - 'packages/**/*.tsx'
+      - 'apps/**/*.tsx'
     text: A page that lists records and opens one registers both /things and /things/:id for the same component, and the name in a row is a real link, not a button. A list whose rows are edited in a dialog and have no detail page is the exception.
   - id: ADR-0010-R2
     severity: warning
     appliesTo:
-      - 'packages/**/*.{ts,tsx}'
-      - 'apps/**/*.{ts,tsx}'
+      - 'packages/**/*.tsx'
+      - 'apps/**/*.tsx'
     text: An action that deletes, erases, deactivates or removes a record asks the user to confirm before it sends the request, and erasing personal data asks for the record's name to be typed.
   - id: ADR-0010-R3
     severity: warning
     appliesTo:
-      - 'packages/**/*.{ts,tsx}'
-      - 'apps/**/*.{ts,tsx}'
+      - 'packages/**/*.tsx'
+      - 'apps/**/*.tsx'
     text: A form marks the fields that the API requires, and after a refused submit it moves focus to the first field with an error, where each such field has aria-invalid and aria-describedby pointing to its message.
   - id: ADR-0010-R4
     severity: warning
     appliesTo:
-      - 'packages/**/*.{ts,tsx}'
-      - 'apps/**/*.{ts,tsx}'
+      - 'packages/**/*.tsx'
+      - 'apps/**/*.tsx'
     text: Each page component registered as a route renders exactly one h1, the title of its main content, and sets the document title for the page. A shared component that is not a page renders no h1 of its own.
   - id: ADR-0010-R5
     severity: warning
     appliesTo:
-      - 'packages/**/*.{ts,tsx}'
-      - 'apps/**/*.{ts,tsx}'
+      - 'packages/**/*.tsx'
+      - 'apps/**/*.tsx'
     text: The filters of a list are kept in the query string of the address, so that a reload, a shared link and the Back button keep them.
   - id: ADR-0010-R6
     severity: warning
     appliesTo:
-      - 'packages/**/*.{ts,tsx}'
-      - 'apps/**/*.{ts,tsx}'
+      - 'packages/**/*.tsx'
+      - 'apps/**/*.tsx'
     text: Dates, numbers and amounts shown to the user are formatted with Intl for the user's culture, never by hand with string concatenation or fixed patterns.
   - id: ADR-0010-R7
     severity: error
     appliesTo:
-      - 'packages/**/*.{ts,tsx}'
-      - 'apps/**/*.{ts,tsx}'
+      - 'packages/**/*.tsx'
+      - 'apps/**/*.tsx'
     text: Development aids such as the test-token picker and the API address box are rendered only behind a development-build check, so that a production build cannot show them.
 ---
 # ADR 0010: Frontend interface conventions
@@ -58,6 +58,8 @@ One of them was already turned into a rule of its own after the review: rule 9 o
 [ADR 0005](0005-technology-choices-and-dependency-policy.md) fixes the technology (Tailwind, components in the style of shadcn/ui, ICU messages behind the kit's `Translator`, forms that show the backend's errors). This ADR does not change it. It states the behaviour that screens built with it must have.
 
 ## Decision
+
+**Scope.** These conventions are about screens, so the rules apply to the React component files (`.tsx`) in `packages/` and `apps/` of the frontend repositories, and not to the plain TypeScript there (the API client, the core's registry and auth code, formatting helpers, test fixtures). A rule about a screen is checked where the screen is written.
 
 1. **Every record has its own address.** A page that lists records and opens one (a company, a person, an invoice, a seller) registers two routes for the same component, `/things` and `/things/:id`. The name in a row is a real link (an `<a href>`), so a record can be linked, opened in a new tab, reloaded into and left with Back. A record that opens only as local state is a defect, not a style choice. Master-data lists whose rows are edited in a dialog have no detail page and are the exception.
 2. **A destructive action asks first.** Deleting, erasing, deactivating or removing a record asks the user to confirm before the request is sent, and the question says what happens (for example that a deactivated record can come back and an erased one cannot). Erasing personal data asks for the name of the record to be typed. The confirm button inside the dialog is the only red-filled control; the actions that open it use a quieter style. (How an undo would work instead of a question is not decided here; until it is, the confirmation is required and there is no exception.)
