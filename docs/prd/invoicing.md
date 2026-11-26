@@ -115,7 +115,7 @@ All permissions follow the [permission contract](../../spec/permissions.md).
 
 ## 7. Events
 
-`invoicing.invoice.created`, `.updated`, `.confirmed`, `.deleted` (a draft); `invoicing.seller.created`, `.updated`. An event carries identifiers and what a consumer needs to keep a cache in step; `confirmed` carries the facts of K2. The exact data of each is fixed in the module's manifest.
+`invoicing.invoice.created`, `.updated`, `.confirmed`, `.deleted` (a draft); `invoicing.seller.deactivated`, `.reactivated` (a seller's id is handed out in the result of an issued invoice, so ADR 0009 requires them; published). `invoicing.seller.created` and `.updated` are **planned, not yet published**: no consumer needs them today, and the module does not publish them until one does. An event carries identifiers and what a consumer needs to keep a cache in step; `confirmed` carries the facts of K2. The exact data of each is fixed in the module's manifest.
 
 ## 8. Out of scope for v1
 
