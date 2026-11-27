@@ -45,6 +45,8 @@ describe("permissions", () => {
     assert.deepEqual(res.json.permissions, [...new Set(res.json.permissions)].sort(), "permissions must be sorted without duplicates");
     if (permission) assert.ok(res.json.permissions.includes(permission), `permissions must include ${permission}`);
     assert.equal(typeof res.json.features, "object");
+    // tenantName is optional; when it is there it is the tenant's name, a non-empty string.
+    if ("tenantName" in res.json) assert.ok(typeof res.json.tenantName === "string" && res.json.tenantName.length > 0, "tenantName, when present, must be a non-empty string");
     assert.match(res.headers.get("cache-control") ?? "", /no-store/);
     assert.match(res.headers.get("cache-control") ?? "", /private/);
   });

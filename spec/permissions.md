@@ -57,6 +57,7 @@ The response is `200` with:
 ```json
 {
   "tenantId": "0198c4a2-6f1e-7b3a-9c52-3d5e8f1a2b4c",
+  "tenantName": "Acme",
   "permissions": ["Identity.Users", "Identity.Users.Create"],
   "features": { "Identity.TwoFactor": true }
 }
@@ -65,6 +66,7 @@ The response is `200` with:
 | Property | Description |
 |---|---|
 | `tenantId` | The resolved tenant |
+| `tenantName` | Optional. The tenant's display name, so that an interface can say which tenant the person is working in. Omitted when the implementation does not know a name (a host whose tenant directory has none); a client MUST NOT require it, and an implementation MUST NOT put anything but the tenant's own name there |
 | `permissions` | Every permission the caller holds in that tenant, including the permissions of the tenant administrator role, so a client tests membership and needs no hierarchy logic. Sorted, without duplicates |
 | `features` | The effective value of every feature declared by the installed modules, by feature name |
 
@@ -94,7 +96,7 @@ The conformance suite checks, against a running backend, that:
 - a request that fails authentication returns `401` before any permission or feature check, and a caller without the permission gets `403 Eolent.Forbidden` rather than `Eolent.FeatureDisabled` when both would fail
 - an operation with `x-eolent-feature` returns `403 Eolent.FeatureDisabled` when the tenant's feature is `false`, and succeeds when it is `true`
 - every `x-eolent-feature` value names a `boolean` feature declared by the module named by the operation's tag, and appears only on `tenantScoped` operations
-- `GET /api/v1/me/access` returns the caller's own tenant, an expanded and sorted `permissions` list, and `features` for every installed module, with `Cache-Control: private, no-store`
+- `GET /api/v1/me/access` returns the caller's own tenant (and its name, when the implementation knows one), an expanded and sorted `permissions` list, and `features` for every installed module, with `Cache-Control: private, no-store`
 - every permission in `permissions` is declared in some installed module's manifest, and the `parent` chains in the manifests have no cycles
 - an agent acting for a user cannot pass a check the user could not pass
 - a host principal without `Tenants.Tenants.Switch` cannot act within a tenant
